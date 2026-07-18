@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/formatters.dart';
 import '../../students/controllers/students_controller.dart';
@@ -58,11 +59,11 @@ class _State extends ConsumerState<ReceiptScreen> {
           height: 54,
           child: TextField(
             onChanged: (v) => setState(() => query = v),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search, color: Color(0xFF9297A7)),
-              hintText: 'Search student...',
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search, color: Color(0xFF9297A7)),
+              hintText: context.tr('Search student...'),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).colorScheme.surface,
             ),
           ),
         ),
@@ -100,7 +101,7 @@ class _Summary extends StatelessWidget {
     margin: const EdgeInsets.only(right: 10),
     padding: const EdgeInsets.all(14),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       border: Border.all(color: const Color(0xFFE4E7EF)),
       borderRadius: BorderRadius.circular(18),
     ),
@@ -153,7 +154,7 @@ class _FeeCard extends StatelessWidget {
       height: 120,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         border: Border.all(color: const Color(0xFFE4E7EF)),
         borderRadius: BorderRadius.circular(20),
       ),
@@ -236,11 +237,11 @@ class _FeeCard extends StatelessWidget {
                   ? OutlinedButton.icon(
                       onPressed: null,
                       icon: const Icon(Icons.check, size: 14),
-                      label: const Text('Paid'),
+                      label: Text(context.tr('Paid')),
                     )
                   : FilledButton(
                       onPressed: onPaid,
-                      child: const Text('Mark paid'),
+                      child: Text(context.tr('Mark paid')),
                     ),
             ],
           ),

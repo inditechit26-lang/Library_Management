@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../students/controllers/students_controller.dart';
 import '../../students/models/student.dart';
@@ -37,7 +38,7 @@ class _AdmissionFormState extends ConsumerState<AdmissionForm> {
         TextFormField(
           controller: name,
           validator: (value) => value!.trim().isEmpty ? 'Required' : null,
-          decoration: const InputDecoration(labelText: 'Student name'),
+          decoration: InputDecoration(labelText: context.tr('Student name')),
         ),
         const SizedBox(height: 10),
         TextFormField(
@@ -45,7 +46,7 @@ class _AdmissionFormState extends ConsumerState<AdmissionForm> {
           validator: (value) =>
               value!.length < 10 ? 'Enter mobile number' : null,
           keyboardType: TextInputType.phone,
-          decoration: const InputDecoration(labelText: 'Mobile number'),
+          decoration: InputDecoration(labelText: context.tr('Mobile number')),
         ),
         const SizedBox(height: 10),
         PlanSelector(
@@ -56,16 +57,19 @@ class _AdmissionFormState extends ConsumerState<AdmissionForm> {
         if (type == MembershipType.fullTime)
           TextFormField(
             controller: seat,
-            decoration: const InputDecoration(labelText: 'Seat number'),
+            decoration: InputDecoration(labelText: context.tr('Seat number')),
           ),
         const SizedBox(height: 10),
         TextFormField(
           controller: fee,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Monthly fee'),
+          decoration: InputDecoration(labelText: context.tr('Monthly fee')),
         ),
         const SizedBox(height: 18),
-        FilledButton(onPressed: _submit, child: const Text('Create Admission')),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(context.tr('Create Admission')),
+        ),
       ],
     ),
   );

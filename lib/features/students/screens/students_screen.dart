@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../admissions/screens/admission_screen.dart';
@@ -28,7 +29,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAdmission,
         icon: const Icon(Icons.add),
-        label: const Text('New Admission'),
+        label: Text(context.tr('New Admission')),
       ),
       body: CustomScrollView(
         slivers: [
@@ -87,7 +88,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   void _openAdmission() => showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),

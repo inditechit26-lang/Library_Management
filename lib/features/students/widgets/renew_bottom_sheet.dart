@@ -54,7 +54,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
       ),
       Text(
         '${widget.student.name} · ${widget.student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'}',
-        style: const TextStyle(color: Colors.black54),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       const SizedBox(height: 16),
       _Box(
@@ -62,7 +62,10 @@ class _State extends ConsumerState<RenewBottomSheet> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _Data('CURRENT EXPIRY', widget.student.expiry),
-            const Icon(Icons.arrow_forward, color: Colors.black38),
+            Icon(
+              Icons.arrow_forward,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             _Data('NEW EXPIRY', expiry),
           ],
         ),
@@ -94,14 +97,20 @@ class _State extends ConsumerState<RenewBottomSheet> {
               AppConstants.libraryName,
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
-            const Text(
+            Text(
               AppConstants.upiId,
-              style: TextStyle(fontSize: 11, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 11,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Ask the student to scan this QR to complete payment.',
-              style: TextStyle(fontSize: 10, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 10,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -184,7 +193,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
         onPressed: () => showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
           ),
@@ -204,7 +213,12 @@ class _State extends ConsumerState<RenewBottomSheet> {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(a, style: const TextStyle(color: Colors.black54)),
+        Text(
+          a,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
         Text(b, style: const TextStyle(fontWeight: FontWeight.w700)),
       ],
     ),
@@ -220,7 +234,7 @@ class _Handle extends StatelessWidget {
       height: 4,
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.black12,
+        color: Theme.of(context).colorScheme.outlineVariant,
         borderRadius: BorderRadius.circular(4),
       ),
     ),
@@ -235,7 +249,7 @@ class _Box extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       border: Border.all(color: const Color(0xFFE7E8EE)),
       borderRadius: BorderRadius.circular(20),
     ),
@@ -250,7 +264,13 @@ class _Data extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(a, style: const TextStyle(fontSize: 9, color: Colors.black45)),
+      Text(
+        a,
+        style: TextStyle(
+          fontSize: 9,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
       Text(b, style: const TextStyle(fontWeight: FontWeight.w700)),
     ],
   );

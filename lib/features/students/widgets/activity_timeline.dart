@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import '../../../core/widgets/premium_card.dart';
 
 class ActivityTimeline extends StatelessWidget {
@@ -8,11 +9,14 @@ class ActivityTimeline extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.history, color: Color(0xFF514BC0)),
-            SizedBox(width: 9),
-            Text('Activity', style: TextStyle(fontWeight: FontWeight.w800)),
+            const Icon(Icons.history, color: Color(0xFF514BC0)),
+            const SizedBox(width: 9),
+            Text(
+              context.tr('Activity'),
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -66,7 +70,10 @@ class _Event extends StatelessWidget {
                 ),
                 Text(
                   date,
-                  style: const TextStyle(fontSize: 10, color: Colors.black45),
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

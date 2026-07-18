@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../students/controllers/students_controller.dart';
 import '../controllers/seats_controller.dart';
@@ -44,10 +45,13 @@ class _State extends ConsumerState<SeatManagementScreen> {
                 height: 52,
                 child: TextField(
                   onChanged: (value) => setState(() => query = value),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search, color: Color(0xFF8E94A5)),
-                    hintText: 'Search seat or student',
-                    fillColor: Colors.white,
+                  decoration: InputDecoration(
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF8E94A5),
+                    ),
+                    hintText: context.tr('Search seat or student'),
+                    fillColor: Theme.of(context).colorScheme.surface,
                     filled: true,
                   ),
                 ),
@@ -87,7 +91,7 @@ class _State extends ConsumerState<SeatManagementScreen> {
         Container(
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             border: Border.all(color: const Color(0xFFE4E7EF)),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -149,7 +153,7 @@ class _State extends ConsumerState<SeatManagementScreen> {
 
   void _openSeat(Seat seat) => showModalBottomSheet(
     context: context,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -170,7 +174,9 @@ class _View extends StatelessWidget {
       width: 42,
       height: 44,
       decoration: BoxDecoration(
-        color: selected ? Colors.white : Colors.transparent,
+        color: selected
+            ? Theme.of(context).colorScheme.surface
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(11),
         boxShadow: selected
             ? const [BoxShadow(color: Color(0x12262B44), blurRadius: 12)]

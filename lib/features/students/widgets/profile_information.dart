@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/premium_card.dart';
 import '../models/student.dart';
@@ -8,7 +9,7 @@ class StudentInformationCard extends StatelessWidget {
   const StudentInformationCard({super.key, required this.student});
   @override
   Widget build(BuildContext context) => _Section(
-    title: 'Personal Information',
+    title: context.tr('Personal Information'),
     icon: Icons.person_outline,
     children: [
       _Row('Student Name', student.name),
@@ -41,7 +42,7 @@ class PaymentInformationCard extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) => _Section(
-    title: 'Payment Information',
+    title: context.tr('Payment Information'),
     icon: Icons.account_balance_wallet_outlined,
     children: [
       _Row('Monthly Fee', money(student.fee)),
@@ -51,13 +52,16 @@ class PaymentInformationCard extends StatelessWidget {
       _Row('Payment Status', student.payment.name),
       ListTile(
         contentPadding: EdgeInsets.zero,
-        title: const Text(
+        title: Text(
           'Receipt History',
-          style: TextStyle(fontSize: 12, color: Colors.black54),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: TextButton(
           onPressed: onReceipt,
-          child: const Text('View receipts'),
+          child: Text(context.tr('View receipts')),
         ),
       ),
     ],
@@ -102,7 +106,10 @@ class _Row extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         Flexible(

@@ -33,86 +33,89 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final language = ref.watch(appSettingsProvider).language;
-    final translatedLabels = labels.map((label) => translate(label, language)).toList();
+    final translatedLabels = labels
+        .map((label) => translate(label, language))
+        .toList();
     final colors = Theme.of(context).colorScheme;
     return PopScope(
-    canPop: index == 0,
-    onPopInvokedWithResult: (didPop, result) {
-      if (!didPop && index != 0) setState(() => index = 0);
-    },
-    child: Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _Header(title: translatedLabels[index]),
-            Expanded(
-              child: IndexedStack(index: index, children: screens),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          height: 82,
-          decoration: BoxDecoration(
-            color: colors.surface,
-            border: Border(top: BorderSide(color: colors.outlineVariant)),
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x0C242943),
-                blurRadius: 20,
-                offset: Offset(0, -4),
+      canPop: index == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && index != 0) setState(() => index = 0);
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _Header(title: translatedLabels[index]),
+              Expanded(
+                child: IndexedStack(index: index, children: screens),
               ),
             ],
           ),
-          child: Row(
-            children: List.generate(
-              labels.length,
-              (item) => Expanded(
-                child: InkWell(
-                  onTap: () => setState(() => index = item),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (index == item)
-                        const Positioned(
-                          top: 0,
-                          child: SizedBox(
-                            width: 30,
-                            child: Divider(
-                              height: 3,
-                              thickness: 3,
-                              color: Color(0xFF5145EA),
+        ),
+        bottomNavigationBar: SafeArea(
+          top: false,
+          child: Container(
+            height: 82,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              border: Border(top: BorderSide(color: colors.outlineVariant)),
+              boxShadow: [
+                BoxShadow(
+                  color: Color(0x0C242943),
+                  blurRadius: 20,
+                  offset: Offset(0, -4),
+                ),
+              ],
+            ),
+            child: Row(
+              children: List.generate(
+                labels.length,
+                (item) => Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => index = item),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (index == item)
+                          const Positioned(
+                            top: 0,
+                            child: SizedBox(
+                              width: 30,
+                              child: Divider(
+                                height: 3,
+                                thickness: 3,
+                                color: Color(0xFF5145EA),
+                              ),
                             ),
                           ),
-                        ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            icons[item],
-                            color: index == item
-                                ? const Color(0xFF5145EA)
-                                : const Color(0xFF969BAB),
-                            size: 25,
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            translatedLabels[item],
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              icons[item],
                               color: index == item
                                   ? const Color(0xFF5145EA)
                                   : const Color(0xFF969BAB),
+                              size: 25,
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(height: 5),
+                            Text(
+                              translatedLabels[item],
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: index == item
+                                    ? const Color(0xFF5145EA)
+                                    : const Color(0xFF969BAB),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -120,7 +123,6 @@ class _AppShellState extends ConsumerState<AppShell> {
           ),
         ),
       ),
-    ),
     );
   }
 }
@@ -134,7 +136,9 @@ class _Header extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 18),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surface,
-      border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
+      border: Border(
+        bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+      ),
     ),
     child: Row(
       children: [
@@ -143,7 +147,9 @@ class _Header extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+            border: Border.all(
+              color: Theme.of(context).colorScheme.outlineVariant,
+            ),
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Icon(Icons.menu_rounded, size: 25),
@@ -182,8 +188,10 @@ class _Header extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(

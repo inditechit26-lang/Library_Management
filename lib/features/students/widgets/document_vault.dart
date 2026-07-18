@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/documents_controller.dart';
 import '../models/student_document.dart';
@@ -14,7 +15,7 @@ class DocumentVault extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(22),
         boxShadow: const [
           BoxShadow(
@@ -31,7 +32,7 @@ class DocumentVault extends ConsumerWidget {
             children: [
               const Icon(Icons.folder_copy_outlined, color: Color(0xFF514BC0)),
               const SizedBox(width: 9),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -41,7 +42,10 @@ class DocumentVault extends ConsumerWidget {
                     ),
                     Text(
                       'Secure student documents',
-                      style: TextStyle(fontSize: 10, color: Colors.black45),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -82,23 +86,23 @@ class DocumentVault extends ConsumerWidget {
       builder: (_) => SafeArea(
         child: Wrap(
           children: [
-            const ListTile(
-              title: Text('Add document'),
-              subtitle: Text('Choose a source'),
+            ListTile(
+              title: Text(context.tr('Add document')),
+              subtitle: Text(context.tr('Choose a source')),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Camera'),
+              title: Text(context.tr('Camera')),
               onTap: () => Navigator.pop(context, 'camera'),
             ),
             ListTile(
               leading: const Icon(Icons.photo_outlined),
-              title: const Text('Gallery'),
+              title: Text(context.tr('Gallery')),
               onTap: () => Navigator.pop(context, 'gallery'),
             ),
             ListTile(
               leading: const Icon(Icons.picture_as_pdf_outlined),
-              title: const Text('PDF or Image'),
+              title: Text(context.tr('PDF or Image')),
               onTap: () => Navigator.pop(context, 'file'),
             ),
           ],
@@ -182,20 +186,27 @@ class DocumentVault extends ConsumerWidget {
 class _EmptyVault extends StatelessWidget {
   const _EmptyVault();
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.symmetric(vertical: 22),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 22),
     child: Center(
       child: Column(
         children: [
-          Icon(Icons.cloud_upload_outlined, size: 38, color: Colors.black26),
-          SizedBox(height: 8),
-          Text(
+          Icon(
+            Icons.cloud_upload_outlined,
+            size: 38,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 8),
+          const Text(
             'No documents uploaded',
             style: TextStyle(fontWeight: FontWeight.w700),
           ),
           Text(
             'Add Aadhaar, College ID, photos or PDFs',
-            style: TextStyle(fontSize: 10, color: Colors.black45),
+            style: TextStyle(
+              fontSize: 10,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -238,10 +249,10 @@ class _DocumentTile extends StatelessWidget {
           : value == 'replace'
           ? onReplace()
           : onDelete(),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: 'preview', child: Text('Preview')),
-        PopupMenuItem(value: 'replace', child: Text('Replace')),
-        PopupMenuItem(value: 'delete', child: Text('Delete')),
+      itemBuilder: (_) => [
+        PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
+        PopupMenuItem(value: 'replace', child: Text(context.tr('Replace'))),
+        PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
       ],
     ),
   );

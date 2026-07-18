@@ -1,21 +1,29 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 
 class StudentsEmptyState extends StatelessWidget {
   const StudentsEmptyState({super.key});
   @override
-  Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(60),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(60),
     child: Column(
       children: [
-        Icon(Icons.people_outline, size: 54, color: Colors.black26),
-        SizedBox(height: 12),
+        Icon(
+          Icons.people_outline,
+          size: 54,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: 12),
         Text(
-          'No Students Found',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          context.tr('No Students Found'),
+          style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         Text(
-          'Try another search or add a new admission.',
-          style: TextStyle(color: Colors.black54, fontSize: 11),
+          context.tr('Try another search or add a new admission.'),
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 11,
+          ),
         ),
       ],
     ),

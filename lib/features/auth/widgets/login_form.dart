@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../controllers/auth_controller.dart';
+import '../../../core/settings/app_settings.dart';
 
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
@@ -18,9 +19,9 @@ class _State extends State<LoginForm> {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'Email address',
-          style: TextStyle(
+        Text(
+          context.tr('Email address'),
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
             color: Color(0xFF565B6D),
@@ -32,17 +33,20 @@ class _State extends State<LoginForm> {
           child: TextFormField(
             initialValue: 'owner@thestudyroom.in',
             validator: controller.validateEmail,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.alternate_email, color: Color(0xFFA1A6B4)),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(
+                Icons.alternate_email,
+                color: Color(0xFFA1A6B4),
+              ),
               filled: true,
-              fillColor: Color(0xFFFAFBFD),
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             ),
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
-          'Password',
-          style: TextStyle(
+        Text(
+          context.tr('Password'),
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
             color: Color(0xFF565B6D),
@@ -61,7 +65,7 @@ class _State extends State<LoginForm> {
                 color: Color(0xFFA1A6B4),
               ),
               filled: true,
-              fillColor: const Color(0xFFFAFBFD),
+              fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
               suffixIcon: IconButton(
                 onPressed: () => setState(() => hidden = !hidden),
                 icon: Icon(
@@ -81,13 +85,19 @@ class _State extends State<LoginForm> {
               value: remember,
               onChanged: (v) => setState(() => remember = v ?? false),
             ),
-            const Text('Remember me', style: TextStyle(fontSize: 12)),
+            Text(
+              context.tr('Remember me'),
+              style: const TextStyle(fontSize: 12),
+            ),
             const Spacer(),
             TextButton(
               onPressed: () {},
-              child: const Text(
-                'Forgot password?',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+              child: Text(
+                context.tr('Forgot password?'),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ],
@@ -105,12 +115,15 @@ class _State extends State<LoginForm> {
             elevation: 8,
             shadowColor: const Color(0x405145EA),
           ),
-          child: const Row(
+          child: Row(
             children: [
               SizedBox(width: 8),
               Text(
-                'Sign in',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                context.tr('Sign in'),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               Spacer(),
               Icon(Icons.north_east, size: 20),

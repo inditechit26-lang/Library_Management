@@ -22,7 +22,7 @@ class SeatCard extends StatelessWidget {
   Widget build(BuildContext context) => Material(
     color: seat.status == SeatStatus.occupied
         ? const Color(0xFFF6F5FF)
-        : Colors.white,
+        : Theme.of(context).colorScheme.surface,
     borderRadius: BorderRadius.circular(17),
     child: InkWell(
       onTap: onTap,

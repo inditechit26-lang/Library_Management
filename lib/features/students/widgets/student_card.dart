@@ -18,7 +18,7 @@ class StudentCard extends StatelessWidget {
             student.payment.name.substring(1);
   @override
   Widget build(BuildContext context) => Material(
-    color: Colors.white,
+    color: Theme.of(context).colorScheme.surface,
     borderRadius: BorderRadius.circular(20),
     child: InkWell(
       onTap: onOpen,

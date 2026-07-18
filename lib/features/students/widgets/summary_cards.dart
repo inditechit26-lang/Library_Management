@@ -62,7 +62,7 @@ class _Stat extends StatelessWidget {
     margin: const EdgeInsets.only(right: 10),
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       border: Border.all(color: const Color(0xFFE5E7EE)),
       borderRadius: BorderRadius.circular(18),
       boxShadow: const [

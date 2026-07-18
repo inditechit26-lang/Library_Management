@@ -11,8 +11,8 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE8E9EF)),
+      color: Theme.of(context).colorScheme.surface,
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       borderRadius: BorderRadius.circular(20),
     ),
     child: Column(
@@ -22,10 +22,10 @@ class SettingsSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
           child: Text(
             title.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               letterSpacing: 1,
-              color: Colors.black45,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
             ),
           ),

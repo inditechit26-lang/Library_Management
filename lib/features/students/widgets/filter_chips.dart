@@ -42,7 +42,7 @@ class StudentFilterChips extends StatelessWidget {
                       : const Color(0xFFE1E4EB),
                 ),
                 selectedColor: const Color(0xFFF0EFFF),
-                backgroundColor: Colors.white,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 labelStyle: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w700,

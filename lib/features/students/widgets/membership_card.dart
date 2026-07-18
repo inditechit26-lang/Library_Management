@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/premium_card.dart';
 import '../models/student.dart';
@@ -16,11 +17,17 @@ class MembershipCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.workspace_premium_outlined, color: Color(0xFF514BC0)),
-            SizedBox(width: 9),
-            Text('Membership', style: TextStyle(fontWeight: FontWeight.w800)),
+            const Icon(
+              Icons.workspace_premium_outlined,
+              color: Color(0xFF514BC0),
+            ),
+            const SizedBox(width: 9),
+            Text(
+              context.tr('Membership'),
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
           ],
         ),
         const SizedBox(height: 18),
@@ -50,7 +57,7 @@ class MembershipCard extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onRenew,
             icon: const Icon(Icons.refresh),
-            label: const Text('Renew Membership'),
+            label: Text(context.tr('Renew Membership')),
           ),
         ),
       ],
@@ -67,9 +74,9 @@ class _Value extends StatelessWidget {
     children: [
       Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 9,
-          color: Colors.black45,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           letterSpacing: .6,
         ),
       ),

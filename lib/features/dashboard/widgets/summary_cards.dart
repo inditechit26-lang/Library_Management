@@ -21,7 +21,7 @@ class _Base extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(22),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       border: Border.all(color: const Color(0xFFE4E7EF)),
       borderRadius: BorderRadius.circular(20),
       boxShadow: const [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import '../models/seat.dart';
 
 class SeatBottomSheet extends StatelessWidget {
@@ -25,11 +26,11 @@ class SeatBottomSheet extends StatelessWidget {
           FilledButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.person_add_alt),
-            label: const Text('Assign Student'),
+            label: Text(context.tr('Assign Student')),
           ),
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Close'),
+          child: Text(context.tr('Close')),
         ),
       ],
     ),

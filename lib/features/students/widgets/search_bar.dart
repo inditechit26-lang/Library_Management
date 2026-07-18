@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 
 class StudentSearchBar extends StatelessWidget {
   final ValueChanged<String> onChanged;
@@ -8,12 +9,12 @@ class StudentSearchBar extends StatelessWidget {
     height: 54,
     child: TextField(
       onChanged: onChanged,
-      decoration: const InputDecoration(
-        hintText: 'Search name, mobile or seat number',
-        prefixIcon: Icon(Icons.search, color: Color(0xFF8F95A6)),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+      decoration: InputDecoration(
+        hintText: context.tr('Search name, mobile or seat number'),
+        prefixIcon: const Icon(Icons.search, color: Color(0xFF8F95A6)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).colorScheme.surface,
       ),
     ),
   );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../receipts/widgets/receipt_bottom_sheet.dart';
@@ -21,7 +22,7 @@ class StudentProfileScreen extends ConsumerWidget {
         .firstWhere((item) => item.id == studentId);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Student Profile'),
+        title: Text(context.tr('Student Profile')),
         actions: [
           IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz)),
         ],
@@ -64,7 +65,7 @@ class StudentProfileScreen extends ConsumerWidget {
   void _renew(BuildContext context, Student student) => showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -73,7 +74,7 @@ class StudentProfileScreen extends ConsumerWidget {
   void _receipt(BuildContext context, Student student) => showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -90,8 +91,8 @@ class _ProfileActions extends StatelessWidget {
     top: false,
     child: Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Color(0x14292C47),

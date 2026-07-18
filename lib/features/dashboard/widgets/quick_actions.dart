@@ -68,7 +68,7 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       border: Border.all(color: const Color(0xFFE4E7EF)),
       borderRadius: BorderRadius.circular(18),
     ),
