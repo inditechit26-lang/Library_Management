@@ -21,14 +21,14 @@ class _Base extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(22),
     decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: const Color(0xFFE4E7EF)),
+      color: Colors.white,
+      border: Border.all(color: const Color(0xFFE5E7EF)),
       borderRadius: BorderRadius.circular(20),
       boxShadow: const [
         BoxShadow(
-          color: Color(0x09262B44),
-          blurRadius: 24,
-          offset: Offset(0, 8),
+          color: Color(0x0D20243B),
+          blurRadius: 30,
+          offset: Offset(0, 10),
         ),
       ],
     ),

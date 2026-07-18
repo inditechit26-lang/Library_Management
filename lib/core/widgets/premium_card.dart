@@ -12,7 +12,8 @@ class PremiumCard extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
+    color: Colors.white,
+    shadowColor: Colors.transparent,
     borderRadius: BorderRadius.circular(20),
     child: InkWell(
       onTap: onTap,
@@ -21,12 +22,17 @@ class PremiumCard extends StatelessWidget {
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE8E9EF)),
+          border: Border.all(color: const Color(0xFFE5E7EF)),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0A292C47),
-              blurRadius: 28,
-              offset: Offset(0, 9),
+              color: Color(0x0D20243B),
+              blurRadius: 30,
+              offset: Offset(0, 10),
+            ),
+            BoxShadow(
+              color: Color(0x05FFFFFF),
+              blurRadius: 1,
+              offset: Offset(0, -1),
             ),
           ],
         ),

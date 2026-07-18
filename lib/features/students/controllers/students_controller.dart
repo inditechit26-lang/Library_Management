@@ -77,10 +77,10 @@ class StudentsController extends Notifier<List<Student>> {
       initials: 'NJ',
     ),
   ];
-  void renew(Student value, String expiry) => state = [
+  void renew(Student value, String expiry, {double? fee}) => state = [
     for (final s in state)
       if (s.id == value.id)
-        s.copyWith(expiry: expiry, payment: PaymentStatus.paid)
+        s.copyWith(expiry: expiry, fee: fee, payment: PaymentStatus.paid)
       else
         s,
   ];
@@ -94,6 +94,10 @@ class StudentsController extends Notifier<List<Student>> {
         student,
   ];
   void add(Student value) => state = [...state, value];
+  void update(Student value) => state = [
+    for (final student in state)
+      if (student.id == value.id) value else student,
+  ];
 }
 
 final studentsProvider = NotifierProvider<StudentsController, List<Student>>(

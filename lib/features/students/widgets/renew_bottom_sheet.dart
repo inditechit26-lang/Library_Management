@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_constants.dart';
-import '../models/student.dart';
+import 'package:intl/intl.dart';
 import '../../../core/utils/formatters.dart';
-import '../controllers/students_controller.dart';
 import '../../receipts/widgets/receipt_bottom_sheet.dart';
+import '../../settings/controllers/pricing_controller.dart';
+import '../../settings/models/pricing_settings.dart';
+import '../controllers/students_controller.dart';
+import '../models/student.dart';
+import 'renewal_plan_selector.dart';
+import 'renewal_payment_widgets.dart';
 
 class RenewBottomSheet extends ConsumerStatefulWidget {
   final Student student;
@@ -16,210 +18,217 @@ class RenewBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _State extends ConsumerState<RenewBottomSheet> {
+  MembershipPeriod period = MembershipPeriod.monthly;
+  DateTime? customExpiry;
+  final customAmount = TextEditingController();
   double slide = 0;
   bool done = false;
-  late final String expiry;
+  late final DateTime currentExpiry;
+
   @override
   void initState() {
     super.initState();
-    final current = DateFormat('dd MMM yyyy').parse(widget.student.expiry);
-    expiry = DateFormat(
-      'dd MMM yyyy',
-    ).format(DateTime(current.year, current.month + 1, current.day));
+    currentExpiry = DateFormat('dd MMM yyyy').parse(widget.student.expiry);
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(
-      20,
-      8,
-      20,
-      MediaQuery.paddingOf(context).bottom + 20,
-    ),
-    child: AnimatedSize(
-      duration: const Duration(milliseconds: 300),
+  void dispose() {
+    customAmount.dispose();
+    super.dispose();
+  }
+
+  PlanPricing get pricing =>
+      ref.read(pricingProvider).forMembership(widget.student.membership);
+  double get amount => period == MembershipPeriod.custom
+      ? double.tryParse(customAmount.text) ?? -1
+      : pricing.priceFor(period);
+  DateTime get expiryDate => period == MembershipPeriod.custom
+      ? customExpiry ?? currentExpiry
+      : DateTime(
+          currentExpiry.year,
+          currentExpiry.month + period.months,
+          currentExpiry.day,
+        );
+  String get expiry => DateFormat('dd MMM yyyy').format(expiryDate);
+  bool get valid =>
+      period != MembershipPeriod.custom ||
+      (customExpiry != null && amount >= 0);
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: MediaQuery.sizeOf(context).height * .92,
+    child: AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
       child: done ? _success() : _payment(),
     ),
   );
-  Widget _payment() => Column(
-    mainAxisSize: MainAxisSize.min,
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const _Handle(),
-      Text(
-        'Renew Membership',
-        style: Theme.of(
-          context,
-        ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-      ),
-      Text(
-        '${widget.student.name} · ${widget.student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'}',
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ),
-      const SizedBox(height: 16),
-      _Box(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _Data('CURRENT EXPIRY', widget.student.expiry),
-            Icon(
-              Icons.arrow_forward,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            _Data('NEW EXPIRY', expiry),
-          ],
-        ),
-      ),
-      const SizedBox(height: 10),
-      _Box(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+  Widget _payment() {
+    final livePricing = ref
+        .watch(pricingProvider)
+        .forMembership(widget.student.membership);
+    return Column(
+      key: const ValueKey(false),
+      children: [
+        const SizedBox(height: 10),
+        const _Handle(),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(22, 0, 22, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Total amount'),
                 Text(
-                  money(widget.student.fee),
-                  style: const TextStyle(
-                    fontSize: 20,
+                  'Renew Membership',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
                 ),
+                const SizedBox(height: 3),
+                Text(
+                  '${widget.student.name} · ${widget.student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF8B90A1),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                RenewalPlanSelector(
+                  selected: period,
+                  pricing: livePricing,
+                  onSelected: (value) => setState(() {
+                    period = value;
+                    slide = 0;
+                  }),
+                ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 240),
+                  child: period == MembershipPeriod.custom
+                      ? Padding(
+                          key: const ValueKey(true),
+                          padding: const EdgeInsets.only(top: 12),
+                          child: RenewalCustomFields(
+                            currentExpiry: currentExpiry,
+                            selectedExpiry: customExpiry,
+                            amount: customAmount,
+                            onExpiry: (value) =>
+                                setState(() => customExpiry = value),
+                            onAmount: (_) => setState(() => slide = 0),
+                          ),
+                        )
+                      : const SizedBox(key: ValueKey(false)),
+                ),
+                const SizedBox(height: 12),
+                RenewalDateSummary(
+                  current: widget.student.expiry,
+                  expiry: expiry,
+                  plan: period.label,
+                  amount: valid ? amount : 0,
+                ),
+                const SizedBox(height: 12),
+                RenewalPaymentCard(amount: valid ? amount : 0),
+                const SizedBox(height: 14),
+                RenewalSlideConfirm(
+                  value: slide,
+                  enabled: valid,
+                  onChanged: (value) {
+                    setState(() => slide = value);
+                    if (value > .95) _complete();
+                  },
+                ),
               ],
             ),
-            const SizedBox(height: 12),
-            QrImageView(
-              data:
-                  'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=${widget.student.fee}&cu=INR',
-              size: 180,
-            ),
-            const Text(
-              AppConstants.libraryName,
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            Text(
-              AppConstants.upiId,
-              style: TextStyle(
-                fontSize: 11,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Ask the student to scan this QR to complete payment.',
-              style: TextStyle(
-                fontSize: 10,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+          ),
         ),
+      ],
+    );
+  }
+
+  void _complete() {
+    ref
+        .read(studentsProvider.notifier)
+        .renew(widget.student, expiry, fee: amount);
+    setState(() => done = true);
+  }
+
+  Widget _success() {
+    final receiptStudent = widget.student.copyWith(
+      expiry: expiry,
+      fee: amount,
+      payment: PaymentStatus.paid,
+    );
+    return SingleChildScrollView(
+      key: const ValueKey(true),
+      padding: EdgeInsets.fromLTRB(
+        22,
+        10,
+        22,
+        MediaQuery.paddingOf(context).bottom + 20,
       ),
-      const SizedBox(height: 12),
-      Stack(
-        alignment: Alignment.center,
+      child: Column(
         children: [
+          const _Handle(),
           Container(
-            height: 56,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFEEFF),
-              borderRadius: BorderRadius.circular(18),
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFFE8F7F0),
             ),
-            child: const Center(
-              child: Text(
-                'Slide to Mark Payment Received',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF514BC0),
-                ),
-              ),
+            child: const Icon(
+              Icons.check_rounded,
+              size: 38,
+              color: Color(0xFF2B8F69),
             ),
           ),
-          Slider(
-            value: slide,
-            onChanged: (v) {
-              setState(() => slide = v);
-              if (v > .95) {
-                ref
-                    .read(studentsProvider.notifier)
-                    .renew(widget.student, expiry);
-                setState(() => done = true);
-              }
-            },
-            activeColor: const Color(0xFF514BC0),
-            inactiveColor: Colors.transparent,
+          const SizedBox(height: 18),
+          const Text(
+            'Membership Renewed Successfully',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 20),
+          _Surface(
+            child: Column(
+              children: [
+                _line('Plan', period.label),
+                _line('Amount', money(amount)),
+                _line('New expiry', expiry),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => ReceiptBottomSheet(
+                  student: receiptStudent,
+                  newExpiry: expiry,
+                ),
+              ),
+              child: const Text('View Receipt'),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Done'),
           ),
         ],
       ),
-    ],
-  );
-  Widget _success() => Column(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      const _Handle(),
-      Container(
-        width: 72,
-        height: 72,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color(0xFFE8F7F0),
-        ),
-        child: const Icon(
-          Icons.check_rounded,
-          size: 38,
-          color: Color(0xFF2B8F69),
-        ),
-      ),
-      const SizedBox(height: 16),
-      const Text(
-        'Membership Renewed Successfully',
-        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),
-      ),
-      const SizedBox(height: 18),
-      _Box(
-        child: Column(
-          children: [
-            _line(
-              'Receipt',
-              'SR-2026-${widget.student.id.toString().padLeft(4, '0')}',
-            ),
-            _line('Amount', money(widget.student.fee)),
-            _line('New expiry', expiry),
-          ],
-        ),
-      ),
-      const SizedBox(height: 12),
-      FilledButton(
-        onPressed: () => showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          builder: (_) =>
-              ReceiptBottomSheet(student: widget.student, newExpiry: expiry),
-        ),
-        child: const Text('View Receipt'),
-      ),
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Done'),
-      ),
-    ],
-  );
-  Widget _line(String a, String b) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
+    );
+  }
+
+  Widget _line(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 7),
     child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          a,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+        Expanded(
+          child: Text(label, style: const TextStyle(color: Color(0xFF858B9C))),
         ),
-        Text(b, style: const TextStyle(fontWeight: FontWeight.w700)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
       ],
     ),
   );
@@ -230,48 +239,36 @@ class _Handle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
     child: Container(
-      width: 42,
+      width: 38,
       height: 4,
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.outlineVariant,
+        color: const Color(0xFFD9DBE4),
         borderRadius: BorderRadius.circular(4),
       ),
     ),
   );
 }
 
-class _Box extends StatelessWidget {
+class _Surface extends StatelessWidget {
   final Widget child;
-  const _Box({required this.child});
+  const _Surface({required this.child});
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: const Color(0xFFE7E8EE)),
+      color: Colors.white,
+      border: Border.all(color: const Color(0xFFE5E7EF)),
       borderRadius: BorderRadius.circular(20),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0920243B),
+          blurRadius: 24,
+          offset: Offset(0, 8),
+        ),
+      ],
     ),
     child: child,
-  );
-}
-
-class _Data extends StatelessWidget {
-  final String a, b;
-  const _Data(this.a, this.b);
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        a,
-        style: TextStyle(
-          fontSize: 9,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      ),
-      Text(b, style: const TextStyle(fontWeight: FontWeight.w700)),
-    ],
   );
 }

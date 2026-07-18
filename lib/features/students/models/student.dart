@@ -20,16 +20,32 @@ class Student {
     required this.membership,
     required this.initials,
   });
-  Student copyWith({String? expiry, PaymentStatus? payment}) => Student(
+  Student copyWith({
+    String? name,
+    String? phone,
+    String? seat,
+    String? expiry,
+    double? fee,
+    PaymentStatus? payment,
+    MembershipType? membership,
+  }) => Student(
     id: id,
-    name: name,
-    phone: phone,
-    seat: seat,
+    name: name ?? this.name,
+    phone: phone ?? this.phone,
+    seat: seat ?? this.seat,
     joined: joined,
     expiry: expiry ?? this.expiry,
-    fee: fee,
+    fee: fee ?? this.fee,
     payment: payment ?? this.payment,
-    membership: membership,
-    initials: initials,
+    membership: membership ?? this.membership,
+    initials: name == null
+        ? initials
+        : name
+              .trim()
+              .split(RegExp(r'\s+'))
+              .where((part) => part.isNotEmpty)
+              .take(2)
+              .map((part) => part[0].toUpperCase())
+              .join(),
   );
 }

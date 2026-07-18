@@ -12,10 +12,36 @@ class SeatsController extends Notifier<List<Seat>> {
           : ['C9', 'D8'].contains(n)
           ? SeatStatus.reserved
           : n == 'D10'
-          ? SeatStatus.unavailable
+          ? SeatStatus.maintenance
           : SeatStatus.available,
     );
   });
+
+  void assign(String number, {String? previousSeat}) {
+    state = [
+      for (final seat in state)
+        if (seat.number == previousSeat)
+          seat.copyWith(status: SeatStatus.available)
+        else if (seat.number == number)
+          seat.copyWith(status: SeatStatus.occupied)
+        else
+          seat,
+    ];
+  }
+
+  void release(String number) => setStatus(number, SeatStatus.available);
+
+  void setStatus(String number, SeatStatus status) => state = [
+    for (final seat in state)
+      if (seat.number == number) seat.copyWith(status: status) else seat,
+  ];
+
+  void generate({required int rows, required int columns}) {
+    state = List.generate(rows * columns, (index) {
+      final row = String.fromCharCode(65 + index ~/ columns);
+      return Seat('$row${index % columns + 1}', SeatStatus.available);
+    });
+  }
 }
 
 final seatsProvider = NotifierProvider<SeatsController, List<Seat>>(

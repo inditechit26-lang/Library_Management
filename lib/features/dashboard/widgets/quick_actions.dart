@@ -68,9 +68,16 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: const Color(0xFFE4E7EF)),
+      color: Colors.white,
+      border: Border.all(color: const Color(0xFFE5E7EF)),
       borderRadius: BorderRadius.circular(18),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x0A20243B),
+          blurRadius: 24,
+          offset: Offset(0, 8),
+        ),
+      ],
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +88,7 @@ class _Action extends StatelessWidget {
           height: 40,
           decoration: BoxDecoration(
             color: bg,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(13),
           ),
           child: Icon(icon, color: color, size: 21),
         ),

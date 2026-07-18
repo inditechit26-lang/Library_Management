@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/settings/app_settings.dart';
+import '../widgets/membership_pricing_settings.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -86,6 +87,46 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: surface,
+            border: Border.all(color: outline),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _Field('Library name', 'The Study Room'),
+              const _Field('Owner name', 'Om Chandrawanshi'),
+              const _Field('Phone number', '+91 98765 43210'),
+              const _Field('Total seats', '128'),
+              const _Field('Default monthly fee', '1800', prefix: '₹'),
+              const Divider(height: 28),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () {},
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  child: const Text('Save changes'),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        const MembershipPricingSettings(),
+        const SizedBox(height: 14),
         const _Backup(),
         const SizedBox(height: 12),
         const _About(),
@@ -93,11 +134,46 @@ class SettingsScreen extends ConsumerWidget {
         OutlinedButton.icon(
           onPressed: () => context.go('/login'),
           icon: const Icon(Icons.logout),
-          label: Text(context.tr('Log out')),
+          label: const Text('Log out'),
         ),
       ],
     );
   }
+}
+
+class _Field extends StatelessWidget {
+  final String label, value, prefix;
+  const _Field(this.label, this.value, {this.prefix = ''});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF565B6D),
+          ),
+        ),
+        const SizedBox(height: 9),
+        TextFormField(
+          initialValue: value,
+          decoration: InputDecoration(
+            prefixText: prefix.isEmpty ? null : '$prefix  ',
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 17,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _Backup extends StatelessWidget {
