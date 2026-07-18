@@ -4,14 +4,16 @@ import '../../features/students/screens/students_screen.dart';
 import '../../features/seats/screens/seat_management_screen.dart';
 import '../../features/receipts/screens/receipt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../settings/app_settings.dart';
 
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   int index = 0;
   static const labels = ['Dashboard', 'Students', 'Seats', 'Fees', 'Settings'];
   static const icons = [
@@ -29,18 +31,22 @@ class _AppShellState extends State<AppShell> {
     SettingsScreen(),
   ];
   @override
-  Widget build(BuildContext context) => PopScope(
+  Widget build(BuildContext context) {
+    final language = ref.watch(appSettingsProvider).language;
+    final translatedLabels = labels.map((label) => translate(label, language)).toList();
+    final colors = Theme.of(context).colorScheme;
+    return PopScope(
     canPop: index == 0,
     onPopInvokedWithResult: (didPop, result) {
       if (!didPop && index != 0) setState(() => index = 0);
     },
     child: Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            _Header(title: labels[index]),
+            _Header(title: translatedLabels[index]),
             Expanded(
               child: IndexedStack(index: index, children: screens),
             ),
@@ -51,9 +57,9 @@ class _AppShellState extends State<AppShell> {
         top: false,
         child: Container(
           height: 82,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Color(0xFFE6E8F0))),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border(top: BorderSide(color: colors.outlineVariant)),
             boxShadow: [
               BoxShadow(
                 color: Color(0x0C242943),
@@ -95,7 +101,7 @@ class _AppShellState extends State<AppShell> {
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            labels[item],
+                            translatedLabels[item],
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -115,7 +121,8 @@ class _AppShellState extends State<AppShell> {
         ),
       ),
     ),
-  );
+    );
+  }
 }
 
 class _Header extends StatelessWidget {
@@ -125,9 +132,9 @@ class _Header extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     height: 86,
     padding: const EdgeInsets.symmetric(horizontal: 18),
-    decoration: const BoxDecoration(
-      color: Colors.white,
-      border: Border(bottom: BorderSide(color: Color(0xFFE4E7EF))),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      border: Border(bottom: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
     ),
     child: Row(
       children: [
@@ -135,8 +142,8 @@ class _Header extends StatelessWidget {
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: const Color(0xFFE4E7EF)),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
             borderRadius: BorderRadius.circular(14),
           ),
           child: const Icon(Icons.menu_rounded, size: 25),
@@ -159,11 +166,11 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 23,
                   height: 1,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF191C2D),
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -175,8 +182,8 @@ class _Header extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFE4E7EF)),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(

@@ -1,61 +1,141 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/settings/app_settings.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
   @override
-  Widget build(BuildContext context) => ListView(
-    padding: const EdgeInsets.fromLTRB(14, 0, 14, 28),
-    children: [
-      Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: const Color(0xFFE4E7EF)),
-          borderRadius: const BorderRadius.vertical(
-            bottom: Radius.circular(20),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(appSettingsProvider);
+    String tr(String text) => translate(text, settings.language);
+    final surface = Theme.of(context).colorScheme.surface;
+    final outline = Theme.of(context).colorScheme.outlineVariant;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(14, 0, 14, 28),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: surface,
+            border: Border.all(color: outline),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr('Appearance & language'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                tr('Language'),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                tr('Choose the language used throughout the app.'),
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 10),
+              DropdownButtonFormField<AppLanguage>(
+                initialValue: settings.language,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.language),
+                ),
+                items: AppLanguage.values
+                    .map(
+                      (language) => DropdownMenuItem(
+                        value: language,
+                        child: Text(language.label),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (language) {
+                  if (language != null) {
+                    ref
+                        .read(appSettingsProvider.notifier)
+                        .setLanguage(language);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                secondary: Icon(
+                  settings.themeMode == ThemeMode.dark
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                ),
+                title: Text(
+                  tr('Dark mode'),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(tr('Use a darker color theme.')),
+                value: settings.themeMode == ThemeMode.dark,
+                onChanged: ref.read(appSettingsProvider.notifier).setDarkMode,
+              ),
+            ],
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _Field('Library name', 'The Study Room'),
-            const _Field('Owner name', 'Om Chandrawanshi'),
-            const _Field('Phone number', '+91 98765 43210'),
-            const _Field('Total seats', '128'),
-            const _Field('Default monthly fee', '1800', prefix: '₹'),
-            const Divider(height: 28),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton(
-                onPressed: () {},
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                ),
-                child: const Text('Save changes'),
-              ),
+        const SizedBox(height: 14),
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: surface,
+            border: Border.all(color: outline),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(20),
             ),
-          ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const _Field('Library name', 'The Study Room'),
+              const _Field('Owner name', 'Om Chandrawanshi'),
+              const _Field('Phone number', '+91 98765 43210'),
+              const _Field('Total seats', '128'),
+              const _Field('Default monthly fee', '1800', prefix: '₹'),
+              const Divider(height: 28),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: () {},
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  child: const Text('Save changes'),
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      const SizedBox(height: 14),
-      const _Backup(),
-      const SizedBox(height: 12),
-      const _About(),
-      const SizedBox(height: 12),
-      OutlinedButton.icon(
-        onPressed: () => context.go('/login'),
-        icon: const Icon(Icons.logout),
-        label: const Text('Log out'),
-      ),
-    ],
-  );
+        const SizedBox(height: 14),
+        const _Backup(),
+        const SizedBox(height: 12),
+        const _About(),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () => context.go('/login'),
+          icon: const Icon(Icons.logout),
+          label: const Text('Log out'),
+        ),
+      ],
+    );
+  }
 }
 
 class _Field extends StatelessWidget {
@@ -81,7 +161,7 @@ class _Field extends StatelessWidget {
           decoration: InputDecoration(
             prefixText: prefix.isEmpty ? null : '$prefix  ',
             filled: true,
-            fillColor: const Color(0xFFFAFBFD),
+            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 17,
@@ -99,8 +179,8 @@ class _Backup extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE4E7EF)),
+      color: Theme.of(context).colorScheme.surface,
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       borderRadius: BorderRadius.circular(20),
     ),
     child: Row(
@@ -148,8 +228,8 @@ class _About extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE4E7EF)),
+      color: Theme.of(context).colorScheme.surface,
+      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       borderRadius: BorderRadius.circular(20),
     ),
     child: const Row(
