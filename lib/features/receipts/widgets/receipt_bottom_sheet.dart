@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../students/models/student.dart';
+import '../../students/widgets/profile_header.dart';
 import '../../../core/utils/formatters.dart';
 import '../services/receipt_service.dart';
 
@@ -82,7 +83,10 @@ class ReceiptBottomSheet extends StatelessWidget {
                     : 'Flexible',
               ),
               _line('Joining date', student.joined),
-              _line('Previous expiry', student.expiry),
+              _line(
+                'Previous expiry',
+                student.previousExpiry ?? student.expiry,
+              ),
               _line('New expiry', newExpiry ?? student.expiry),
               _line('Payment method', 'UPI'),
               _line('Amount paid', money(student.fee), strong: true),
@@ -105,8 +109,8 @@ class ReceiptBottomSheet extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () =>
                     ReceiptService.share(student, newExpiry: newExpiry),
-                icon: const Icon(Icons.share_outlined),
-                label: const Text('Share'),
+                icon: const WhatsAppLogo(size: 18),
+                label: const Text('Share to WhatsApp'),
               ),
             ),
           ],

@@ -169,33 +169,152 @@ class AppTheme {
   }
 
   static ThemeData get dark {
+    const background = Color(0xFF10131B);
+    const surface = Color(0xFF191D28);
+    const surfaceLow = Color(0xFF202532);
+    const surfaceHigh = Color(0xFF292F3D);
+    const onSurface = Color(0xFFF4F6FC);
+    const onSurfaceVariant = Color(0xFFC5CAD8);
+    const outlineDark = Color(0xFF414858);
     final scheme =
         ColorScheme.fromSeed(
-          seedColor: primary,
+          seedColor: const Color(0xFFB8B1FF),
           brightness: Brightness.dark,
         ).copyWith(
-          surface: const Color(0xFF1B1E28),
-          outline: const Color(0xFF353947),
-          outlineVariant: const Color(0xFF2A2E39),
+          primary: const Color(0xFFB8B1FF),
+          onPrimary: const Color(0xFF201C52),
+          primaryContainer: const Color(0xFF373173),
+          onPrimaryContainer: const Color(0xFFE7E3FF),
+          secondary: const Color(0xFF72DFB3),
+          onSecondary: const Color(0xFF063824),
+          surface: surface,
+          onSurface: onSurface,
+          onSurfaceVariant: onSurfaceVariant,
+          outline: outlineDark,
+          outlineVariant: const Color(0xFF303747),
+          surfaceContainerLowest: background,
+          surfaceContainerLow: surfaceLow,
+          surfaceContainer: surfaceHigh,
+          surfaceContainerHighest: const Color(0xFF313849),
         );
-    final text = GoogleFonts.manropeTextTheme(ThemeData.dark().textTheme);
+    final text = GoogleFonts.manropeTextTheme(
+      ThemeData.dark().textTheme,
+    ).apply(bodyColor: onSurface, displayColor: onSurface);
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: const Color(0xFF11131A),
+      scaffoldBackgroundColor: background,
       colorScheme: scheme,
-      textTheme: text,
+      textTheme: text.copyWith(
+        bodyMedium: text.bodyMedium?.copyWith(height: 1.42),
+        titleLarge: text.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+        titleMedium: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        labelLarge: text.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+      ),
       cardTheme: const CardThemeData(
-        color: Color(0xFF1B1E28),
+        color: surface,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+          side: BorderSide(color: outlineDark),
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: surface,
+        foregroundColor: onSurface,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: text.titleLarge?.copyWith(
+          color: onSurface,
+          fontWeight: FontWeight.w800,
+        ),
+        iconTheme: const IconThemeData(color: onSurfaceVariant),
+        shape: const Border(bottom: BorderSide(color: outlineDark)),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFF303747),
+        thickness: 1,
+        space: 24,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF232631),
-        border: _inputBorder(const Color(0xFF353947)),
-        enabledBorder: _inputBorder(const Color(0xFF353947)),
-        focusedBorder: _inputBorder(primary, width: 1.5),
+        fillColor: surfaceHigh,
+        labelStyle: const TextStyle(color: onSurfaceVariant),
+        hintStyle: const TextStyle(color: Color(0xFF9FA7B8)),
+        prefixIconColor: onSurfaceVariant,
+        suffixIconColor: onSurfaceVariant,
+        border: _inputBorder(outlineDark),
+        enabledBorder: _inputBorder(outlineDark),
+        focusedBorder: _inputBorder(scheme.primary, width: 1.5),
+        errorBorder: _inputBorder(const Color(0xFFFFB4AB)),
+        focusedErrorBorder: _inputBorder(const Color(0xFFFFB4AB), width: 1.5),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(48, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: text.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          foregroundColor: onSurface,
+          side: const BorderSide(color: outlineDark),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: surface,
+        selectedColor: const Color(0xFF373173),
+        side: const BorderSide(color: outlineDark),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+        labelStyle: text.labelMedium?.copyWith(
+          color: onSurfaceVariant,
+          fontWeight: FontWeight.w700,
+        ),
+        checkmarkColor: scheme.primary,
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scheme.onPrimary
+              : const Color(0xFFC5CAD8),
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scheme.primary
+              : const Color(0xFF4A5264),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: surface,
+        modalBackgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        modalBarrierColor: Color(0x99000000),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(24)),
+        ),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {

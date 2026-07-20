@@ -4,25 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/formatters.dart';
+import '../widgets/receipt_bottom_sheet.dart';
 import '../../students/controllers/students_controller.dart';
 import '../../students/models/student.dart';
+import '../../students/widgets/profile_header.dart';
 import '../../students/widgets/renew_bottom_sheet.dart';
 
 enum _MembershipFilter { all, expired, active, expiringSoon }
 
 extension on _MembershipFilter {
   String get label => switch (this) {
-    _MembershipFilter.all => 'All students',
-    _MembershipFilter.expired => 'Expired membership',
+    _MembershipFilter.all => 'All',
+    _MembershipFilter.expired => 'Expired',
     _MembershipFilter.active => 'Currently active',
     _MembershipFilter.expiringSoon => 'Expiring in 5 days',
-  };
-
-  IconData get icon => switch (this) {
-    _MembershipFilter.all => Icons.groups_rounded,
-    _MembershipFilter.expired => Icons.error_outline_rounded,
-    _MembershipFilter.active => Icons.verified_outlined,
-    _MembershipFilter.expiringSoon => Icons.timer_outlined,
   };
 }
 
@@ -38,184 +33,134 @@ class _State extends ConsumerState<ReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final students = ref
-        .watch(studentsProvider)
+    final allStudents = ref.watch(studentsProvider);
+    final students = allStudents
         .where(
           (student) =>
               student.name.toLowerCase().contains(query.toLowerCase()) &&
               _matchesFilter(student),
         )
         .toList();
-    return ScrollConfiguration(
-      behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
-      child: ListView(
-        physics: const ClampingScrollPhysics(),
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
-        children: [
-          SizedBox(
-            height: 86,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: const [
-                _Summary(
-                  'TOTAL COLLECTED',
-                  '₹86,200',
-                  '12.5%',
-                  Icons.currency_rupee,
-                  Color(0xFF24926B),
-                  Color(0xFFE9F7F1),
-                ),
-                _Summary(
-                  'PENDING AMOUNT',
-                  '₹23,800',
-                  '12 students',
-                  Icons.schedule,
-                  Color(0xFFC6812C),
-                  Color(0xFFFFF1E2),
-                ),
-                _Summary(
-                  'THIS MONTH',
-                  '47 payments',
-                  '78% collected',
-                  Icons.calendar_month_outlined,
-                  Color(0xFF5B55C9),
-                  Color(0xFFF0EFFF),
+    return ListView(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+      children: [
+        _FeeOverview(
+          students: allStudents,
+          expiringSoon: _countExpiringSoon(allStudents),
+        ),
+        const SizedBox(height: 18),
+        SizedBox(
+          height: 54,
+          child: TextField(
+            onChanged: (v) => setState(() => query = v),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search, color: Color(0xFF9297A7)),
+              hintText: context.tr('Search student...'),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 42,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: _MembershipFilter.values
+                .map(
+                  (filter) => Padding(
+                    padding: const EdgeInsets.only(right: 7),
+                    child: ChoiceChip(
+                      label: Text(filter.label),
+                      selected: selectedFilter == filter,
+                      onSelected: (_) =>
+                          setState(() => selectedFilter = filter),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      side: BorderSide(
+                        color: selectedFilter == filter
+                            ? const Color(0xFFCCC8FF)
+                            : const Color(0xFFE1E4EB),
+                      ),
+                      selectedColor: const Color(0xFFF0EFFF),
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      labelStyle: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: selectedFilter == filter
+                            ? const Color(0xFF5145C8)
+                            : const Color(0xFF74798A),
+                      ),
+                      showCheckmark: false,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Text(
+              '${students.length} ${students.length == 1 ? 'student' : 'students'}',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+            ),
+            const Spacer(),
+            Text(
+              _countExpiringSoon(allStudents) == 0
+                  ? 'No plans expiring soon'
+                  : '${_countExpiringSoon(allStudents)} expiring within 5 days',
+              style: const TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        if (students.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border.all(color: const Color(0xFFE4E7EF)),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.filter_alt_off_outlined, color: Color(0xFF9297A7)),
+                SizedBox(height: 8),
+                Text(
+                  'No students match this filter',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF666C7D),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            height: 54,
-            child: TextField(
-              onChanged: (v) => setState(() => query = v),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF9297A7)),
-                hintText: context.tr('Search student...'),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
+          )
+        else
+          ...students.map(
+            (student) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _FeeCard(
+                student: student,
+                onRenew: () => _renewPlan(student),
+                onSendReminder: () => _sendWhatsAppReminder(student),
+                onViewReceipt: () => _viewReceipt(student),
               ),
             ),
           ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              const Text(
-                'MEMBERSHIP FILTER',
-                style: TextStyle(
-                  fontSize: 10,
-                  letterSpacing: 1.1,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF8F94A3),
-                ),
-              ),
-              const Spacer(),
-              if (selectedFilter != _MembershipFilter.all)
-                TextButton(
-                  onPressed: () =>
-                      setState(() => selectedFilter = _MembershipFilter.all),
-                  style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text(
-                    'Clear filter',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _MembershipFilter.values.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final filter = _MembershipFilter.values[index];
-                final selected = selectedFilter == filter;
-                return ChoiceChip(
-                  selected: selected,
-                  onSelected: (_) => setState(() => selectedFilter = filter),
-                  avatar: Icon(
-                    filter.icon,
-                    size: 16,
-                    color: selected ? Colors.white : const Color(0xFF777D91),
-                  ),
-                  label: Text(
-                    filter.label,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: selected ? Colors.white : const Color(0xFF4D5365),
-                    ),
-                  ),
-                  selectedColor: const Color(0xFF5145EA),
-                  backgroundColor: Theme.of(context).colorScheme.surface,
-                  side: BorderSide(
-                    color: selected
-                        ? const Color(0xFF5145EA)
-                        : const Color(0xFFE0E3EB),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (students.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(24),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border.all(color: const Color(0xFFE4E7EF)),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_alt_off_outlined, color: Color(0xFF9297A7)),
-                  SizedBox(height: 8),
-                  Text(
-                    'No students match this filter',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF666C7D),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            ...students.map(
-              (student) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _FeeCard(
-                  student: student,
-                  onRenew: () => _renewPlan(student),
-                  onSendReminder: () => _sendWhatsAppReminder(student),
-                ),
-              ),
-            ),
-        ],
-      ),
+      ],
     );
   }
 
   bool _matchesFilter(Student student) {
-    final today = DateUtils.dateOnly(DateTime.now());
-    final expiry = DateUtils.dateOnly(
-      DateFormat('dd MMM yyyy').parse(student.expiry),
-    );
-    final daysRemaining = expiry.difference(today).inDays;
+    final daysRemaining = _daysUntilExpiry(student);
     return switch (selectedFilter) {
       _MembershipFilter.all => true,
       _MembershipFilter.expired => daysRemaining < 0,
@@ -223,6 +168,19 @@ class _State extends ConsumerState<ReceiptScreen> {
       _MembershipFilter.expiringSoon =>
         daysRemaining >= 0 && daysRemaining <= 5,
     };
+  }
+
+  int _countExpiringSoon(List<Student> students) => students.where((student) {
+    final daysRemaining = _daysUntilExpiry(student);
+    return daysRemaining >= 0 && daysRemaining <= 5;
+  }).length;
+
+  int _daysUntilExpiry(Student student) {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final expiry = DateUtils.dateOnly(
+      DateFormat('dd MMM yyyy').parse(student.expiry),
+    );
+    return expiry.difference(today).inDays;
   }
 
   void _renewPlan(Student student) => showModalBottomSheet(
@@ -233,6 +191,16 @@ class _State extends ConsumerState<ReceiptScreen> {
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
     builder: (_) => RenewBottomSheet(student: student),
+  );
+
+  void _viewReceipt(Student student) => showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+    ),
+    builder: (_) =>
+        ReceiptBottomSheet(student: student, newExpiry: student.expiry),
   );
 
   Future<void> _sendWhatsAppReminder(Student student) async {
@@ -253,67 +221,141 @@ class _State extends ConsumerState<ReceiptScreen> {
   }
 }
 
-class _Summary extends StatelessWidget {
-  final String label, value, note;
-  final IconData icon;
-  final Color color, bg;
-  const _Summary(
-    this.label,
-    this.value,
+class _FeeOverview extends StatelessWidget {
+  final List<Student> students;
+  final int expiringSoon;
+  const _FeeOverview({required this.students, required this.expiringSoon});
+
+  @override
+  Widget build(BuildContext context) {
+    final collected = students
+        .where((student) => student.payment == PaymentStatus.paid)
+        .fold<double>(0, (total, student) => total + student.fee);
+    final pending = students
+        .where((student) => student.payment != PaymentStatus.paid)
+        .fold<double>(0, (total, student) => total + student.fee);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        border: Border.all(color: const Color(0xFFE4E7EF)),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.insights_outlined, size: 18, color: Color(0xFF5145EA)),
+              SizedBox(width: 8),
+              Text(
+                'Collection overview',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+              ),
+              Spacer(),
+              Text(
+                'This month',
+                style: TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              Expanded(
+                child: _OverviewMetric(
+                  label: 'COLLECTED',
+                  value: money(collected),
+                  color: const Color(0xFF24926B),
+                ),
+              ),
+              const _MetricDivider(),
+              Expanded(
+                child: _OverviewMetric(
+                  label: 'PENDING',
+                  value: money(pending),
+                  color: const Color(0xFFC6812C),
+                  note: 'to collect',
+                ),
+              ),
+              const _MetricDivider(),
+              Expanded(
+                child: _OverviewMetric(
+                  label: 'EXPIRING',
+                  value: '$expiringSoon',
+                  color: const Color(0xFF5B55C9),
+                  note: 'within 5 days',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final String? note;
+  final Color color;
+  const _OverviewMetric({
+    required this.label,
+    required this.value,
+    required this.color,
     this.note,
-    this.icon,
-    this.color,
-    this.bg,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 8,
+          color: Color(0xFF9297A7),
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 5),
+      Text(
+        value,
+        style: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: color,
+        ),
+      ),
+      Text(
+        note ?? 'received',
+        style: const TextStyle(fontSize: 8, color: Color(0xFF9297A7)),
+      ),
+    ],
   );
+}
+
+class _MetricDivider extends StatelessWidget {
+  const _MetricDivider();
+
   @override
   Widget build(BuildContext context) => Container(
-    width: 235,
-    margin: const EdgeInsets.only(right: 10),
-    padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: const Color(0xFFE4E7EF)),
-      borderRadius: BorderRadius.circular(18),
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 8, color: Color(0xFF999EAC)),
-            ),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-            ),
-            Text(note, style: TextStyle(fontSize: 8, color: color)),
-          ],
-        ),
-      ],
-    ),
+    width: 1,
+    height: 46,
+    margin: const EdgeInsets.symmetric(horizontal: 10),
+    color: const Color(0xFFE9EBF1),
   );
 }
 
 class _FeeCard extends StatelessWidget {
   final Student student;
-  final VoidCallback onRenew, onSendReminder;
+  final VoidCallback onRenew, onSendReminder, onViewReceipt;
   const _FeeCard({
     required this.student,
     required this.onRenew,
     required this.onSendReminder,
+    required this.onViewReceipt,
   });
 
   @override
@@ -420,44 +462,67 @@ class _FeeCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 18, color: Color(0xFFEAECEF)),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onRenew,
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size.fromHeight(38),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    foregroundColor: const Color(0xFF5145EA),
-                    side: const BorderSide(color: Color(0xFFD9D6FA)),
-                  ),
-                  icon: const Icon(Icons.refresh_rounded, size: 17),
-                  label: const Text(
-                    'Renew plan',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-                  ),
+          if (student.hasRenewedPlan)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: onViewReceipt,
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(38),
+                  backgroundColor: const Color(0xFF5145EA),
+                ),
+                icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                label: const Text(
+                  'View payment receipt (PDF)',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: onSendReminder,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(38),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    backgroundColor: const Color(0xFF23936B),
-                  ),
-                  icon: const Icon(Icons.chat_outlined, size: 17),
-                  label: const Text(
-                    'WhatsApp reminder',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+            )
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onRenew,
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(38),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      foregroundColor: const Color(0xFF5145EA),
+                      side: const BorderSide(color: Color(0xFFD9D6FA)),
+                    ),
+                    icon: const Icon(Icons.refresh_rounded, size: 17),
+                    label: const Text(
+                      'Renew plan',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: onSendReminder,
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(38),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      backgroundColor: const Color(0xFF23936B),
+                    ),
+                    icon: const WhatsAppLogo(size: 17),
+                    label: const Text(
+                      'WhatsApp reminder',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

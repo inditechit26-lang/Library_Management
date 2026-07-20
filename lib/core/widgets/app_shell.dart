@@ -80,14 +80,14 @@ class _AppShellState extends ConsumerState<AppShell> {
                       alignment: Alignment.center,
                       children: [
                         if (index == item)
-                          const Positioned(
+                          Positioned(
                             top: 0,
                             child: SizedBox(
                               width: 30,
                               child: Divider(
                                 height: 3,
                                 thickness: 3,
-                                color: Color(0xFF5145EA),
+                                color: colors.primary,
                               ),
                             ),
                           ),
@@ -97,8 +97,8 @@ class _AppShellState extends ConsumerState<AppShell> {
                             Icon(
                               icons[item],
                               color: index == item
-                                  ? const Color(0xFF5145EA)
-                                  : const Color(0xFF969BAB),
+                                  ? colors.primary
+                                  : colors.onSurfaceVariant,
                               size: 25,
                             ),
                             const SizedBox(height: 5),
@@ -108,8 +108,8 @@ class _AppShellState extends ConsumerState<AppShell> {
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
                                 color: index == item
-                                    ? const Color(0xFF5145EA)
-                                    : const Color(0xFF969BAB),
+                                    ? colors.primary
+                                    : colors.onSurfaceVariant,
                               ),
                             ),
                           ],

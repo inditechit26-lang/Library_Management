@@ -45,7 +45,10 @@ class ReceiptService {
                     : 'Flexible',
               ),
               _line('Joining date', student.joined),
-              _line('Previous expiry', student.expiry),
+              _line(
+                'Previous expiry',
+                student.previousExpiry ?? student.expiry,
+              ),
               _line('New expiry', newExpiry ?? student.expiry),
               _line('Payment method', 'UPI'),
               pw.Divider(height: 28),
