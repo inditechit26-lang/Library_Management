@@ -80,7 +80,13 @@ class StudentsController extends Notifier<List<Student>> {
   void renew(Student value, String expiry, {double? fee}) => state = [
     for (final s in state)
       if (s.id == value.id)
-        s.copyWith(expiry: expiry, fee: fee, payment: PaymentStatus.paid)
+        s.copyWith(
+          expiry: expiry,
+          fee: fee,
+          payment: PaymentStatus.paid,
+          previousExpiry: s.expiry,
+          hasRenewedPlan: true,
+        )
       else
         s,
   ];

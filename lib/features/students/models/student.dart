@@ -5,9 +5,11 @@ enum MembershipType { fullTime, halfTime }
 class Student {
   final int id;
   final String name, phone, seat, joined, expiry, initials;
+  final String? previousExpiry;
   final double fee;
   final PaymentStatus payment;
   final MembershipType membership;
+  final bool hasRenewedPlan;
   const Student({
     required this.id,
     required this.name,
@@ -19,6 +21,8 @@ class Student {
     required this.payment,
     required this.membership,
     required this.initials,
+    this.previousExpiry,
+    this.hasRenewedPlan = false,
   });
   Student copyWith({
     String? name,
@@ -28,6 +32,8 @@ class Student {
     double? fee,
     PaymentStatus? payment,
     MembershipType? membership,
+    String? previousExpiry,
+    bool? hasRenewedPlan,
   }) => Student(
     id: id,
     name: name ?? this.name,
@@ -38,6 +44,8 @@ class Student {
     fee: fee ?? this.fee,
     payment: payment ?? this.payment,
     membership: membership ?? this.membership,
+    previousExpiry: previousExpiry ?? this.previousExpiry,
+    hasRenewedPlan: hasRenewedPlan ?? this.hasRenewedPlan,
     initials: name == null
         ? initials
         : name

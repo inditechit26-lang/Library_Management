@@ -18,6 +18,7 @@ class ShelfApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: settings.themeMode,
       locale: Locale(settings.language.code),
+      scrollBehavior: const MaterialScrollBehavior(),
       routerConfig: ref.watch(routerProvider),
     );
   }

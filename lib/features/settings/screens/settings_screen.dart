@@ -10,8 +10,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
     String tr(String text) => translate(text, settings.language);
-    final surface = Theme.of(context).colorScheme.surface;
-    final outline = Theme.of(context).colorScheme.outlineVariant;
+    final colors = Theme.of(context).colorScheme;
+    final surface = colors.surface;
+    final outline = colors.outlineVariant;
     return ListView(
       padding: const EdgeInsets.fromLTRB(14, 0, 14, 28),
       children: [
@@ -68,20 +69,46 @@ class SettingsScreen extends ConsumerWidget {
                 },
               ),
               const SizedBox(height: 12),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                secondary: Icon(
-                  settings.themeMode == ThemeMode.dark
-                      ? Icons.dark_mode_outlined
-                      : Icons.light_mode_outlined,
+              Container(
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainer,
+                  border: Border.all(color: colors.outlineVariant),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                title: Text(
-                  tr('Dark mode'),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                child: SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                  secondary: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                    child: Icon(
+                      settings.themeMode == ThemeMode.dark
+                          ? Icons.dark_mode_rounded
+                          : Icons.light_mode_rounded,
+                      size: 19,
+                      color: colors.onPrimaryContainer,
+                    ),
+                  ),
+                  title: Text(
+                    tr('Dark mode'),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                  subtitle: Text(
+                    tr('Use a darker color theme.'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                  value: settings.themeMode == ThemeMode.dark,
+                  onChanged: ref.read(appSettingsProvider.notifier).setDarkMode,
                 ),
-                subtitle: Text(tr('Use a darker color theme.')),
-                value: settings.themeMode == ThemeMode.dark,
-                onChanged: ref.read(appSettingsProvider.notifier).setDarkMode,
               ),
             ],
           ),
@@ -152,10 +179,10 @@ class _Field extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF565B6D),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 9),
@@ -193,29 +220,42 @@ class _Backup extends StatelessWidget {
           width: 46,
           height: 46,
           decoration: BoxDecoration(
-            color: const Color(0xFFE8F7F0),
+            color: Theme.of(context).colorScheme.secondaryContainer,
             borderRadius: BorderRadius.circular(13),
           ),
-          child: const Icon(Icons.download_outlined, color: Color(0xFF23936B)),
+          child: Icon(
+            Icons.download_outlined,
+            color: Theme.of(context).colorScheme.onSecondaryContainer,
+          ),
         ),
         const SizedBox(width: 14),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Backup & restore',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               SizedBox(height: 4),
               Text(
                 'Keep a safe local copy of all your library data.',
-                style: TextStyle(fontSize: 10, color: Color(0xFF969BAB)),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               SizedBox(height: 10),
               Text(
                 'Last backup: 15 July 2026, 09:42 AM',
-                style: TextStyle(fontSize: 9, color: Color(0xFFA2A6B3)),
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
@@ -235,26 +275,35 @@ class _About extends StatelessWidget {
       border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       borderRadius: BorderRadius.circular(20),
     ),
-    child: const Row(
+    child: Row(
       children: [
-        Icon(Icons.info_outline, color: Color(0xFF7056B8)),
-        SizedBox(width: 12),
+        Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'About StudyDesk',
-                style: TextStyle(fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               Text(
                 'Version 1.0.0 · Built for focused library owners',
-                style: TextStyle(fontSize: 9, color: Color(0xFF999EAC)),
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),
         ),
-        Icon(Icons.chevron_right, color: Color(0xFF9A9EAC)),
+        Icon(
+          Icons.chevron_right,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
       ],
     ),
   );
