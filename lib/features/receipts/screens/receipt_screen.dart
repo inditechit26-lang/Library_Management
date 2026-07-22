@@ -204,10 +204,17 @@ class _State extends ConsumerState<ReceiptScreen> {
   );
 
   Future<void> _sendWhatsAppReminder(Student student) async {
-    final phone = student.phone.replaceAll(RegExp(r'\D'), '');
+    final digits = student.phone.replaceAll(RegExp(r'\D'), '');
+    final phone = digits.length == 10 ? '91$digits' : digits;
     final message = Uri.encodeComponent(
-      'Hi ${student.name}, your StudyDesk plan expires on ${student.expiry}. '
-      'Please renew your plan for the next month to continue your membership.',
+      'Hello ${student.name},\n\n'
+      'This is a friendly reminder from The Study Room. Your membership is '
+      'scheduled to expire on ${student.expiry}. To ensure uninterrupted access '
+      'to your study space and services, kindly renew your membership at your '
+      'earliest convenience.\n\n'
+      'If you have already completed the payment, please disregard this message. '
+      'For any assistance, feel free to reply here.\n\n'
+      'Warm regards,\nThe Study Room Team',
     );
     final launched = await launchUrl(
       Uri.parse('https://wa.me/$phone?text=$message'),

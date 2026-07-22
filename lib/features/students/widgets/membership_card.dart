@@ -3,15 +3,28 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/premium_card.dart';
 import '../models/student.dart';
+import 'package:intl/intl.dart';
 
 class MembershipCard extends StatelessWidget {
   final Student student;
   final VoidCallback onRenew;
+  final VoidCallback onReceipt;
   const MembershipCard({
     super.key,
     required this.student,
     required this.onRenew,
+    required this.onReceipt,
   });
+  int get daysRemaining {
+    try {
+      return DateFormat(
+        'dd MMM yyyy',
+      ).parse(student.expiry).difference(DateTime.now()).inDays;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) => PremiumCard(
     child: Column(
@@ -47,19 +60,29 @@ class MembershipCard extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const _Value('DAYS REMAINING', '30 days'),
+            _Value('DAYS REMAINING', '${daysRemaining.clamp(0, 9999)} days'),
             _Value('FEE', money(student.fee)),
           ],
         ),
         const SizedBox(height: 18),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton.icon(
-            onPressed: onRenew,
-            icon: const Icon(Icons.refresh),
-            label: Text(context.tr('Renew Membership')),
+        if (student.hasRenewedPlan)
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonalIcon(
+              onPressed: onReceipt,
+              icon: const Icon(Icons.receipt_long_outlined),
+              label: const Text('View Receipt'),
+            ),
+          )
+        else if (daysRemaining <= 5)
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: onRenew,
+              icon: const Icon(Icons.refresh),
+              label: Text(context.tr('Renew Membership')),
+            ),
           ),
-        ),
       ],
     ),
   );

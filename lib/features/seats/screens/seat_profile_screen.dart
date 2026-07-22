@@ -6,6 +6,8 @@ import '../../receipts/widgets/receipt_bottom_sheet.dart';
 import '../../students/controllers/students_controller.dart';
 import '../../students/models/student.dart';
 import '../../students/widgets/edit_student_sheet.dart';
+import '../../students/widgets/document_vault.dart';
+import '../../students/widgets/activity_timeline.dart';
 import '../../students/widgets/membership_card.dart';
 import '../../students/widgets/profile_header.dart';
 import '../../students/widgets/profile_information.dart';
@@ -13,27 +15,30 @@ import '../../students/widgets/renew_bottom_sheet.dart';
 import '../controllers/seats_controller.dart';
 
 class SeatProfileScreen extends ConsumerWidget {
-  final String seatNumber;
-  const SeatProfileScreen({super.key, required this.seatNumber});
+  final String seatId;
+  const SeatProfileScreen({super.key, required this.seatId});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final seat = ref
+        .watch(seatsProvider)
+        .firstWhere((item) => item.seatId == seatId);
     Student? student;
     for (final s in ref.watch(studentsProvider)) {
-      if (s.seat == seatNumber) student = s;
+      if (s.id == seat.studentId) student = s;
     }
     if (student == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Seat $seatNumber')),
+        appBar: AppBar(title: Text('Seat ${seat.seatLabel}')),
         body: const Center(child: Text('No student assigned')),
       );
     }
     final value = student;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Seat $seatNumber'),
+        title: Text('Seat ${seat.seatLabel}'),
         actions: [
           IconButton(
-            onPressed: () => context.push('/seats/$seatNumber/change'),
+            onPressed: () => context.push('/seats/$seatId/change'),
             icon: const Icon(Icons.swap_horiz_rounded),
           ),
         ],
@@ -47,9 +52,19 @@ class SeatProfileScreen extends ConsumerWidget {
             onWhatsApp: () => _whatsApp(value),
           ),
           const SizedBox(height: 16),
-          _SeatInformation(number: seatNumber),
+          Hero(
+            tag: 'seat-$seatId',
+            child: Material(
+              color: Colors.transparent,
+              child: _SeatInformation(number: seat.seatLabel),
+            ),
+          ),
           const SizedBox(height: 14),
-          MembershipCard(student: value, onRenew: () => _renew(context, value)),
+          MembershipCard(
+            student: value,
+            onRenew: () => _renew(context, value),
+            onReceipt: () => _receipt(context, value),
+          ),
           const SizedBox(height: 14),
           StudentInformationCard(student: value),
           const SizedBox(height: 14),
@@ -57,6 +72,10 @@ class SeatProfileScreen extends ConsumerWidget {
             student: value,
             onReceipt: () => _receipt(context, value),
           ),
+          const SizedBox(height: 14),
+          DocumentVault(studentId: value.id),
+          const SizedBox(height: 14),
+          const ActivityTimeline(),
         ],
       ),
       bottomNavigationBar: SafeArea(
@@ -66,12 +85,9 @@ class SeatProfileScreen extends ConsumerWidget {
           color: Colors.white,
           child: Row(
             children: [
+              _action(Icons.phone_outlined, 'Call', () => _call(value)),
+              _action(Icons.chat_outlined, 'WhatsApp', () => _whatsApp(value)),
               _action(Icons.refresh, 'Renew', () => _renew(context, value)),
-              _action(
-                Icons.swap_horiz,
-                'Change',
-                () => context.push('/seats/$seatNumber/change'),
-              ),
               _action(
                 Icons.edit_outlined,
                 'Edit',
@@ -132,7 +148,7 @@ class SeatProfileScreen extends ConsumerWidget {
       context: c,
       builder: (dialog) => AlertDialog(
         title: const Text('Remove assignment?'),
-        content: Text('${s.name} will be removed from seat $seatNumber.'),
+        content: Text('${s.name} will be removed from this seat.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialog, false),
@@ -146,7 +162,7 @@ class SeatProfileScreen extends ConsumerWidget {
       ),
     );
     if (ok == true && c.mounted) {
-      ref.read(seatsProvider.notifier).release(seatNumber);
+      ref.read(seatsProvider.notifier).release(seatId);
       ref.read(studentsProvider.notifier).update(s.copyWith(seat: 'Flexible'));
       c.pop();
     }

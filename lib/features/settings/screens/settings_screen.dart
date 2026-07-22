@@ -152,6 +152,8 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 14),
+        _SeatManagementEntry(onTap: () => context.push('/settings/seats')),
+        const SizedBox(height: 14),
         const MembershipPricingSettings(),
         const SizedBox(height: 14),
         const _Backup(),
@@ -166,6 +168,62 @@ class SettingsScreen extends ConsumerWidget {
       ],
     );
   }
+}
+
+class _SeatManagementEntry extends StatelessWidget {
+  final VoidCallback onTap;
+  const _SeatManagementEntry({required this.onTap});
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).colorScheme.surface,
+    borderRadius: BorderRadius.circular(20),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF625CDB), Color(0xFF8580ED)],
+                ),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(
+                Icons.airline_seat_recline_normal_rounded,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Seat Management',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Configure seat labels, generators and data transfer',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 class _Field extends StatelessWidget {

@@ -80,6 +80,8 @@ class DocumentVault extends ConsumerWidget {
     WidgetRef ref,
     StudentDocument? replacing,
   ) async {
+    final type = replacing?.type ?? await _chooseType(context);
+    if (type == null || !context.mounted) return;
     final choice = await showModalBottomSheet<String>(
       context: context,
       showDragHandle: true,
@@ -119,15 +121,57 @@ class DocumentVault extends ConsumerWidget {
     if (picked == null) return;
     final doc = StudentDocument(
       id: replacing?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-      name: picked.name,
+      name: _typeName(type),
       path: picked.path,
       uploadedAt: '18 Jul 2026',
-      type: replacing?.type ?? StudentDocumentType.other,
+      type: type,
       isImage: picked.isImage,
     );
     final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
     replacing == null ? notifier.add(doc) : notifier.replace(replacing.id, doc);
   }
+
+  Future<StudentDocumentType?> _chooseType(BuildContext context) =>
+      showModalBottomSheet<StudentDocumentType>(
+        context: context,
+        builder: (sheet) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Document type',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 10),
+                for (final type in StudentDocumentType.values)
+                  ListTile(
+                    leading: Icon(
+                      type == StudentDocumentType.aadhaar
+                          ? Icons.badge_outlined
+                          : type == StudentDocumentType.collegeId
+                          ? Icons.school_outlined
+                          : type == StudentDocumentType.passportPhoto
+                          ? Icons.photo_camera_front_outlined
+                          : Icons.description_outlined,
+                    ),
+                    title: Text(_typeName(type)),
+                    onTap: () => Navigator.pop(sheet, type),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  static String _typeName(StudentDocumentType type) => switch (type) {
+    StudentDocumentType.aadhaar => 'Aadhaar Card',
+    StudentDocumentType.collegeId => 'College ID',
+    StudentDocumentType.passportPhoto => 'Passport Photo',
+    StudentDocumentType.other => 'Other Document',
+  };
 
   void _preview(BuildContext context, StudentDocument doc) => showDialog(
     context: context,

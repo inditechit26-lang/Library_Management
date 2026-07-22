@@ -8,19 +8,7 @@ class SeatFilterBar extends StatelessWidget {
     required this.selected,
     required this.onSelected,
   });
-  static const filters = [
-    'All',
-    'Available',
-    'Occupied',
-    'Full Time',
-    'Half Time',
-    'Pending',
-    'A',
-    'B',
-    'C',
-    'D',
-    'E',
-  ];
+  static const filters = ['All', 'Available', 'Occupied', 'Pending'];
   @override
   Widget build(BuildContext context) => SizedBox(
     height: 40,
@@ -31,7 +19,7 @@ class SeatFilterBar extends StatelessWidget {
       itemBuilder: (_, index) {
         final item = filters[index], active = item == selected;
         return ChoiceChip(
-          label: Text(item.length == 1 ? '$item Row' : item),
+          label: Text(item),
           selected: active,
           showCheckmark: false,
           onSelected: (_) => onSelected(item),

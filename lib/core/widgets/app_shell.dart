@@ -23,13 +23,6 @@ class _AppShellState extends ConsumerState<AppShell> {
     Icons.account_balance_wallet_outlined,
     Icons.settings_outlined,
   ];
-  final screens = const [
-    DashboardScreen(),
-    StudentsScreen(),
-    SeatManagementScreen(),
-    ReceiptScreen(),
-    SettingsScreen(),
-  ];
   @override
   Widget build(BuildContext context) {
     final language = ref.watch(appSettingsProvider).language;
@@ -37,6 +30,16 @@ class _AppShellState extends ConsumerState<AppShell> {
         .map((label) => translate(label, language))
         .toList();
     final colors = Theme.of(context).colorScheme;
+    final screens = [
+      DashboardScreen(
+        onOpenSeats: () => _selectTab(2),
+        onOpenFees: () => _selectTab(3),
+      ),
+      const StudentsScreen(),
+      const SeatManagementScreen(),
+      const ReceiptScreen(),
+      const SettingsScreen(),
+    ];
     return PopScope(
       canPop: index == 0,
       onPopInvokedWithResult: (didPop, result) {
@@ -75,7 +78,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                 labels.length,
                 (item) => Expanded(
                   child: InkWell(
-                    onTap: () => setState(() => index = item),
+                    onTap: () => _selectTab(item),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
@@ -125,6 +128,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       ),
     );
   }
+
+  void _selectTab(int value) => setState(() => index = value);
 }
 
 class _Header extends StatelessWidget {
@@ -142,19 +147,6 @@ class _Header extends StatelessWidget {
     ),
     child: Row(
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outlineVariant,
-            ),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const Icon(Icons.menu_rounded, size: 25),
-        ),
-        const SizedBox(width: 14),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

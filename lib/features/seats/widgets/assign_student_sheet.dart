@@ -19,13 +19,13 @@ class _State extends ConsumerState<AssignStudentSheet> {
     final occupied = ref
         .watch(seatsProvider)
         .where((e) => e.status == SeatStatus.occupied)
-        .map((e) => e.number)
+        .map((e) => e.studentId)
         .toSet();
     final students = ref
         .watch(studentsProvider)
         .where(
           (s) =>
-              !occupied.contains(s.seat) &&
+              !occupied.contains(s.id) &&
               '${s.name} ${s.phone}'.toLowerCase().contains(
                 query.toLowerCase(),
               ),
@@ -58,7 +58,7 @@ class _State extends ConsumerState<AssignStudentSheet> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Assign ${widget.seat.number}',
+                        'Assign ${widget.seat.seatLabel}',
                         style: const TextStyle(
                           fontSize: 21,
                           fontWeight: FontWeight.w800,
@@ -137,22 +137,23 @@ class _State extends ConsumerState<AssignStudentSheet> {
   }
 
   void _assign(Student student) {
-    final old = student.seat;
+    final old = student.seatId;
     ref
         .read(seatsProvider.notifier)
-        .assign(widget.seat.number, previousSeat: old);
+        .assign(widget.seat.seatId, student.id, previousSeatId: old);
     ref
         .read(studentsProvider.notifier)
         .update(
           student.copyWith(
-            seat: widget.seat.number,
+            seat: widget.seat.seatLabel,
+            seatId: widget.seat.seatId,
             membership: MembershipType.fullTime,
           ),
         );
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${student.name} assigned to ${widget.seat.number}'),
+        content: Text('${student.name} assigned to ${widget.seat.seatLabel}'),
       ),
     );
   }

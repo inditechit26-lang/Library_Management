@@ -21,27 +21,27 @@ class StudentFilterChips extends StatelessWidget {
   ];
   @override
   Widget build(BuildContext context) => SizedBox(
-    height: 42,
+    height: 44,
     child: ListView(
       scrollDirection: Axis.horizontal,
       children: values
           .map(
             (value) => Padding(
-              padding: const EdgeInsets.only(right: 7),
+              padding: const EdgeInsets.only(right: 8),
               child: ChoiceChip(
                 label: Text(value),
                 selected: selected == value,
                 onSelected: (_) => onSelected(value),
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
+                  horizontal: 11,
+                  vertical: 9,
                 ),
                 side: BorderSide(
                   color: selected == value
-                      ? const Color(0xFFCCC8FF)
-                      : const Color(0xFFE1E4EB),
+                      ? Colors.transparent
+                      : Theme.of(context).colorScheme.outlineVariant,
                 ),
-                selectedColor: const Color(0xFFF0EFFF),
+                selectedColor: Theme.of(context).colorScheme.primaryContainer,
                 backgroundColor: Theme.of(context).colorScheme.surface,
                 labelStyle: TextStyle(
                   fontSize: 10,

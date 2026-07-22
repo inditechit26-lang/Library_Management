@@ -36,8 +36,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   final notes = TextEditingController();
   Student? created;
   static const titles = [
-    'Membership',
     'Student Information',
+    'Membership',
     'Seat',
     'Payment',
     'Review',
@@ -109,8 +109,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   );
 
   Widget _step() => switch (admission.step) {
-    0 => _membershipStep(),
-    1 => Column(
+    0 => Column(
       children: [
         StudentInformationCard(
           formKey: formKey,
@@ -126,6 +125,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
         ),
       ],
     ),
+    1 => _membershipStep(),
     2 => AdmissionSeatSelector(
       membership: admission.membership,
       seats: ref.watch(seatsProvider),
@@ -185,8 +185,10 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
                   child: CustomPlanCard(
                     start: admission.customStart,
                     end: admission.customEnd,
-                    days: admission.customDays,
-                    amount: admission.customAmount,
+                    days: admission.customEnd == null
+                        ? null
+                        : admission.totalDays,
+                    amount: admission.customEnd == null ? null : admission.fee,
                     onStart: admission.setCustomStart,
                     onEnd: admission.setCustomEnd,
                     onDays: admission.setCustomDays,
@@ -224,7 +226,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   }
 
   bool get _canContinue => switch (admission.step) {
-    0 => admission.pricingValid,
+    1 => admission.pricingValid,
     2 =>
       admission.membership == MembershipType.halfTime ||
           admission.selectedSeat != null,
@@ -238,7 +240,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       : 'Flexible Seating';
 
   void _next() {
-    if (admission.step == 1 && !(formKey.currentState?.validate() ?? false)) {
+    if (admission.step == 0 && !(formKey.currentState?.validate() ?? false)) {
       return;
     }
     if (!_canContinue) return;
@@ -251,11 +253,18 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       id: students.length + 1,
       name: name.text,
       phone: phone.text,
+      emergencyContact: emergency.text,
+      notes: notes.text,
     );
     ref.read(studentsProvider.notifier).add(created!);
     if (admission.membership == MembershipType.fullTime &&
         admission.selectedSeat != null) {
-      ref.read(seatsProvider.notifier).assign(admission.selectedSeat!);
+      final seat = ref
+          .read(seatsProvider)
+          .firstWhere((item) => item.seatLabel == admission.selectedSeat);
+      created = created!.copyWith(seatId: seat.seatId);
+      ref.read(studentsProvider.notifier).update(created!);
+      ref.read(seatsProvider.notifier).assign(seat.seatId, created!.id);
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/payment_confirmation_slider.dart';
 
 class AdmissionPaymentQrCard extends StatefulWidget {
   final double amount;
@@ -20,7 +21,6 @@ class AdmissionPaymentQrCard extends StatefulWidget {
 }
 
 class _State extends State<AdmissionPaymentQrCard> {
-  double slide = 0;
   String get data =>
       'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=${widget.amount}&cu=INR';
 
@@ -101,38 +101,9 @@ class _State extends State<AdmissionPaymentQrCard> {
                     ),
                   ),
                 )
-              : Stack(
+              : PaymentConfirmationSlider(
                   key: const ValueKey(false),
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      height: 54,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEFEEFF),
-                        border: Border.all(color: const Color(0xFFDCD9FF)),
-                        borderRadius: BorderRadius.circular(17),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Slide to Confirm Payment',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF5650C7),
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Slider(
-                      value: slide,
-                      activeColor: const Color(0xFF5650C7),
-                      inactiveColor: Colors.transparent,
-                      onChanged: (value) {
-                        setState(() => slide = value);
-                        if (value > .95) widget.onConfirmed(true);
-                      },
-                    ),
-                  ],
+                  onConfirmed: () => widget.onConfirmed(true),
                 ),
         ),
       ],

@@ -2,11 +2,37 @@ enum SeatStatus { available, occupied, reserved, maintenance, blocked }
 
 enum SeatViewMode { floor, grid, list }
 
+/// A seat's identity is always [seatId]. [seatLabel] is presentation data and
+/// can be changed without breaking assignments, routes, or history.
 class Seat {
-  final String number;
+  final String seatId;
+  final String seatLabel;
   final SeatStatus status;
-  const Seat(this.number, this.status);
+  final int? studentId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
-  String get row => number.replaceAll(RegExp(r'\d'), '');
-  Seat copyWith({SeatStatus? status}) => Seat(number, status ?? this.status);
+  const Seat({
+    required this.seatId,
+    required this.seatLabel,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+    this.studentId,
+  });
+
+  Seat copyWith({
+    String? seatLabel,
+    SeatStatus? status,
+    int? studentId,
+    bool clearStudent = false,
+    DateTime? updatedAt,
+  }) => Seat(
+    seatId: seatId,
+    seatLabel: seatLabel ?? this.seatLabel,
+    status: status ?? this.status,
+    studentId: clearStudent ? null : studentId ?? this.studentId,
+    createdAt: createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 }

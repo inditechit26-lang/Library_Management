@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/utils/formatters.dart';
+import '../../admissions/widgets/custom_plan_card.dart';
 import '../../receipts/widgets/receipt_bottom_sheet.dart';
 import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
@@ -19,8 +20,10 @@ class RenewBottomSheet extends ConsumerStatefulWidget {
 
 class _State extends ConsumerState<RenewBottomSheet> {
   MembershipPeriod period = MembershipPeriod.monthly;
+  late DateTime customStart;
   DateTime? customExpiry;
-  final customAmount = TextEditingController();
+  int? customDays;
+  double? customFee;
   double slide = 0;
   bool done = false;
   late final DateTime currentExpiry;
@@ -29,21 +32,16 @@ class _State extends ConsumerState<RenewBottomSheet> {
   void initState() {
     super.initState();
     currentExpiry = DateFormat('dd MMM yyyy').parse(widget.student.expiry);
-  }
-
-  @override
-  void dispose() {
-    customAmount.dispose();
-    super.dispose();
+    customStart = currentExpiry;
   }
 
   PlanPricing get pricing =>
       ref.read(pricingProvider).forMembership(widget.student.membership);
   double get amount => period == MembershipPeriod.custom
-      ? double.tryParse(customAmount.text) ?? -1
+      ? customFee ?? -1
       : pricing.priceFor(period);
   DateTime get expiryDate => period == MembershipPeriod.custom
-      ? customExpiry ?? currentExpiry
+      ? customExpiry ?? customStart
       : DateTime(
           currentExpiry.year,
           currentExpiry.month + period.months,
@@ -52,7 +50,10 @@ class _State extends ConsumerState<RenewBottomSheet> {
   String get expiry => DateFormat('dd MMM yyyy').format(expiryDate);
   bool get valid =>
       period != MembershipPeriod.custom ||
-      (customExpiry != null && amount >= 0);
+      (customExpiry != null &&
+          customDays != null &&
+          customDays! > 0 &&
+          amount >= 0);
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -107,13 +108,18 @@ class _State extends ConsumerState<RenewBottomSheet> {
                       ? Padding(
                           key: const ValueKey(true),
                           padding: const EdgeInsets.only(top: 12),
-                          child: RenewalCustomFields(
-                            currentExpiry: currentExpiry,
-                            selectedExpiry: customExpiry,
-                            amount: customAmount,
-                            onExpiry: (value) =>
-                                setState(() => customExpiry = value),
-                            onAmount: (_) => setState(() => slide = 0),
+                          child: CustomPlanCard(
+                            start: customStart,
+                            end: customExpiry,
+                            days: customDays,
+                            amount: customFee,
+                            onStart: _setCustomStart,
+                            onEnd: _setCustomEnd,
+                            onDays: _setCustomDays,
+                            onAmount: (value) => setState(() {
+                              customFee = value;
+                              slide = 0;
+                            }),
                           ),
                         )
                       : const SizedBox(key: ValueKey(false)),
@@ -142,6 +148,42 @@ class _State extends ConsumerState<RenewBottomSheet> {
         ),
       ],
     );
+  }
+
+  void _setCustomStart(DateTime value) => setState(() {
+    customStart = value;
+    if (customExpiry != null && !customExpiry!.isAfter(value)) {
+      customExpiry = null;
+      customDays = null;
+      customFee = null;
+    } else if (customExpiry != null) {
+      _calculateCustomValues();
+    }
+    slide = 0;
+  });
+
+  void _setCustomEnd(DateTime value) => setState(() {
+    customExpiry = value;
+    _calculateCustomValues();
+    slide = 0;
+  });
+
+  void _setCustomDays(int? value) => setState(() {
+    customDays = value;
+    if (value != null && value > 0) {
+      customExpiry = customStart.add(Duration(days: value));
+      customFee = (pricing.monthly / 30 * value).roundToDouble();
+    } else {
+      customExpiry = null;
+      customFee = null;
+    }
+    slide = 0;
+  });
+
+  void _calculateCustomValues() {
+    if (customExpiry == null) return;
+    customDays = customExpiry!.difference(customStart).inDays;
+    customFee = (pricing.monthly / 30 * customDays!).roundToDouble();
   }
 
   void _complete() {

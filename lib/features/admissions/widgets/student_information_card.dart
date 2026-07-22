@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class StudentInformationCard extends StatelessWidget {
   final GlobalKey<FormState> formKey;
@@ -35,14 +36,18 @@ class StudentInformationCard extends StatelessWidget {
           TextFormField(
             controller: phone,
             keyboardType: TextInputType.phone,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
             textInputAction: TextInputAction.next,
             decoration: const InputDecoration(
               labelText: 'Mobile Number',
               prefixIcon: Icon(Icons.phone_outlined),
             ),
             validator: (value) =>
-                (value ?? '').replaceAll(RegExp(r'\D'), '').length < 10
-                ? 'Enter mobile number'
+                (value ?? '').replaceAll(RegExp(r'\D'), '').length != 10
+                ? 'Enter a valid 10-digit mobile number'
                 : null,
           ),
           const SizedBox(height: 13),

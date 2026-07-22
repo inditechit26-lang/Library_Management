@@ -28,7 +28,7 @@ class SeatGrid extends StatelessWidget {
       final seat = seats[index];
       Student? student;
       for (final item in students) {
-        if (item.seat == seat.number) {
+        if (item.id == seat.studentId) {
           student = item;
           break;
         }
