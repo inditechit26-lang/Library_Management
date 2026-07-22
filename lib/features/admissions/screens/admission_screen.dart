@@ -22,7 +22,8 @@ import '../widgets/student_information_card.dart';
 import '../widgets/success_screen.dart';
 
 class AdmissionScreen extends ConsumerStatefulWidget {
-  const AdmissionScreen({super.key});
+  final String? initialSeat;
+  const AdmissionScreen({super.key, this.initialSeat});
   @override
   ConsumerState<AdmissionScreen> createState() => _AdmissionScreenState();
 }
@@ -47,6 +48,9 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   void initState() {
     super.initState();
     admission = AdmissionController(ref.read(pricingProvider));
+    if (widget.initialSeat != null) {
+      admission.selectedSeat = widget.initialSeat;
+    }
     admission.addListener(_refresh);
   }
 
