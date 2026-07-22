@@ -13,14 +13,15 @@ class DashboardScreen extends ConsumerWidget {
   });
   @override
   Widget build(BuildContext context, WidgetRef ref) => ListView(
-    padding: const EdgeInsets.fromLTRB(16, 26, 16, 28),
+    padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+    physics: const BouncingScrollPhysics(),
     children: [
       DashboardSummaryCards(
         studentCount: 128,
         onManageSeats: onOpenSeats,
         onViewFees: onOpenFees,
       ),
-      const SizedBox(height: 42),
+      const SizedBox(height: 32),
       DashboardQuickActions(onAddStudent: () => _openAdmission(context)),
     ],
   );
@@ -36,3 +37,4 @@ class DashboardScreen extends ConsumerWidget {
     builder: (_) => const AdmissionScreen(),
   );
 }
+

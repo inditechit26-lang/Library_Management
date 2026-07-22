@@ -13,7 +13,7 @@ class DashboardSummaryCards extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     children: [
       _SeatCard(studentCount: studentCount, onManage: onManageSeats),
-      const SizedBox(height: 12),
+      const SizedBox(height: 16),
       _FeeCard(onViewFees: onViewFees),
     ],
   );
@@ -23,23 +23,43 @@ class _Base extends StatelessWidget {
   final Widget child;
   const _Base({required this.child});
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(22),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE5E7EF)),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0D20243B),
-          blurRadius: 30,
-          offset: Offset(0, 10),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: isDark ? theme.colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark
+              ? theme.colorScheme.outline.withOpacity(0.35)
+              : const Color(0xFFE6E8F0),
+          width: 1.2,
         ),
-      ],
-    ),
-    child: child,
-  );
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.35)
+                : const Color(0xFF1E2238).withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -2,
+          ),
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.15)
+                : const Color(0xFF5145EA).withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
 class _SeatCard extends StatelessWidget {
@@ -51,12 +71,12 @@ class _SeatCard extends StatelessWidget {
     child: Column(
       children: [
         _Title(
-          icon: Icons.grid_view_outlined,
+          icon: Icons.grid_view_rounded,
           label: 'Seat occupancy',
           action: 'Manage',
           onTap: onManage,
         ),
-        const SizedBox(height: 26),
+        const SizedBox(height: 24),
         Row(
           children: [
             Expanded(
@@ -87,11 +107,11 @@ class _SeatCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 20),
         const _Progress(
           value: .75,
           color: Color(0xFFE0646B),
-          background: Color(0xFFDDF2E9),
+          background: Color(0xFFFDE8E9),
         ),
       ],
     ),
@@ -106,13 +126,13 @@ class _FeeCard extends StatelessWidget {
     child: Column(
       children: [
         _Title(
-          icon: Icons.account_balance_wallet_outlined,
+          icon: Icons.account_balance_wallet_rounded,
           label: 'Fee collection',
           action: 'View fees',
           onTap: onViewFees,
         ),
-        SizedBox(height: 26),
-        Row(
+        const SizedBox(height: 24),
+        const Row(
           children: [
             Expanded(
               child: _Metric(
@@ -133,11 +153,11 @@ class _FeeCard extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 18),
-        _Progress(
+        const SizedBox(height: 20),
+        const _Progress(
           value: .78,
-          color: Color(0xFF35AD7C),
-          background: Color(0xFFFFEBD7),
+          color: Color(0xFF20936B),
+          background: Color(0xFFE2F4EC),
         ),
       ],
     ),
@@ -154,86 +174,166 @@ class _Title extends StatelessWidget {
     required this.action,
     required this.onTap,
   });
+
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Icon(icon, color: const Color(0xFF5145EA), size: 20),
-      const SizedBox(width: 9),
-      Text(
-        label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-      ),
-      const Spacer(),
-      InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-          child: Row(
-            children: [
-              Text(
-                action,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF5145EA),
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(0xFF5145EA),
-                size: 16,
-              ),
-            ],
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(7),
+          decoration: BoxDecoration(
+            color: primary.withOpacity(0.09),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: primary, size: 18),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.2,
           ),
         ),
-      ),
-    ],
-  );
+        const Spacer(),
+        Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
+              decoration: BoxDecoration(
+                color: primary.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: primary.withOpacity(0.2),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    action,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: primary,
+                      letterSpacing: 0.1,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: primary,
+                    size: 15,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _Metric extends StatelessWidget {
   final String label, value, note;
   final Color color;
   const _Metric(this.label, this.value, this.note, this.color);
+
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 9,
-          letterSpacing: .8,
-          color: Color(0xFF9A9FAF),
-          fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  letterSpacing: 0.7,
+                  color: isDark
+                      ? const Color(0xFF9EA6BA)
+                      : const Color(0xFF83899F),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      const SizedBox(height: 8),
-      Text(
-        value,
-        style: TextStyle(
-          fontSize: 24,
-          height: 1,
-          fontWeight: FontWeight.w800,
-          color: color,
+        const SizedBox(height: 9),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 25,
+            height: 1.0,
+            fontWeight: FontWeight.w900,
+            color: color,
+            letterSpacing: -0.4,
+          ),
         ),
-      ),
-      const SizedBox(height: 7),
-      Text(note, style: const TextStyle(fontSize: 8, color: Color(0xFFA2A7B6))),
-    ],
-  );
+        const SizedBox(height: 7),
+        Text(
+          note,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w600,
+            color: isDark
+                ? const Color(0xFF868C9E)
+                : const Color(0xFF7E8497),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _Line extends StatelessWidget {
   const _Line();
   @override
-  Widget build(BuildContext context) => Container(
-    width: 1,
-    height: 58,
-    margin: const EdgeInsets.symmetric(horizontal: 12),
-    color: const Color(0xFFE8EAF0),
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: 1,
+      height: 60,
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0)).withOpacity(0.15),
+            isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0),
+            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0)).withOpacity(0.15),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _Progress extends StatelessWidget {
@@ -244,14 +344,46 @@ class _Progress extends StatelessWidget {
     required this.color,
     required this.background,
   });
+
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(5),
-    child: LinearProgressIndicator(
-      value: value,
-      minHeight: 6,
-      color: color,
-      backgroundColor: background,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final trackBg = isDark ? color.withOpacity(0.15) : background;
+
+    return Stack(
+      children: [
+        Container(
+          height: 7,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: trackBg,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        FractionallySizedBox(
+          widthFactor: value,
+          child: Container(
+            height: 7,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  color.withOpacity(0.82),
+                  color,
+                ],
+              ),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.35),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
+

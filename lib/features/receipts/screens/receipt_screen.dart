@@ -42,23 +42,28 @@ class _State extends ConsumerState<ReceiptScreen> {
         )
         .toList();
     return ListView(
+      physics: const BouncingScrollPhysics(),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
       children: [
         _FeeOverview(
           students: allStudents,
           expiringSoon: _countExpiringSoon(allStudents),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 20),
         SizedBox(
-          height: 54,
+          height: 52,
           child: TextField(
             onChanged: (v) => setState(() => query = v),
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF9297A7)),
+              prefixIcon: const Icon(Icons.search_rounded, size: 22),
               hintText: context.tr('Search student...'),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
             ),
           ),
         ),
@@ -67,32 +72,38 @@ class _State extends ConsumerState<ReceiptScreen> {
           height: 42,
           child: ListView(
             scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
             children: _MembershipFilter.values
                 .map(
                   (filter) => Padding(
-                    padding: const EdgeInsets.only(right: 7),
+                    padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
                       label: Text(filter.label),
                       selected: selectedFilter == filter,
                       onSelected: (_) =>
                           setState(() => selectedFilter = filter),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
+                        horizontal: 12,
                         vertical: 8,
                       ),
                       side: BorderSide(
                         color: selectedFilter == filter
-                            ? const Color(0xFFCCC8FF)
-                            : const Color(0xFFE1E4EB),
+                            ? Theme.of(context).colorScheme.primary.withOpacity(0.4)
+                            : Theme.of(context).brightness == Brightness.dark
+                                ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                                : const Color(0xFFE2E5EE),
+                        width: 1.2,
                       ),
-                      selectedColor: const Color(0xFFF0EFFF),
+                      selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.12),
                       backgroundColor: Theme.of(context).colorScheme.surface,
                       labelStyle: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
                         color: selectedFilter == filter
-                            ? const Color(0xFF5145C8)
-                            : const Color(0xFF74798A),
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).brightness == Brightness.dark
+                                ? const Color(0xFF9FA6B8)
+                                : const Color(0xFF6E7487),
                       ),
                       showCheckmark: false,
                     ),
@@ -101,43 +112,79 @@ class _State extends ConsumerState<ReceiptScreen> {
                 .toList(),
           ),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 20),
         Row(
           children: [
             Text(
               '${students.length} ${students.length == 1 ? 'student' : 'students'}',
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: Theme.of(context).colorScheme.onSurface,
+                letterSpacing: -0.3,
+              ),
             ),
             const Spacer(),
-            Text(
-              _countExpiringSoon(allStudents) == 0
-                  ? 'No plans expiring soon'
-                  : '${_countExpiringSoon(allStudents)} expiring within 5 days',
-              style: const TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF2A2E3B)
+                    : const Color(0xFFF0F2F7),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _countExpiringSoon(allStudents) == 0
+                    ? 'No plans expiring soon'
+                    : '${_countExpiringSoon(allStudents)} expiring within 5 days',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFFA1A8B9)
+                      : const Color(0xFF767C8E),
+                ),
+              ),
             ),
           ],
         ),
         const SizedBox(height: 14),
         if (students.isEmpty)
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
-              border: Border.all(color: const Color(0xFFE4E7EF)),
-              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                    : const Color(0xFFE4E7EF),
+                width: 1.2,
+              ),
+              borderRadius: BorderRadius.circular(22),
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.filter_alt_off_outlined, color: Color(0xFF9297A7)),
-                SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.filter_alt_off_rounded,
+                    size: 28,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 12),
                 Text(
                   'No students match this filter',
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF666C7D),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -146,7 +193,7 @@ class _State extends ConsumerState<ReceiptScreen> {
         else
           ...students.map(
             (student) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.only(bottom: 12),
               child: _FeeCard(
                 student: student,
                 onRenew: () => _renewPlan(student),
@@ -186,7 +233,7 @@ class _State extends ConsumerState<ReceiptScreen> {
   void _renewPlan(Student student) => showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -195,7 +242,7 @@ class _State extends ConsumerState<ReceiptScreen> {
 
   void _viewReceipt(Student student) => showModalBottomSheet(
     context: context,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),
@@ -235,6 +282,10 @@ class _FeeOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+
     final collected = students
         .where((student) => student.payment == PaymentStatus.paid)
         .fold<double>(0, (total, student) => total + student.fee);
@@ -242,31 +293,69 @@ class _FeeOverview extends StatelessWidget {
         .where((student) => student.payment != PaymentStatus.paid)
         .fold<double>(0, (total, student) => total + student.fee);
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border.all(color: const Color(0xFFE4E7EF)),
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? theme.colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark
+              ? theme.colorScheme.outline.withOpacity(0.35)
+              : const Color(0xFFE6E8F0),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.35)
+                : const Color(0xFF1E2238).withOpacity(0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -2,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.insights_outlined, size: 18, color: Color(0xFF5145EA)),
-              SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: primary.withOpacity(0.09),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.insights_rounded, size: 18, color: primary),
+              ),
+              const SizedBox(width: 10),
               Text(
                 'Collection overview',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.2,
+                ),
               ),
-              Spacer(),
-              Text(
-                'This month',
-                style: TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: primary.withOpacity(0.18)),
+                ),
+                child: Text(
+                  'This month',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: primary,
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
@@ -290,7 +379,7 @@ class _FeeOverview extends StatelessWidget {
                 child: _OverviewMetric(
                   label: 'EXPIRING',
                   value: '$expiringSoon',
-                  color: const Color(0xFF5B55C9),
+                  color: const Color(0xFF5145EA),
                   note: 'within 5 days',
                 ),
               ),
@@ -315,44 +404,88 @@ class _OverviewMetric extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          fontSize: 8,
-          color: Color(0xFF9297A7),
-          fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9.5,
+                  letterSpacing: 0.7,
+                  color: isDark
+                      ? const Color(0xFF9EA6BA)
+                      : const Color(0xFF83899F),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-      const SizedBox(height: 5),
-      Text(
-        value,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w800,
-          color: color,
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: color,
+            letterSpacing: -0.4,
+          ),
         ),
-      ),
-      Text(
-        note ?? 'received',
-        style: const TextStyle(fontSize: 8, color: Color(0xFF9297A7)),
-      ),
-    ],
-  );
+        const SizedBox(height: 4),
+        Text(
+          note ?? 'received',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: isDark ? const Color(0xFF868C9E) : const Color(0xFF7E8497),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _MetricDivider extends StatelessWidget {
   const _MetricDivider();
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: 1,
-    height: 46,
-    margin: const EdgeInsets.symmetric(horizontal: 10),
-    color: const Color(0xFFE9EBF1),
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: 1,
+      height: 54,
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0)).withOpacity(0.15),
+            isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0),
+            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0)).withOpacity(0.15),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _FeeCard extends StatelessWidget {
@@ -367,121 +500,167 @@ class _FeeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final paid = student.payment == PaymentStatus.paid,
         overdue = student.payment == PaymentStatus.expired;
-    final color = paid
+    final statusColor = paid
         ? const Color(0xFF23936B)
         : overdue
         ? const Color(0xFFD3545D)
         : const Color(0xFFC47D25);
+    final avatarBg = isDark
+        ? theme.colorScheme.primary.withOpacity(0.18)
+        : const Color(0xFFEAE8FA);
+    final avatarTextColor = isDark
+        ? theme.colorScheme.primary
+        : const Color(0xFF5145EA);
+
     return Container(
-      height: 190,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border.all(color: const Color(0xFFE4E7EF)),
-        borderRadius: BorderRadius.circular(20),
+        color: isDark ? theme.colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: isDark
+              ? theme.colorScheme.outline.withOpacity(0.35)
+              : const Color(0xFFE6E8F0),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : const Color(0xFF1E2238).withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+            spreadRadius: -2,
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEAE8FA),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              student.initials,
-                              style: const TextStyle(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF625CA6),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          student.name,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: avatarBg,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: avatarTextColor.withOpacity(0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    student.initials,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: avatarTextColor,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      student.name,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
                     Text(
                       'Plan expires ${student.expiry} · ${money(student.fee)}',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Color(0xFF8F94A3),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark
+                            ? const Color(0xFF8F96A8)
+                            : const Color(0xFF7E8497),
                       ),
                     ),
                   ],
                 ),
-                const Spacer(),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: statusColor.withOpacity(0.25),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
+                      width: 6,
+                      height: 6,
                       decoration: BoxDecoration(
-                        color: color.withAlpha(22),
-                        borderRadius: BorderRadius.circular(16),
+                        color: statusColor,
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
-                        children: [
-                          CircleAvatar(radius: 3, backgroundColor: color),
-                          const SizedBox(width: 6),
-                          Text(
-                            paid
-                                ? 'Paid'
-                                : overdue
-                                ? 'Overdue'
-                                : 'Pending',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: color,
-                            ),
-                          ),
-                        ],
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      paid
+                          ? 'Paid'
+                          : overdue
+                          ? 'Overdue'
+                          : 'Pending',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: statusColor,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const Divider(height: 18, color: Color(0xFFEAECEF)),
+          const SizedBox(height: 16),
+          Divider(
+            height: 1,
+            color: isDark ? const Color(0xFF2C3242) : const Color(0xFFEEF0F5),
+          ),
+          const SizedBox(height: 14),
           if (student.hasRenewedPlan)
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(
                 onPressed: onViewReceipt,
                 style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(38),
-                  backgroundColor: const Color(0xFF5145EA),
+                  minimumSize: const Size.fromHeight(42),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  backgroundColor: theme.colorScheme.primary,
                 ),
-                icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                icon: const Icon(Icons.picture_as_pdf_rounded, size: 18),
                 label: const Text(
                   'View payment receipt (PDF)',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
                 ),
               ),
             )
@@ -492,16 +671,21 @@ class _FeeCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onRenew,
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(38),
+                      minimumSize: const Size.fromHeight(42),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
-                      foregroundColor: const Color(0xFF5145EA),
-                      side: const BorderSide(color: Color(0xFFD9D6FA)),
+                      foregroundColor: theme.colorScheme.primary,
+                      side: BorderSide(
+                        color: theme.colorScheme.primary.withOpacity(0.35),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const Icon(Icons.refresh_rounded, size: 17),
                     label: const Text(
                       'Renew plan',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -512,9 +696,12 @@ class _FeeCard extends StatelessWidget {
                   child: FilledButton.icon(
                     onPressed: onSendReminder,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(38),
+                      minimumSize: const Size.fromHeight(42),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       backgroundColor: const Color(0xFF23936B),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     icon: const WhatsAppLogo(size: 17),
                     label: const Text(
@@ -522,7 +709,7 @@ class _FeeCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -535,3 +722,4 @@ class _FeeCard extends StatelessWidget {
     );
   }
 }
+
