@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/students/screens/students_screen.dart';
 import '../../features/seats/screens/seat_management_screen.dart';
@@ -165,32 +166,36 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        Stack(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.outlineVariant,
+        InkWell(
+          onTap: () => context.push('/notifications'),
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                borderRadius: BorderRadius.circular(14),
+                child: const Icon(
+                  Icons.notifications_none_rounded,
+                  color: Color(0xFF656A7C),
+                ),
               ),
-              child: const Icon(
-                Icons.notifications_none_rounded,
-                color: Color(0xFF656A7C),
+              const Positioned(
+                right: 9,
+                top: 9,
+                child: CircleAvatar(
+                  radius: 3,
+                  backgroundColor: Color(0xFFFF626B),
+                ),
               ),
-            ),
-            const Positioned(
-              right: 9,
-              top: 9,
-              child: CircleAvatar(
-                radius: 2.5,
-                backgroundColor: Color(0xFFFF626B),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     ),

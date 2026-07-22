@@ -7,6 +7,8 @@ import '../../features/seats/screens/change_seat_screen.dart';
 import '../../features/seats/screens/seat_settings_screen.dart';
 import '../../features/settings/screens/membership_pricing_screen.dart';
 import '../../features/settings/screens/owner_profile_screen.dart';
+import '../../features/notifications/screens/notification_screen.dart';
+import '../../features/notifications/screens/notification_settings_screen.dart';
 import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>(
@@ -15,6 +17,14 @@ final routerProvider = Provider<GoRouter>(
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/app', builder: (context, state) => const AppShell()),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationScreen(),
+      ),
+      GoRoute(
+        path: '/notifications/settings',
+        builder: (context, state) => const NotificationSettingsScreen(),
+      ),
       GoRoute(
         path: '/students/:id',
         builder: (context, state) => StudentProfileScreen(
