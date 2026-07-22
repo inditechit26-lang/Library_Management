@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class OwnerProfile {
@@ -57,21 +56,23 @@ class OwnerProfile {
   }
 }
 
-class OwnerProfileNotifier extends StateNotifier<OwnerProfile> {
-  OwnerProfileNotifier()
-      : super(const OwnerProfile(
-          name: 'StudyDesk Owner',
-          email: 'owner@thestudyroom.in',
-          phone: '+91 98765 43210',
-          libraryName: 'StudyDesk Central Library',
-          branchName: 'Main Branch (Connaught Place)',
-          address: 'Plot 42, Knowledge Park, Sector 62, New Delhi',
-          openingTime: '06:00 AM',
-          closingTime: '11:00 PM',
-          totalSeats: 120,
-          subscriptionPlan: 'Library Pro Unlimited',
-          joinDate: '12 Jan 2025',
-        ));
+class OwnerProfileNotifier extends Notifier<OwnerProfile> {
+  @override
+  OwnerProfile build() {
+    return const OwnerProfile(
+      name: 'StudyDesk Owner',
+      email: 'owner@thestudyroom.in',
+      phone: '+91 98765 43210',
+      libraryName: 'StudyDesk Central Library',
+      branchName: 'Main Branch (Connaught Place)',
+      address: 'Plot 42, Knowledge Park, Sector 62, New Delhi',
+      openingTime: '06:00 AM',
+      closingTime: '11:00 PM',
+      totalSeats: 120,
+      subscriptionPlan: 'Library Pro Unlimited',
+      joinDate: '12 Jan 2025',
+    );
+  }
 
   void updateProfile({
     String? name,
@@ -97,6 +98,6 @@ class OwnerProfileNotifier extends StateNotifier<OwnerProfile> {
 }
 
 final ownerProfileProvider =
-    StateNotifierProvider<OwnerProfileNotifier, OwnerProfile>(
-  (ref) => OwnerProfileNotifier(),
+    NotifierProvider<OwnerProfileNotifier, OwnerProfile>(
+  OwnerProfileNotifier.new,
 );
