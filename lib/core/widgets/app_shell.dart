@@ -152,22 +152,13 @@ class _Header extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'THE STUDY ROOM',
-                style: TextStyle(
-                  fontSize: 10,
-                  letterSpacing: 2,
-                  color: Color(0xFF9196A8),
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 5),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 23,
-                  height: 1,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 25,
+                  height: 1.1,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),

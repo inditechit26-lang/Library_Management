@@ -46,58 +46,122 @@ class _SeatCardState extends State<SeatCard> {
   Widget build(BuildContext context) {
     final occupied = widget.student != null;
     final interactive = !widget.disabled && widget.onTap != null;
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Theme accents per status
+    final Color cardBg;
+    final Color borderColor;
+    final List<BoxShadow> cardShadows;
+
+    if (widget.selected) {
+      cardBg = isDark ? const Color(0xFF2C2454) : const Color(0xFFF0ECFE);
+      borderColor = const Color(0xFF6366F1);
+      cardShadows = [
+        BoxShadow(
+          color: const Color(0xFF6366F1).withOpacity(0.35),
+          blurRadius: 16,
+          spreadRadius: 1,
+        ),
+      ];
+    } else if (widget.seat.status == SeatStatus.occupied) {
+      if (widget.student?.payment == PaymentStatus.pending ||
+          widget.student?.payment == PaymentStatus.expired) {
+        cardBg = isDark ? const Color(0xFF2A1C20) : const Color(0xFFFFF5F5);
+        borderColor = isDark ? const Color(0xFF4A252B) : const Color(0xFFFEE2E2);
+        cardShadows = [
+          BoxShadow(
+            color: const Color(0xFFEF4444).withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ];
+      } else {
+        cardBg = isDark ? const Color(0xFF192523) : const Color(0xFFF0FDF4);
+        borderColor = isDark ? const Color(0xFF1E3A34) : const Color(0xFFDCFCE7);
+        cardShadows = [
+          BoxShadow(
+            color: const Color(0xFF10B981).withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ];
+      }
+    } else if (widget.seat.status == SeatStatus.blocked) {
+      cardBg = isDark ? const Color(0xFF1F2128) : const Color(0xFFF1F5F9);
+      borderColor = isDark ? const Color(0xFF2A2D38) : const Color(0xFFE2E8F0);
+      cardShadows = [];
+    } else if (widget.seat.status == SeatStatus.maintenance) {
+      cardBg = isDark ? const Color(0xFF22242E) : const Color(0xFFF8FAFC);
+      borderColor = isDark ? const Color(0xFF2E3242) : const Color(0xFFE2E8F0);
+      cardShadows = [];
+    } else {
+      // Available seat
+      cardBg = isDark ? const Color(0xFF1C2030) : Colors.white;
+      borderColor = hovered
+          ? const Color(0xFF6366F1).withOpacity(0.5)
+          : isDark
+          ? const Color(0xFF2A2F45)
+          : const Color(0xFFE2E8F0);
+      cardShadows = [
+        BoxShadow(
+          color: hovered
+              ? const Color(0xFF6366F1).withOpacity(0.18)
+              : isDark
+              ? Colors.black.withOpacity(0.3)
+              : const Color(0xFF1E2238).withOpacity(0.05),
+          blurRadius: hovered ? 18 : 10,
+          offset: Offset(0, hovered ? 6 : 4),
+        ),
+      ];
+    }
+
     return MouseRegion(
       cursor: interactive ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: (_) => setState(() => hovered = true),
       onExit: (_) => setState(() => hovered = false),
       child: AnimatedScale(
         duration: const Duration(milliseconds: 180),
-        scale: hovered && interactive ? 1.025 : 1,
+        scale: hovered && interactive ? 1.04 : 1,
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 180),
-          opacity: widget.disabled ? .42 : 1,
+          opacity: widget.disabled ? .38 : 1,
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 240),
+            duration: const Duration(milliseconds: 220),
             curve: Curves.easeOutCubic,
             decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(20),
+              color: cardBg,
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: widget.selected
-                    ? colors.primary
-                    : hovered
-                    ? colors.primary.withAlpha(65)
-                    : Colors.transparent,
-                width: widget.selected ? 2 : 1,
+                color: borderColor,
+                width: widget.selected ? 2.2 : 1.2,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: hovered
-                      ? const Color(0x182D2A6E)
-                      : const Color(0x0B20243B),
-                  blurRadius: hovered ? 22 : 15,
-                  offset: Offset(0, hovered ? 9 : 6),
-                ),
-              ],
+              boxShadow: cardShadows,
             ),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: interactive ? widget.onTap : null,
                 onLongPress: interactive ? widget.onLongPress : null,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
                 child: Padding(
-                  padding: EdgeInsets.all(widget.compact ? 11 : 16),
+                  padding: EdgeInsets.all(widget.compact ? 10 : 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(
-                            Icons.airline_seat_recline_normal_rounded,
-                            size: 15,
-                            color: colors.onSurfaceVariant,
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: statusColor.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.event_seat_rounded,
+                              size: 13,
+                              color: statusColor,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Flexible(
@@ -105,24 +169,26 @@ class _SeatCardState extends State<SeatCard> {
                               displayNumber,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -.3,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.4,
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 4),
                           Container(
-                            width: 8,
-                            height: 8,
+                            width: 7,
+                            height: 7,
                             decoration: BoxDecoration(
                               color: statusColor,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: statusColor.withAlpha(70),
+                                  color: statusColor.withOpacity(0.8),
                                   blurRadius: 6,
+                                  spreadRadius: 1,
                                 ),
                               ],
                             ),
@@ -133,19 +199,25 @@ class _SeatCardState extends State<SeatCard> {
                       if (occupied)
                         Row(
                           children: [
-                            CircleAvatar(
-                              radius: 13,
-                              backgroundColor: colors.primaryContainer,
-                              foregroundColor: colors.onPrimaryContainer,
-                              child: Text(
-                                widget.student!.initials,
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  widget.student!.initials,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w900,
+                                    color: statusColor,
+                                  ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 7),
+                            const SizedBox(width: 6),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,48 +226,25 @@ class _SeatCardState extends State<SeatCard> {
                                     widget.student!.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 9,
+                                    style: TextStyle(
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w800,
+                                      letterSpacing: -0.2,
+                                      color: theme.colorScheme.onSurface,
                                     ),
                                   ),
-                                  const SizedBox(height: 3),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        widget.student!.membership ==
-                                                MembershipType.fullTime
-                                            ? Icons.workspace_premium_rounded
-                                            : Icons.schedule_rounded,
-                                        size: 10,
-                                        color: const Color(0xFFB07B2C),
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Container(
-                                        width: 5,
-                                        height: 5,
-                                        decoration: BoxDecoration(
-                                          color: statusColor,
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Flexible(
-                                        child: Text(
-                                          widget.student!.payment ==
-                                                  PaymentStatus.paid
-                                              ? 'Paid'
-                                              : 'Unpaid',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 7.5,
-                                            fontWeight: FontWeight.w800,
-                                            color: statusColor,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  const SizedBox(height: 1),
+                                  Text(
+                                    widget.student!.payment == PaymentStatus.paid
+                                        ? 'Active'
+                                        : 'Due Soon',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: statusColor,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -207,18 +256,23 @@ class _SeatCardState extends State<SeatCard> {
                           children: [
                             Icon(
                               _stateIcon,
-                              size: 17,
-                              color: colors.onSurfaceVariant,
+                              size: 14,
+                              color: isDark
+                                  ? const Color(0xFF7E879B)
+                                  : const Color(0xFF94A3B8),
                             ),
-                            const SizedBox(width: 7),
+                            const SizedBox(width: 5),
                             Expanded(
                               child: Text(
                                 _label,
                                 maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 9,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: colors.onSurfaceVariant,
+                                  color: isDark
+                                      ? const Color(0xFF8C95A8)
+                                      : const Color(0xFF64748B),
                                 ),
                               ),
                             ),

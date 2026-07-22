@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../widgets/login_form.dart';
+import '../widgets/signup_form.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,20 +18,20 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
 
+  bool _isSignUp = false;
+
   @override
   void initState() {
     super.initState();
 
-    // Floating background ambient loop animation
     _bgAnimationController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 14),
     )..repeat(reverse: true);
 
-    // Staggered smooth entrance animation
     _entranceController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1100),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -39,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.08),
+      begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _entranceController,
@@ -59,232 +60,264 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+
+    // Billion-dollar curated luxury color palette (CRED / Stripe dark mode aesthetic)
+    final bgGradient = isDark
+        ? const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0D0F17),
+              Color(0xFF07080C),
+              Color(0xFF0B0D14),
+            ],
+          )
+        : const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFF8FAFC),
+              Color(0xFFEEF2F6),
+              Color(0xFFF1F5F9),
+            ],
+          );
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Dynamic Animated Floating Ambient Glow Blobs
-          AnimatedBuilder(
-            animation: _bgAnimationController,
-            builder: (context, child) {
-              final val = _bgAnimationController.value;
-              final dx1 = math.sin(val * math.pi * 2) * 20;
-              final dy1 = math.cos(val * math.pi * 2) * 25;
-              final dx2 = math.cos(val * math.pi * 2) * 25;
-              final dy2 = math.sin(val * math.pi * 2) * 20;
+      body: Container(
+        decoration: BoxDecoration(gradient: bgGradient),
+        child: Stack(
+          children: [
+            // Ambient Low-Opacity Shimmer Orbs (Billion Dollar Glow Effect)
+            AnimatedBuilder(
+              animation: _bgAnimationController,
+              builder: (context, child) {
+                final val = _bgAnimationController.value;
+                final dx1 = math.sin(val * math.pi * 2) * 22;
+                final dy1 = math.cos(val * math.pi * 2) * 26;
 
-              return Stack(
-                children: [
-                  Positioned(
-                    top: -120 + dy1,
-                    right: -100 + dx1,
-                    child: Container(
-                      width: 360,
-                      height: 360,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            const Color(0xFF6E62FF).withValues(alpha: isDark ? 0.3 : 0.2),
-                            const Color(0xFF574DEB).withValues(alpha: isDark ? 0.15 : 0.08),
-                            Colors.transparent,
-                          ],
+                return Stack(
+                  children: [
+                    // Top Primary Glow Orb
+                    Positioned(
+                      top: -120 + dy1,
+                      right: -100 + dx1,
+                      child: Container(
+                        width: 440,
+                        height: 440,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFF6366F1).withOpacity(isDark ? 0.28 : 0.16),
+                              const Color(0xFF4F46E5).withOpacity(isDark ? 0.10 : 0.05),
+                              Colors.transparent,
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    bottom: -100 + dy2,
-                    left: -80 + dx2,
-                    child: Container(
-                      width: 320,
-                      height: 320,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            const Color(0xFF72DFB3).withValues(alpha: isDark ? 0.2 : 0.14),
-                            const Color(0xFF3AB080).withValues(alpha: isDark ? 0.08 : 0.04),
-                            Colors.transparent,
-                          ],
+                    // Secondary Violet Accent Glow Orb
+                    Positioned(
+                      bottom: -130 - dy1,
+                      left: -100 - dx1,
+                      child: Container(
+                        width: 420,
+                        height: 420,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFF8B5CF6).withOpacity(isDark ? 0.22 : 0.12),
+                              const Color(0xFF7C3AED).withOpacity(isDark ? 0.08 : 0.03),
+                              Colors.transparent,
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
-          SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 450),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Header Brand Logo & Name with Glow Badge
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF7C6CFF), Color(0xFF574DEB)],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(18),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF574DEB).withValues(alpha: 0.45),
-                                      blurRadius: 24,
-                                      offset: const Offset(0, 10),
-                                    ),
+                  ],
+                );
+              },
+            ),
+
+            SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 440),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Top Section: Large App Logo, Title & Subtitle Centered
+                            Container(
+                              width: 68,
+                              height: 68,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF6366F1),
+                                    Color(0xFF8B5CF6),
                                   ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                                child: const Icon(
-                                  Icons.menu_book_rounded,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF6366F1).withOpacity(0.42),
+                                    blurRadius: 28,
+                                    offset: const Offset(0, 12),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 16),
-                              Column(
+                              child: const Icon(
+                                Icons.local_library_rounded,
+                                color: Colors.white,
+                                size: 36,
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            Text(
+                              'Library Management',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.9,
+                                fontSize: 27,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Smart Management for Modern Libraries',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.1,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+
+                            // Floating Authentication Card (36px rounded corners, glass effect)
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 320),
+                              curve: Curves.easeInOutCubic,
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF131724).withOpacity(0.94)
+                                    : Colors.white.withOpacity(0.96),
+                                borderRadius: BorderRadius.circular(36),
+                                border: Border.all(
+                                  color: isDark
+                                      ? const Color(0xFF262C40)
+                                      : const Color(0xFFE2E8F0),
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDark
+                                        ? Colors.black.withOpacity(0.55)
+                                        : const Color(0xFF1E293B).withOpacity(0.09),
+                                    blurRadius: 44,
+                                    spreadRadius: 2,
+                                    offset: const Offset(0, 18),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'StudyDesk',
-                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: -0.6,
-                                        ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF72DFB3),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Library Workspace v2.0',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey.shade500,
-                                          letterSpacing: 0.4,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 36),
-                          // Main Ultra Premium Glassmorphic Container
-                          Container(
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.95)
-                                  : Colors.white.withValues(alpha: 0.95),
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withValues(alpha: 0.1)
-                                    : const Color(0xFFEBECEF),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black.withValues(alpha: 0.4)
-                                      : const Color(0x141E293B),
-                                  blurRadius: 40,
-                                  spreadRadius: 2,
-                                  offset: const Offset(0, 20),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Welcome back',
-                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: -0.6,
-                                      ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Sign in to access your library management workspace',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    height: 1.3,
-                                    color: isDark ? Colors.grey.shade400 : const Color(0xFF64748B),
-                                  ),
-                                ),
-                                const SizedBox(height: 30),
-                                const LoginForm(),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          // Ultra Clean Footer Status
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3AB080).withValues(alpha: 0.08),
-                                border: Border.all(
-                                  color: const Color(0xFF3AB080).withValues(alpha: 0.2),
-                                ),
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.verified_user_rounded, color: Color(0xFF3AB080), size: 16),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Encrypted & Secure Owner Access',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF3AB080),
+                                    _isSignUp ? 'Create Your Account' : 'Welcome Back',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 22,
+                                      letterSpacing: -0.6,
                                     ),
                                   ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    _isSignUp
+                                        ? 'Start managing your library in minutes.'
+                                        : 'Sign in to continue managing your library.',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 28),
+
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    child: _isSignUp
+                                        ? SignupForm(
+                                            key: const ValueKey('signup'),
+                                            onLoginTap: () => setState(() => _isSignUp = false),
+                                          )
+                                        : LoginForm(
+                                            key: const ValueKey('login'),
+                                            onSignupTap: () => setState(() => _isSignUp = true),
+                                          ),
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 28),
+
+                            // Bottom Switch Text
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _isSignUp
+                                      ? 'Already have an account? '
+                                      : "Don't have an account? ",
+                                  style: TextStyle(
+                                    fontSize: 13.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () => setState(() => _isSignUp = !_isSignUp),
+                                  child: Text(
+                                    _isSignUp ? 'Sign In' : 'Create Account',
+                                    style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF6366F1),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-
-

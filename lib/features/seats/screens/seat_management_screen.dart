@@ -43,45 +43,23 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
         36,
       ),
       children: [
-        _Header(
-          onSearch: () {
-            setState(() => showSearch = !showSearch);
-            if (showSearch) {
-              Future.delayed(
-                const Duration(milliseconds: 120),
-                searchFocus.requestFocus,
-              );
-            }
-          },
-          onFilter: () => setState(() => showSearch = true),
-          onSort: _sortSheet,
-        ),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 240),
-          curve: Curves.easeOutCubic,
-          child: showSearch
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: TextField(
-                    controller: searchController,
-                    focusNode: searchFocus,
-                    onChanged: (value) => setState(() => query = value),
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      hintText: 'Search seat, student or mobile number',
-                      suffixIcon: query.isEmpty
-                          ? null
-                          : IconButton(
-                              icon: const Icon(Icons.close_rounded),
-                              onPressed: () {
-                                searchController.clear();
-                                setState(() => query = '');
-                              },
-                            ),
-                    ),
+        TextField(
+          controller: searchController,
+          focusNode: searchFocus,
+          onChanged: (value) => setState(() => query = value),
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search_rounded),
+            hintText: 'Search seat, student or mobile number',
+            suffixIcon: query.isEmpty
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () {
+                      searchController.clear();
+                      setState(() => query = '');
+                    },
                   ),
-                )
-              : const SizedBox.shrink(),
+          ),
         ),
         const SizedBox(height: 14),
         SeatSummaryCards(seats: all, students: students),
@@ -185,77 +163,4 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
       builder: (_) => AvailableSeatSheet(seat: seat),
     );
   }
-
-  void _sortSheet() => showModalBottomSheet(
-    context: context,
-    builder: (sheet) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Sort seats', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-            for (final item in [
-              ('Seat number', Icons.sort_by_alpha_rounded),
-              ('Availability', Icons.check_circle_outline),
-              ('Payment attention', Icons.payments_outlined),
-            ])
-              ListTile(
-                leading: Icon(item.$2),
-                title: Text(item.$1),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.pop(sheet),
-              ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _Header extends StatelessWidget {
-  final VoidCallback onSearch, onFilter, onSort;
-  const _Header({
-    required this.onSearch,
-    required this.onFilter,
-    required this.onSort,
-  });
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      FilledButton.tonalIcon(
-        onPressed: onSearch,
-        icon: const Icon(Icons.search_rounded, size: 19),
-        label: const Text('Search'),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 46),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-      ),
-      const Spacer(),
-      _HeaderAction(Icons.tune_rounded, 'Filter', onFilter),
-      _HeaderAction(Icons.swap_vert_rounded, 'Sort', onSort),
-    ],
-  );
-}
-
-class _HeaderAction extends StatelessWidget {
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-  const _HeaderAction(this.icon, this.tooltip, this.onTap);
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(left: 5),
-    child: IconButton.filledTonal(
-      tooltip: tooltip,
-      onPressed: onTap,
-      icon: Icon(icon, size: 19),
-    ),
-  );
 }
