@@ -1,52 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../students/models/student.dart';
+import 'package:go_router/go_router.dart';
 import '../controllers/pricing_controller.dart';
-import '../models/pricing_settings.dart';
 
 class MembershipPricingSettings extends ConsumerWidget {
   const MembershipPricingSettings({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pricing = ref.watch(pricingProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          width: 1.2,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0920243B),
-            blurRadius: 24,
-            offset: Offset(0, 8),
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : const Color(0xFF1E2238).withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.workspace_premium_outlined, color: Color(0xFF5650C7)),
-              SizedBox(width: 10),
-              Text(
-                'Membership Pricing',
-                style: TextStyle(fontWeight: FontWeight.w800),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.workspace_premium_rounded,
+                  color: theme.colorScheme.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Membership & Pricing',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Configure rate plans for Full Time & Half Time',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/settings/pricing'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.edit_rounded, size: 16),
+                label: const Text(
+                  'Manage',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+                ),
               ),
             ],
           ),
           const SizedBox(height: 18),
-          _PricingGroup(
-            title: 'Full Time',
-            membership: MembershipType.fullTime,
-            pricing: pricing.fullTime,
-          ),
-          const Divider(height: 30),
-          _PricingGroup(
-            title: 'Half Time',
-            membership: MembershipType.halfTime,
-            pricing: pricing.halfTime,
+
+          // Overview Cards Grid
+          Row(
+            children: [
+              Expanded(
+                child: _PlanOverviewTile(
+                  title: 'Full Time',
+                  rateText: '₹${pricing.fullTime.monthly.toInt()}/mo',
+                  subtext: '24 Hours Plan',
+                  badge: pricing.fullTime.badges.values.firstOrNull ?? 'Most Popular',
+                  isDark: isDark,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _PlanOverviewTile(
+                  title: 'Half Time',
+                  rateText: '₹${pricing.halfTime.monthly.toInt()}/mo',
+                  subtext: '12 Hours Plan',
+                  badge: pricing.halfTime.badges.values.firstOrNull ?? 'Flexible',
+                  isDark: isDark,
+                  color: const Color(0xFF8B5CF6),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -54,59 +123,78 @@ class MembershipPricingSettings extends ConsumerWidget {
   }
 }
 
-class _PricingGroup extends ConsumerWidget {
+class _PlanOverviewTile extends StatelessWidget {
   final String title;
-  final MembershipType membership;
-  final PlanPricing pricing;
-  const _PricingGroup({
+  final String rateText;
+  final String subtext;
+  final String badge;
+  final bool isDark;
+  final Color color;
+
+  const _PlanOverviewTile({
     required this.title,
-    required this.membership,
-    required this.pricing,
+    required this.rateText,
+    required this.subtext,
+    required this.badge,
+    required this.isDark,
+    required this.color,
   });
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        title,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-      ),
-      const SizedBox(height: 12),
-      ...MembershipPeriod.values
-          .where((period) => period != MembershipPeriod.custom)
-          .map(
-            (period) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: TextFormField(
-                initialValue: pricing.priceFor(period).toStringAsFixed(0),
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: period.label,
-                  prefixText: '₹  ',
-                ),
-                onChanged: (value) => ref
-                    .read(pricingProvider.notifier)
-                    .update(membership, period, double.tryParse(value) ?? 0),
-              ),
-            ),
-          ),
-      const SizedBox(height: 2),
-      ...[
-        MembershipPeriod.quarterly,
-        MembershipPeriod.halfYearly,
-        MembershipPeriod.annual,
-      ].map(
-        (period) => Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: TextFormField(
-            initialValue: pricing.badgeFor(period),
-            decoration: InputDecoration(labelText: '${period.label} Badge'),
-            onChanged: (value) => ref
-                .read(pricingProvider.notifier)
-                .updateBadge(membership, period, value),
-          ),
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF131724) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? const Color(0xFF242A3E) : const Color(0xFFE2E8F0),
         ),
       ),
-    ],
-  );
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            rateText,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: color,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtext,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isDark ? const Color(0xFF8C95A8) : const Color(0xFF64748B),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
