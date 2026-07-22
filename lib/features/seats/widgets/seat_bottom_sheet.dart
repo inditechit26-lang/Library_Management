@@ -39,7 +39,7 @@ class SeatBottomSheet extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(
-          'Seat ${seat.number}',
+          'Seat ${seat.seatLabel}',
           style: const TextStyle(
             fontSize: 21,
             letterSpacing: -.35,

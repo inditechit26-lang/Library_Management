@@ -4,109 +4,90 @@ import '../models/student.dart';
 class StudentSummaryCards extends StatelessWidget {
   final List<Student> students;
   const StudentSummaryCards({super.key, required this.students});
+
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 82,
-    child: ListView(
-      scrollDirection: Axis.horizontal,
-      children: [
-        _Stat(
-          'Total\nStudents',
-          '${students.length}',
-          Icons.people_outline,
-          '+8%',
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
+        child: _Stat(
+          label: 'Total\nStudents',
+          value: '${students.length}',
+          icon: Icons.people_outline_rounded,
         ),
-        _Stat(
-          'Full\nTime',
-          '${students.where((s) => s.membership == MembershipType.fullTime).length}',
-          Icons.auto_awesome,
-          'Active',
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: _Stat(
+          label: 'Full\nTime',
+          value:
+              '${students.where((s) => s.membership == MembershipType.fullTime).length}',
+          icon: Icons.workspace_premium_outlined,
         ),
-        _Stat(
-          'Half\nTime',
-          '${students.where((s) => s.membership == MembershipType.halfTime).length}',
-          Icons.schedule,
-          'Flexible',
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: _Stat(
+          label: 'Half\nTime',
+          value:
+              '${students.where((s) => s.membership == MembershipType.halfTime).length}',
+          icon: Icons.schedule_rounded,
         ),
-        _Stat(
-          'Expiring',
-          '${students.where((s) => s.payment == PaymentStatus.pending).length}',
-          Icons.warning_amber,
-          '7 days',
-        ),
-        _Stat(
-          'Pending\nPayments',
-          '${students.where((s) => s.payment != PaymentStatus.paid).length}',
-          Icons.account_balance_wallet_outlined,
-          'Action',
-        ),
-        const _Stat(
-          'Monthly\nCollection',
-          '₹86K',
-          Icons.payments_outlined,
-          '+12%',
-        ),
-      ],
-    ),
+      ),
+    ],
   );
 }
 
 class _Stat extends StatelessWidget {
   final String label, value;
   final IconData icon;
-  final String trend;
-  const _Stat(this.label, this.value, this.icon, this.trend);
+  const _Stat({required this.label, required this.value, required this.icon});
+
   @override
   Widget build(BuildContext context) => Container(
-    width: 153,
-    margin: const EdgeInsets.only(right: 10),
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    height: 112,
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: const Color(0xFFE5E7EE)),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(20),
       boxShadow: const [
         BoxShadow(
-          color: Color(0x08262B44),
-          blurRadius: 18,
-          offset: Offset(0, 6),
+          color: Color(0x0A262B44),
+          blurRadius: 22,
+          offset: Offset(0, 7),
         ),
       ],
     ),
-    child: Row(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 35,
+          height: 35,
           decoration: BoxDecoration(
             color: const Color(0xFFF0EFFF),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF5B55CD), size: 20),
+          child: Icon(icon, color: const Color(0xFF5B55CD), size: 18),
         ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                height: 1,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 9,
-                height: 1.3,
-                color: Color(0xFF9297A7),
-              ),
-            ),
-          ],
+        const SizedBox(height: 7),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 19,
+            height: 1,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 8,
+            height: 1.2,
+            color: Color(0xFF9297A7),
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ],
     ),

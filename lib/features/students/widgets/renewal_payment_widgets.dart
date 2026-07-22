@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/widgets/payment_confirmation_slider.dart';
 
 class RenewalDateSummary extends StatelessWidget {
   final String current, expiry, plan;
@@ -82,37 +83,9 @@ class RenewalSlideConfirm extends StatelessWidget {
     required this.onChanged,
   });
   @override
-  Widget build(BuildContext context) => Stack(
-    alignment: Alignment.center,
-    children: [
-      Container(
-        height: 56,
-        decoration: BoxDecoration(
-          color: enabled ? const Color(0xFFEFEEFF) : const Color(0xFFF1F2F5),
-          borderRadius: BorderRadius.circular(17),
-          border: Border.all(
-            color: enabled ? const Color(0xFFDCD9FF) : const Color(0xFFE4E6EC),
-          ),
-        ),
-        child: Center(
-          child: Text(
-            'Slide to Mark Payment Received',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              color: enabled
-                  ? const Color(0xFF514BC0)
-                  : const Color(0xFFA5A9B5),
-            ),
-          ),
-        ),
-      ),
-      Slider(
-        value: value,
-        onChanged: enabled ? onChanged : null,
-        activeColor: const Color(0xFF514BC0),
-        inactiveColor: Colors.transparent,
-      ),
-    ],
+  Widget build(BuildContext context) => PaymentConfirmationSlider(
+    enabled: enabled,
+    onConfirmed: () => onChanged(1),
   );
 }
 

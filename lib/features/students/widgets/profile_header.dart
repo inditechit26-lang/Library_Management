@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:io';
 import '../models/student.dart';
 
 class StudentProfileHeader extends StatelessWidget {
@@ -29,16 +31,28 @@ class StudentProfileHeader extends StatelessWidget {
             child: CircleAvatar(
               radius: 42,
               backgroundColor: const Color(0xFFEDECF8),
-              child: Text(
-                student.initials,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF514BC0),
-                ),
-              ),
+              backgroundImage: student.photoPath == null
+                  ? null
+                  : FileImage(File(student.photoPath!)),
+              child: student.photoPath == null
+                  ? Text(
+                      student.initials,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF514BC0),
+                      ),
+                    )
+                  : null,
             ),
           ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          student.name,
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 12),
         Row(
@@ -56,13 +70,6 @@ class StudentProfileHeader extends StatelessWidget {
               onTap: onWhatsApp,
             ),
           ],
-        ),
-        const SizedBox(height: 14),
-        Text(
-          student.name,
-          style: Theme.of(
-            context,
-          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 8),
         Wrap(
@@ -113,52 +120,11 @@ class WhatsAppLogo extends StatelessWidget {
   final double size;
   const WhatsAppLogo({super.key, this.size = 20});
   @override
-  Widget build(BuildContext context) =>
-      CustomPaint(size: Size.square(size), painter: _WhatsAppPainter());
-}
-
-class _WhatsAppPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final green = Paint()..color = const Color(0xFF25D366);
-    final white = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.width * .12
-      ..strokeCap = StrokeCap.round;
-    final center = Offset(size.width * .5, size.height * .47);
-    canvas.drawCircle(center, size.width * .43, green);
-    final tail = Path()
-      ..moveTo(size.width * .22, size.height * .73)
-      ..lineTo(size.width * .13, size.height * .94)
-      ..lineTo(size.width * .38, size.height * .82)
-      ..close();
-    canvas.drawPath(tail, green);
-    final phone = Path()
-      ..moveTo(size.width * .34, size.height * .27)
-      ..cubicTo(
-        size.width * .30,
-        size.height * .52,
-        size.width * .48,
-        size.height * .70,
-        size.width * .72,
-        size.height * .68,
-      );
-    canvas.drawPath(phone, white);
-    canvas.drawLine(
-      Offset(size.width * .34, size.height * .27),
-      Offset(size.width * .43, size.height * .38),
-      white,
-    );
-    canvas.drawLine(
-      Offset(size.width * .62, size.height * .59),
-      Offset(size.width * .72, size.height * .68),
-      white,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget build(BuildContext context) => FaIcon(
+    FontAwesomeIcons.whatsapp,
+    size: size,
+    color: const Color(0xFF25D366),
+  );
 }
 
 class _Pill extends StatelessWidget {

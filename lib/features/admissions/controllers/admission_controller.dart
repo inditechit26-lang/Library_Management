@@ -19,7 +19,7 @@ class AdmissionController extends ChangeNotifier {
   double? customAmount;
 
   double get fee => period == MembershipPeriod.custom
-      ? customAmount ?? 0
+      ? customAmount ?? _calculatedCustomFee
       : period == null
       ? 0
       : pricing.forMembership(membership).priceFor(period!);
@@ -39,6 +39,12 @@ class AdmissionController extends ChangeNotifier {
   }
 
   int get totalDays => expiryDate.difference(joiningDate).inDays;
+  double get _calculatedCustomFee {
+    if (customEnd == null || totalDays <= 0) return 0;
+    final monthlyRate = pricing.forMembership(membership).monthly;
+    return (monthlyRate / 30 * totalDays).roundToDouble();
+  }
+
   String get joined => DateFormat('dd MMM yyyy').format(joiningDate);
   String get expiry => DateFormat('dd MMM yyyy').format(expiryDate);
   String get joiningDisplay => DateFormat('d MMMM yyyy').format(joiningDate);
@@ -49,7 +55,7 @@ class AdmissionController extends ChangeNotifier {
   bool get pricingValid =>
       period != null &&
       (period != MembershipPeriod.custom ||
-          (customAmount != null && customAmount! >= 0 && totalDays > 0));
+          (customEnd != null && fee >= 0 && totalDays > 0));
 
   void updatePricing(PricingSettings value) {
     pricing = value;
@@ -69,20 +75,34 @@ class AdmissionController extends ChangeNotifier {
 
   void setCustomStart(DateTime value) {
     customStart = value;
-    if (customEnd != null && customEnd!.isBefore(value)) customEnd = null;
+    if (customEnd != null && customEnd!.isBefore(value)) {
+      customEnd = null;
+      customDays = null;
+      customAmount = null;
+    } else if (customEnd != null) {
+      customDays = customEnd!.difference(customStart).inDays;
+      customAmount = _calculatedCustomFee;
+    }
     notifyListeners();
   }
 
   void setCustomEnd(DateTime value) {
     if (value.isBefore(customStart)) return;
     customEnd = value;
-    customDays = null;
+    customDays = value.difference(customStart).inDays;
+    customAmount = _calculatedCustomFee;
     notifyListeners();
   }
 
   void setCustomDays(int? value) {
     customDays = value;
-    if (value != null && value > 0) customEnd = null;
+    if (value != null && value > 0) {
+      customEnd = customStart.add(Duration(days: value));
+      customAmount = _calculatedCustomFee;
+    } else {
+      customEnd = null;
+      customAmount = null;
+    }
     notifyListeners();
   }
 
@@ -120,6 +140,8 @@ class AdmissionController extends ChangeNotifier {
     required int id,
     required String name,
     required String phone,
+    String emergencyContact = '',
+    String notes = '',
   }) {
     final parts = name.trim().split(RegExp(r'\s+'));
     completed = true;
@@ -128,6 +150,8 @@ class AdmissionController extends ChangeNotifier {
       id: id,
       name: name.trim(),
       phone: phone.trim(),
+      emergencyContact: emergencyContact.trim(),
+      notes: notes.trim(),
       seat: membership == MembershipType.fullTime
           ? selectedSeat ?? ''
           : 'Flexible',

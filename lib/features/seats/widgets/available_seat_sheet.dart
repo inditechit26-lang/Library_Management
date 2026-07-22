@@ -42,7 +42,7 @@ class AvailableSeatSheet extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Seat ${seat.number}',
+                    'Seat ${seat.seatLabel}',
                     style: const TextStyle(
                       fontSize: 21,
                       fontWeight: FontWeight.w800,
@@ -101,7 +101,7 @@ class AvailableSeatSheet extends ConsumerWidget {
     ),
   );
   void _set(BuildContext context, WidgetRef ref, SeatStatus status) {
-    ref.read(seatsProvider.notifier).setStatus(seat.number, status);
+    ref.read(seatsProvider.notifier).setStatus(seat.seatId, status);
     Navigator.pop(context);
   }
 }

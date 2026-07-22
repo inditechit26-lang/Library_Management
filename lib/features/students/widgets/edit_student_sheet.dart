@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../models/student.dart';
 
 class EditStudentSheet extends StatefulWidget {
@@ -15,8 +17,9 @@ class EditStudentSheet extends StatefulWidget {
 
 class _State extends State<EditStudentSheet> {
   final form = GlobalKey<FormState>();
-  late final TextEditingController name, phone, seat, fee;
+  late final TextEditingController name, phone, seat, fee, emergency, notes;
   late MembershipType membership;
+  String? photoPath;
   @override
   void initState() {
     super.initState();
@@ -24,7 +27,10 @@ class _State extends State<EditStudentSheet> {
     phone = TextEditingController(text: widget.student.phone);
     seat = TextEditingController(text: widget.student.seat);
     fee = TextEditingController(text: widget.student.fee.toStringAsFixed(0));
+    emergency = TextEditingController(text: widget.student.emergencyContact);
+    notes = TextEditingController(text: widget.student.notes);
     membership = widget.student.membership;
+    photoPath = widget.student.photoPath;
   }
 
   @override
@@ -33,6 +39,8 @@ class _State extends State<EditStudentSheet> {
     phone.dispose();
     seat.dispose();
     fee.dispose();
+    emergency.dispose();
+    notes.dispose();
     super.dispose();
   }
 
@@ -64,6 +72,37 @@ class _State extends State<EditStudentSheet> {
               ),
             ),
             const SizedBox(height: 20),
+            Center(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    radius: 42,
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    backgroundImage: photoPath == null
+                        ? null
+                        : FileImage(File(photoPath!)),
+                    child: photoPath == null
+                        ? Text(
+                            widget.student.initials,
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          )
+                        : null,
+                  ),
+                  Positioned(
+                    right: -4,
+                    bottom: -4,
+                    child: IconButton.filled(
+                      onPressed: _pickPhoto,
+                      icon: const Icon(Icons.camera_alt_outlined, size: 17),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 18),
             const Text(
               'Edit Student',
               style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
@@ -80,6 +119,19 @@ class _State extends State<EditStudentSheet> {
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(labelText: 'Phone Number'),
               validator: _required,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: emergency,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Emergency Contact'),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: notes,
+              minLines: 2,
+              maxLines: 3,
+              decoration: const InputDecoration(labelText: 'Notes'),
             ),
             const SizedBox(height: 12),
             SegmentedButton<MembershipType>(
@@ -136,8 +188,20 @@ class _State extends State<EditStudentSheet> {
             : 'Flexible',
         fee: double.tryParse(fee.text) ?? widget.student.fee,
         membership: membership,
+        photoPath: photoPath,
+        emergencyContact: emergency.text.trim(),
+        notes: notes.text.trim(),
       ),
     );
     Navigator.pop(context);
+  }
+
+  Future<void> _pickPhoto() async {
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1200,
+    );
+    if (image != null && mounted) setState(() => photoPath = image.path);
   }
 }

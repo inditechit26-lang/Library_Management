@@ -44,6 +44,17 @@ class _State extends State<CustomPlanCard> {
   }
 
   @override
+  void didUpdateWidget(covariant CustomPlanCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final dayText = widget.end == null ? '' : widget.days?.toString() ?? '';
+    final amountText = widget.end == null
+        ? ''
+        : widget.amount?.toStringAsFixed(0) ?? '';
+    if (days.text != dayText) days.text = dayText;
+    if (amount.text != amountText) amount.text = amountText;
+  }
+
+  @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
@@ -78,6 +89,7 @@ class _State extends State<CustomPlanCard> {
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(
             labelText: 'Number of Days',
+            helperText: 'Calculated from dates · Editable',
             prefixIcon: Icon(Icons.timelapse_outlined),
           ),
           onChanged: (value) => widget.onDays(int.tryParse(value)),
@@ -87,7 +99,8 @@ class _State extends State<CustomPlanCard> {
           controller: amount,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(
-            labelText: 'Amount',
+            labelText: 'Fee Amount',
+            helperText: 'Calculated from duration · Editable',
             prefixText: '₹  ',
           ),
           onChanged: (value) => widget.onAmount(double.tryParse(value)),
@@ -114,7 +127,6 @@ class _State extends State<CustomPlanCard> {
       lastDate: widget.start.add(const Duration(days: 3650)),
     );
     if (value != null) {
-      days.clear();
       widget.onEnd(value);
     }
   }

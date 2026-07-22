@@ -34,20 +34,20 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       body: CustomScrollView(
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 104),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 StudentSummaryCards(students: all),
-                const SizedBox(height: 20),
+                const SizedBox(height: 18),
                 StudentSearchBar(
                   onChanged: (value) => setState(() => query = value),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 StudentFilterChips(
                   selected: filter,
                   onSelected: (value) => setState(() => filter = value),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
                 Row(
                   children: [
                     Text(
@@ -64,13 +64,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 if (students.isEmpty)
                   const StudentsEmptyState()
                 else
                   ...students.map(
                     (student) => Padding(
-                      padding: const EdgeInsets.only(bottom: 9),
+                      padding: const EdgeInsets.only(bottom: 11),
                       child: StudentCard(
                         student: student,
                         onOpen: () => _openStudent(student),

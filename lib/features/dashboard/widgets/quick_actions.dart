@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DashboardQuickActions extends StatelessWidget {
-  const DashboardQuickActions({super.key});
+  final VoidCallback onAddStudent;
+  const DashboardQuickActions({super.key, required this.onAddStudent});
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,26 +29,15 @@ class DashboardQuickActions extends StatelessWidget {
         crossAxisSpacing: 10,
         mainAxisSpacing: 10,
         childAspectRatio: 1.6,
-        children: const [
+        children: [
           _Action(
             Icons.person_add_alt_1_outlined,
             'Add student',
             Color(0xFFECEBFF),
             Color(0xFF5145EA),
+            onTap: onAddStudent,
           ),
-          _Action(
-            Icons.grid_view_outlined,
-            'Assign seat',
-            Color(0xFFE8F7F0),
-            Color(0xFF23936B),
-          ),
-          _Action(
-            Icons.currency_rupee,
-            'Mark fee paid',
-            Color(0xFFFFF1E2),
-            Color(0xFFD9832A),
-          ),
-          _Action(
+          const _Action(
             Icons.insert_chart_outlined,
             'Generate report',
             Color(0xFFF3ECFF),
@@ -63,40 +53,49 @@ class _Action extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color bg, color;
-  const _Action(this.icon, this.label, this.bg, this.color);
+  final VoidCallback? onTap;
+  const _Action(this.icon, this.label, this.bg, this.color, {this.onTap});
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE5E7EF)),
+  Widget build(BuildContext context) => Material(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(18),
+    child: InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(18),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0A20243B),
-          blurRadius: 24,
-          offset: Offset(0, 8),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE5E7EF)),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A20243B),
+              blurRadius: 24,
+              offset: Offset(0, 8),
+            ),
+          ],
         ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: Icon(icon, color: color, size: 21),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(icon, color: color, size: 21),
+            ),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+            ),
+          ],
         ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-        ),
-      ],
+      ),
     ),
   );
 }

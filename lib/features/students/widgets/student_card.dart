@@ -1,243 +1,313 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/formatters.dart';
 import '../models/student.dart';
+import 'profile_header.dart';
 
-class StudentCard extends StatelessWidget {
+class StudentCard extends StatefulWidget {
   final Student student;
   final VoidCallback onOpen;
   const StudentCard({super.key, required this.student, required this.onOpen});
+  @override
+  State<StudentCard> createState() => _StudentCardState();
+}
+
+class _StudentCardState extends State<StudentCard> {
+  bool hovered = false, pressed = false;
+  Student get student => widget.student;
   Color get statusColor => student.payment == PaymentStatus.paid
-      ? const Color(0xFF3FA37B)
+      ? const Color(0xFF318B6B)
       : student.payment == PaymentStatus.pending
-      ? const Color(0xFFD09A49)
-      : const Color(0xFFD26A70);
+      ? const Color(0xFFC78A36)
+      : const Color(0xFFC95C65);
   String get status => student.payment == PaymentStatus.expired
       ? 'Overdue'
-      : student.payment.name[0].toUpperCase() +
-            student.payment.name.substring(1);
+      : '${student.payment.name[0].toUpperCase()}${student.payment.name.substring(1)}';
+
   @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
-    borderRadius: BorderRadius.circular(20),
-    child: InkWell(
-      onTap: onOpen,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        height: 152,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE4E7EE)),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x09262B44),
-              blurRadius: 22,
-              offset: Offset(0, 7),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 61,
-                  height: 61,
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: statusColor, width: 2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE7F1EC),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        student.initials,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF527765),
-                        ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => hovered = true),
+      onExit: (_) => setState(() => hovered = false),
+      child: AnimatedScale(
+        scale: pressed ? .988 : 1,
+        duration: const Duration(milliseconds: 120),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: hovered
+                    ? const Color(0x1420243B)
+                    : const Color(0x0A20243B),
+                blurRadius: hovered ? 28 : 20,
+                offset: Offset(0, hovered ? 10 : 7),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.onOpen,
+              onHighlightChanged: (value) => setState(() => pressed = value),
+              borderRadius: BorderRadius.circular(22),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(15, 16, 12, 16),
+                child: Row(
+                  children: [
+                    _Avatar(student: student, statusColor: statusColor),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _Details(
+                        student: student,
+                        status: status,
+                        statusColor: statusColor,
                       ),
                     ),
-                  ),
-                ),
-                Positioned(
-                  right: -5,
-                  bottom: -5,
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [
-                        BoxShadow(color: Color(0x18262B44), blurRadius: 8),
+                    const SizedBox(width: 8),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _QuickAction(
+                          tooltip: 'Call',
+                          icon: const Icon(Icons.phone_outlined, size: 19),
+                          onTap: () => launchUrl(
+                            Uri.parse(
+                              'tel:${student.phone.replaceAll(' ', '')}',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        _QuickAction(
+                          tooltip: 'WhatsApp',
+                          icon: const WhatsAppLogo(size: 19),
+                          onTap: () => launchUrl(
+                            Uri.parse(
+                              'https://wa.me/${phoneDigits(student.phone)}',
+                            ),
+                            mode: LaunchMode.externalApplication,
+                          ),
+                        ),
                       ],
                     ),
-                    child: Icon(
-                      student.membership == MembershipType.fullTime
-                          ? Icons.auto_awesome
-                          : Icons.schedule,
-                      size: 12,
-                      color: const Color(0xFF625BCD),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    student.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    student.phone,
-                    style: const TextStyle(
-                      fontSize: 9,
-                      color: Color(0xFF969BAB),
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: student.membership == MembershipType.fullTime
-                              ? const Color(0xFFF0EFFF)
-                              : const Color(0xFFF7F2E9),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          student.membership == MembershipType.fullTime
-                              ? 'Full Time'
-                              : 'Half Time',
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w700,
-                            color: student.membership == MembershipType.fullTime
-                                ? const Color(0xFF5953C2)
-                                : const Color(0xFF937247),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      Flexible(
-                        child: Text(
-                          student.membership == MembershipType.fullTime
-                              ? 'Seat ${student.seat}'
-                              : 'Flexible Seating',
-                          style: const TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF616678),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Expires ${student.expiry}',
-                    style: const TextStyle(
-                      fontSize: 9,
-                      color: Color(0xFF9A9FAE),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _Status(text: status, color: statusColor),
-                ],
               ),
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _IconButton(
-                  Icons.phone_outlined,
-                  () => launchUrl(
-                    Uri.parse('tel:${student.phone.replaceAll(' ', '')}'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _IconButton(
-                  Icons.chat_bubble_outline,
-                  () => launchUrl(
-                    Uri.parse('https://wa.me/${phoneDigits(student.phone)}'),
-                    mode: LaunchMode.externalApplication,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
-    ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  final Student student;
+  final Color statusColor;
+  const _Avatar({required this.student, required this.statusColor});
+  @override
+  Widget build(BuildContext context) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      Hero(
+        tag: 'student-${student.id}',
+        child: Container(
+          width: 64,
+          height: 64,
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: statusColor.withAlpha(150), width: 1.5),
+          ),
+          child: CircleAvatar(
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withAlpha(120),
+            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            backgroundImage: student.photoPath == null
+                ? null
+                : FileImage(File(student.photoPath!)),
+            child: student.photoPath == null
+                ? Text(
+                    student.initials,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: .3,
+                    ),
+                  )
+                : null,
+          ),
+        ),
+      ),
+      Positioned(
+        right: -3,
+        bottom: -3,
+        child: Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            shape: BoxShape.circle,
+            boxShadow: const [
+              BoxShadow(color: Color(0x1820243B), blurRadius: 8),
+            ],
+          ),
+          child: Icon(
+            student.membership == MembershipType.fullTime
+                ? Icons.workspace_premium_rounded
+                : Icons.schedule_rounded,
+            size: 12,
+            color: const Color(0xFF625BCD),
+          ),
+        ),
+      ),
+    ],
   );
 }
 
-class _Status extends StatelessWidget {
-  final String text;
-  final Color color;
-  const _Status({required this.text, required this.color});
+class _Details extends StatelessWidget {
+  final Student student;
+  final String status;
+  final Color statusColor;
+  const _Details({
+    required this.student,
+    required this.status,
+    required this.statusColor,
+  });
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        student.name,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          fontSize: 14.5,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -.15,
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        student.phone,
+        style: TextStyle(
+          fontSize: 9.5,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
+      const SizedBox(height: 10),
+      Wrap(
+        spacing: 6,
+        runSpacing: 5,
+        children: [
+          _Badge(
+            label: student.membership == MembershipType.fullTime
+                ? 'Full Time'
+                : 'Half Time',
+            icon: student.membership == MembershipType.fullTime
+                ? Icons.workspace_premium_outlined
+                : Icons.schedule_outlined,
+          ),
+          _Badge(
+            label: student.membership == MembershipType.fullTime
+                ? 'Seat ${student.seat}'
+                : 'Flexible Seating',
+            icon: Icons.event_seat_outlined,
+          ),
+        ],
+      ),
+      const SizedBox(height: 9),
+      Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            status,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: statusColor,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Expires ${student.expiry}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 8.5,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+class _Badge extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  const _Badge({required this.label, required this.icon});
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withAlpha(26),
-      borderRadius: BorderRadius.circular(14),
+      color: Theme.of(context).colorScheme.surfaceContainer,
+      borderRadius: BorderRadius.circular(9),
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        CircleAvatar(radius: 3, backgroundColor: color),
-        const SizedBox(width: 6),
+        Icon(icon, size: 10, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 4),
         Text(
-          text,
-          style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: color,
-          ),
+          label,
+          style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w700),
         ),
       ],
     ),
   );
 }
 
-class _IconButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback tap;
-  const _IconButton(this.icon, this.tap);
+class _QuickAction extends StatelessWidget {
+  final String tooltip;
+  final Widget icon;
+  final VoidCallback onTap;
+  const _QuickAction({
+    required this.tooltip,
+    required this.icon,
+    required this.onTap,
+  });
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: tap,
-    borderRadius: BorderRadius.circular(13),
-    child: Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFE2E5EC)),
-        borderRadius: BorderRadius.circular(13),
+  Widget build(BuildContext context) => Tooltip(
+    message: tooltip,
+    child: Material(
+      color: Colors.transparent,
+      shape: CircleBorder(
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
-      child: Icon(icon, size: 19, color: const Color(0xFF686D7D)),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: SizedBox(width: 44, height: 44, child: Center(child: icon)),
+      ),
     ),
   );
 }

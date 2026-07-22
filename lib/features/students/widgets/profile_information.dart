@@ -14,6 +14,8 @@ class StudentInformationCard extends StatelessWidget {
     children: [
       _Row('Student Name', student.name),
       _Row('Phone Number', student.phone),
+      if (student.emergencyContact.isNotEmpty)
+        _Row('Emergency Contact', student.emergencyContact),
       _Row('Joining Date', student.joined),
       _Row(
         'Membership Type',
@@ -27,7 +29,7 @@ class StudentInformationCard extends StatelessWidget {
             ? student.seat
             : 'Flexible Seating',
       ),
-      const _Row('Notes', 'Prefers a quiet corner seat.'),
+      _Row('Notes', student.notes.isEmpty ? '—' : student.notes),
     ],
   );
 }

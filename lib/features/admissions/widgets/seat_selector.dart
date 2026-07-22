@@ -59,12 +59,12 @@ class AdmissionSeatSelector extends StatelessWidget {
             itemBuilder: (_, index) {
               final seat = seats[index];
               final available = seat.status == SeatStatus.available;
-              final isSelected = selected == seat.number;
+              final isSelected = selected == seat.seatLabel;
               return _Seat(
                 seat: seat,
                 enabled: available,
                 selected: isSelected,
-                onTap: available ? () => onSelected(seat.number) : null,
+                onTap: available ? () => onSelected(seat.seatLabel) : null,
               );
             },
           ),
@@ -135,24 +135,28 @@ class _Seat extends StatelessWidget {
           color: selected
               ? const Color(0xFF5650C7)
               : enabled
-              ? const Color(0xFFEAF7F1)
-              : const Color(0xFFF0F1F5),
+              ? const Color(0xFFCDEBDE)
+              : const Color(0xFFD6D8DE),
           borderRadius: BorderRadius.circular(13),
           border: Border.all(
-            color: selected ? const Color(0xFF5650C7) : const Color(0xFFE3E5EC),
+            color: selected
+                ? const Color(0xFF5650C7)
+                : enabled
+                ? const Color(0xFF72B79B)
+                : const Color(0xFFB6BAC4),
           ),
         ),
         child: Center(
           child: Text(
-            seat.number,
+            seat.seatLabel,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w800,
               color: selected
                   ? Colors.white
                   : enabled
-                  ? const Color(0xFF267D61)
-                  : const Color(0xFFA5A9B5),
+                  ? const Color(0xFF155E46)
+                  : const Color(0xFF686D78),
             ),
           ),
         ),

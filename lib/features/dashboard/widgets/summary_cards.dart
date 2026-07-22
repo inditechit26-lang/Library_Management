@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 
 class DashboardSummaryCards extends StatelessWidget {
   final int studentCount;
-  const DashboardSummaryCards({super.key, required this.studentCount});
+  final VoidCallback onManageSeats, onViewFees;
+  const DashboardSummaryCards({
+    super.key,
+    required this.studentCount,
+    required this.onManageSeats,
+    required this.onViewFees,
+  });
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      _SeatCard(studentCount: studentCount),
+      _SeatCard(studentCount: studentCount, onManage: onManageSeats),
       const SizedBox(height: 12),
-      const _FeeCard(),
+      _FeeCard(onViewFees: onViewFees),
     ],
   );
 }
@@ -38,15 +44,17 @@ class _Base extends StatelessWidget {
 
 class _SeatCard extends StatelessWidget {
   final int studentCount;
-  const _SeatCard({required this.studentCount});
+  final VoidCallback onManage;
+  const _SeatCard({required this.studentCount, required this.onManage});
   @override
   Widget build(BuildContext context) => _Base(
     child: Column(
       children: [
-        const _Title(
+        _Title(
           icon: Icons.grid_view_outlined,
           label: 'Seat occupancy',
           action: 'Manage',
+          onTap: onManage,
         ),
         const SizedBox(height: 26),
         Row(
@@ -91,15 +99,17 @@ class _SeatCard extends StatelessWidget {
 }
 
 class _FeeCard extends StatelessWidget {
-  const _FeeCard();
+  final VoidCallback onViewFees;
+  const _FeeCard({required this.onViewFees});
   @override
-  Widget build(BuildContext context) => const _Base(
+  Widget build(BuildContext context) => _Base(
     child: Column(
       children: [
         _Title(
           icon: Icons.account_balance_wallet_outlined,
           label: 'Fee collection',
           action: 'View fees',
+          onTap: onViewFees,
         ),
         SizedBox(height: 26),
         Row(
@@ -137,7 +147,13 @@ class _FeeCard extends StatelessWidget {
 class _Title extends StatelessWidget {
   final IconData icon;
   final String label, action;
-  const _Title({required this.icon, required this.label, required this.action});
+  final VoidCallback onTap;
+  const _Title({
+    required this.icon,
+    required this.label,
+    required this.action,
+    required this.onTap,
+  });
   @override
   Widget build(BuildContext context) => Row(
     children: [
@@ -148,15 +164,30 @@ class _Title extends StatelessWidget {
         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
       ),
       const Spacer(),
-      Text(
-        action,
-        style: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          color: Color(0xFF5145EA),
+      InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+          child: Row(
+            children: [
+              Text(
+                action,
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF5145EA),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFF5145EA),
+                size: 16,
+              ),
+            ],
+          ),
         ),
       ),
-      const Icon(Icons.chevron_right, color: Color(0xFF5145EA), size: 16),
     ],
   );
 }
