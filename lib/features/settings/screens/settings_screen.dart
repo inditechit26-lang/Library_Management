@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/settings/app_settings.dart';
-import '../widgets/membership_pricing_settings.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -114,47 +113,21 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 14),
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: surface,
-            border: Border.all(color: outline),
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const _Field('Library name', 'The Study Room'),
-              const _Field('Owner name', 'Om Chandrawanshi'),
-              const _Field('Phone number', '+91 98765 43210'),
-              const _Field('Total seats', '128'),
-              const _Field('Default monthly fee', '1800', prefix: '₹'),
-              const Divider(height: 28),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton(
-                  onPressed: () {},
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                  ),
-                  child: const Text('Save changes'),
-                ),
-              ),
-            ],
-          ),
+        _SettingsEntry(
+          title: 'Seat Management',
+          description: 'Configure seat labels, generators and data transfer',
+          icon: Icons.airline_seat_recline_normal_rounded,
+          colors: const [Color(0xFF625CDB), Color(0xFF8580ED)],
+          onTap: () => context.push('/settings/seats'),
         ),
         const SizedBox(height: 14),
-        _SeatManagementEntry(onTap: () => context.push('/settings/seats')),
-        const SizedBox(height: 14),
-        const MembershipPricingSettings(),
+        _SettingsEntry(
+          title: 'Membership Pricing',
+          description: 'Configure full-time and half-time membership plans',
+          icon: Icons.workspace_premium_outlined,
+          colors: const [Color(0xFFE58B35), Color(0xFFF2B65C)],
+          onTap: () => context.push('/settings/pricing'),
+        ),
         const SizedBox(height: 14),
         const _Backup(),
         const SizedBox(height: 12),
@@ -170,9 +143,19 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _SeatManagementEntry extends StatelessWidget {
+class _SettingsEntry extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final List<Color> colors;
   final VoidCallback onTap;
-  const _SeatManagementEntry({required this.onTap});
+  const _SettingsEntry({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.colors,
+    required this.onTap,
+  });
   @override
   Widget build(BuildContext context) => Material(
     color: Theme.of(context).colorScheme.surface,
@@ -188,28 +171,26 @@ class _SeatManagementEntry extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF625CDB), Color(0xFF8580ED)],
-                ),
+                gradient: LinearGradient(colors: colors),
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: const Icon(
-                Icons.airline_seat_recline_normal_rounded,
-                color: Colors.white,
-              ),
+              child: Icon(icon, color: Colors.white),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Seat Management',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'Configure seat labels, generators and data transfer',
+                    description,
                     style: TextStyle(
                       fontSize: 10,
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -222,41 +203,6 @@ class _SeatManagementEntry extends StatelessWidget {
           ],
         ),
       ),
-    ),
-  );
-}
-
-class _Field extends StatelessWidget {
-  final String label, value, prefix;
-  const _Field(this.label, this.value, {this.prefix = ''});
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 9),
-        TextFormField(
-          initialValue: value,
-          decoration: InputDecoration(
-            prefixText: prefix.isEmpty ? null : '$prefix  ',
-            filled: true,
-            fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 17,
-            ),
-          ),
-        ),
-      ],
     ),
   );
 }
