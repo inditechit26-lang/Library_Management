@@ -6,6 +6,7 @@ import '../../features/seats/screens/seat_profile_screen.dart';
 import '../../features/seats/screens/change_seat_screen.dart';
 import '../../features/seats/screens/seat_settings_screen.dart';
 import '../../features/settings/screens/membership_pricing_screen.dart';
+import '../../features/settings/screens/owner_profile_screen.dart';
 import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>(
@@ -29,6 +30,10 @@ final routerProvider = Provider<GoRouter>(
         builder: (context, state) => const MembershipPricingScreen(),
       ),
       GoRoute(
+        path: '/settings/profile',
+        builder: (context, state) => const OwnerProfileScreen(),
+      ),
+      GoRoute(
         path: '/seats/:number',
         builder: (context, state) =>
             SeatProfileScreen(seatId: state.pathParameters['number']!),
@@ -41,3 +46,4 @@ final routerProvider = Provider<GoRouter>(
     ],
   ),
 );
+
