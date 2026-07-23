@@ -326,6 +326,8 @@ class SettingsScreen extends ConsumerWidget {
         const _Backup(),
         const SizedBox(height: 12),
         const _About(),
+        const SizedBox(height: 12),
+        const _PrivacyPolicy(),
 
         const SizedBox(height: 12),
         OutlinedButton.icon(
@@ -691,43 +693,101 @@ class _Backup extends StatelessWidget {
 class _About extends StatelessWidget {
   const _About();
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).colorScheme.surface,
+    borderRadius: BorderRadius.circular(20),
+    child: InkWell(
+      onTap: () => context.push('/settings/about'),
       borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'About StudyDesk',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    'Version 1.0.0 · Learn more about our mission',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
     ),
-    child: Row(
-      children: [
-        Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'About StudyDesk',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              Text(
-                'Version 1.0.0 · Built for focused library owners',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
+  );
+}
+
+class _PrivacyPolicy extends StatelessWidget {
+  const _PrivacyPolicy();
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Theme.of(context).colorScheme.surface,
+    borderRadius: BorderRadius.circular(20),
+    child: InkWell(
+      onTap: () => context.push('/settings/privacy'),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          borderRadius: BorderRadius.circular(20),
         ),
-        Icon(
-          Icons.chevron_right,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        child: Row(
+          children: [
+            Icon(Icons.privacy_tip_outlined, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Privacy Policy',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    'Read data protection & usage policies',
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ],
         ),
-      ],
+      ),
     ),
   );
 }

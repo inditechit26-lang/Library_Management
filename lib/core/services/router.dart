@@ -9,6 +9,8 @@ import '../../features/settings/screens/membership_pricing_screen.dart';
 import '../../features/settings/screens/owner_profile_screen.dart';
 import '../../features/notifications/screens/notification_screen.dart';
 import '../../features/notifications/screens/notification_settings_screen.dart';
+import '../../features/settings/screens/about_us_screen.dart';
+import '../../features/settings/screens/privacy_policy_screen.dart';
 import '../widgets/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>(
@@ -42,6 +44,14 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(
         path: '/settings/profile',
         builder: (context, state) => const OwnerProfileScreen(),
+      ),
+      GoRoute(
+        path: '/settings/about',
+        builder: (context, state) => const AboutUsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
       ),
       GoRoute(
         path: '/seats/:number',
