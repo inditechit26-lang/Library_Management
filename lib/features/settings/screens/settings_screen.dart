@@ -175,31 +175,6 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1, thickness: 0.8),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _ProfileStatItem(
-                        label: 'Capacity',
-                        value: '${ownerProfile.totalSeats} Seats',
-                        icon: Icons.chair_alt_rounded,
-                      ),
-                      Container(height: 24, width: 1, color: outline),
-                      _ProfileStatItem(
-                        label: 'Hours',
-                        value: '${ownerProfile.openingTime} - ${ownerProfile.closingTime}',
-                        icon: Icons.access_time_rounded,
-                      ),
-                      Container(height: 24, width: 1, color: outline),
-                      _ProfileStatItem(
-                        label: 'Status',
-                        value: 'Active',
-                        icon: Icons.check_circle_rounded,
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
@@ -790,50 +765,5 @@ class _PrivacyPolicy extends StatelessWidget {
       ),
     ),
   );
-}
-
-class _ProfileStatItem extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _ProfileStatItem({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Column(
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14, color: const Color(0xFF574DEB)),
-            const SizedBox(width: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                color: colors.onSurface,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: colors.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 }
 

@@ -175,32 +175,6 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.85),
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.workspace_premium_rounded,
-                          color: Colors.amber, size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        profile.subscriptionPlan,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -236,88 +210,6 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                 controller: _phoneController,
                 icon: Icons.phone_rounded,
                 isEditing: _isEditing,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Section: Library Details
-          _buildSectionHeader(context, 'Library Information', Icons.local_library_outlined),
-          const SizedBox(height: 12),
-          _buildDetailCard(
-            context,
-            isDark: isDark,
-            children: [
-              _buildField(
-                context,
-                label: 'Library Name',
-                controller: _libraryNameController,
-                icon: Icons.business_rounded,
-                isEditing: _isEditing,
-              ),
-              const Divider(height: 24),
-              _buildField(
-                context,
-                label: 'Branch Name',
-                controller: _branchController,
-                icon: Icons.location_city_rounded,
-                isEditing: _isEditing,
-              ),
-              const Divider(height: 24),
-              _buildField(
-                context,
-                label: 'Full Address',
-                controller: _addressController,
-                icon: Icons.map_rounded,
-                isEditing: _isEditing,
-                maxLines: 2,
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Section: Operational Hours & Capacity
-          _buildSectionHeader(
-              context, 'Operational Hours & Plan', Icons.access_time_rounded),
-          const SizedBox(height: 12),
-          _buildDetailCard(
-            context,
-            isDark: isDark,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildField(
-                      context,
-                      label: 'Opening Time',
-                      controller: _openingController,
-                      icon: Icons.wb_sunny_outlined,
-                      isEditing: _isEditing,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildField(
-                      context,
-                      label: 'Closing Time',
-                      controller: _closingController,
-                      icon: Icons.nights_stay_outlined,
-                      isEditing: _isEditing,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              _buildReadOnlyTile(
-                context,
-                label: 'Total Seat Capacity',
-                value: '${profile.totalSeats} Seats Configured',
-                icon: Icons.chair_alt_rounded,
-              ),
-              const Divider(height: 24),
-              _buildReadOnlyTile(
-                context,
-                label: 'Member Since',
-                value: profile.joinDate,
-                icon: Icons.calendar_today_rounded,
               ),
             ],
           ),
@@ -467,63 +359,6 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReadOnlyTile(
-    BuildContext context, {
-    required String label,
-    required String value,
-    required IconData icon,
-  }) {
-    final colors = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFF3AB080).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, size: 20, color: const Color(0xFF3AB080)),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: colors.onSurface,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Text(
-            'System Managed',
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
           ),
         ),
       ],
