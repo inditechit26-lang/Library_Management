@@ -186,7 +186,6 @@ class _State extends ConsumerState<AssignStudentSheet> {
 
                         return Container(
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF181C2B) : Colors.white,
                             borderRadius: BorderRadius.circular(18),
                             border: Border.all(
                               color: isAlreadySameSeat
@@ -197,7 +196,10 @@ class _State extends ConsumerState<AssignStudentSheet> {
                               width: 1.2,
                             ),
                           ),
-                          child: ListTile(
+                          child: Material(
+                            color: isDark ? const Color(0xFF181C2B) : Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 14,
                               vertical: 4,
@@ -300,7 +302,8 @@ class _State extends ConsumerState<AssignStudentSheet> {
                               }
                             },
                           ),
-                        );
+                        ),
+                      );
                       },
                     ),
             ),

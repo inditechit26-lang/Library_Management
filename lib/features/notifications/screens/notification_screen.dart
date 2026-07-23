@@ -48,8 +48,6 @@ class NotificationScreen extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: NotificationAppBar(
         unreadCount: state.unreadCount,
-        onSearchPressed: () => _openSearchSheet(context, ref, state.items),
-        onFilterPressed: () {},
         onMarkAllReadPressed: () {
           controller.markAllAsRead();
           ScaffoldMessenger.of(context).showSnackBar(
@@ -67,7 +65,6 @@ class NotificationScreen extends ConsumerWidget {
             ),
           );
         },
-        onSettingsPressed: () => context.push('/notifications/settings'),
       ),
       body: RefreshIndicator(
         onRefresh: () async {

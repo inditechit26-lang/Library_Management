@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 
 class NotificationAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final VoidCallback onSearchPressed;
-  final VoidCallback onFilterPressed;
   final VoidCallback onMarkAllReadPressed;
-  final VoidCallback onSettingsPressed;
   final int unreadCount;
 
   const NotificationAppBar({
     super.key,
-    required this.onSearchPressed,
-    required this.onFilterPressed,
     required this.onMarkAllReadPressed,
-    required this.onSettingsPressed,
     required this.unreadCount,
   });
 
@@ -80,32 +74,10 @@ class NotificationAppBar extends StatelessWidget implements PreferredSizeWidget 
               ],
             ),
           ),
-          Row(
-            children: [
-              _IconButton(
-                icon: Icons.search_rounded,
-                tooltip: 'Search Notifications',
-                onPressed: onSearchPressed,
-              ),
-              const SizedBox(width: 6),
-              _IconButton(
-                icon: Icons.filter_list_rounded,
-                tooltip: 'Filter',
-                onPressed: onFilterPressed,
-              ),
-              const SizedBox(width: 6),
-              _IconButton(
-                icon: Icons.done_all_rounded,
-                tooltip: 'Mark All Read',
-                onPressed: onMarkAllReadPressed,
-              ),
-              const SizedBox(width: 6),
-              _IconButton(
-                icon: Icons.settings_outlined,
-                tooltip: 'Settings',
-                onPressed: onSettingsPressed,
-              ),
-            ],
+          _IconButton(
+            icon: Icons.done_all_rounded,
+            tooltip: 'Mark All Read',
+            onPressed: onMarkAllReadPressed,
           ),
         ],
       ),

@@ -144,22 +144,26 @@ class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final item = filtered[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: colors.primaryContainer,
-                          child: Icon(Icons.notifications_outlined, color: colors.primary, size: 20),
+                      final action = item.actions.firstOrNull;
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: colors.primaryContainer,
+                            child: Icon(Icons.notifications_outlined, color: colors.primary, size: 20),
+                          ),
+                          title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          subtitle: Text(item.description, style: const TextStyle(fontSize: 11)),
+                          trailing: action != null
+                              ? TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    widget.onActionTap(item, action);
+                                  },
+                                  child: Text(action.label),
+                                )
+                              : null,
                         ),
-                        title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        subtitle: Text(item.description, style: const TextStyle(fontSize: 11)),
-                        trailing: item.actions.isNotEmpty
-                            ? TextButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  widget.onActionTap(item, item.actions.first);
-                                },
-                                child: Text(item.actions.first.label),
-                              )
-                            : null,
                       );
                     },
                   ),
