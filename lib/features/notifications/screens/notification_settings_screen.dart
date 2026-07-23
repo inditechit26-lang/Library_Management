@@ -137,31 +137,34 @@ class _SwitchTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: colors.outlineVariant),
       ),
-      child: SwitchListTile(
-        secondary: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: colors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: colors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(18),
+        child: SwitchListTile(
+          secondary: Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: colors.primary),
           ),
-          child: Icon(icon, size: 20, color: colors.primary),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
+          ),
+          value: value,
+          onChanged: onChanged,
+          activeThumbColor: colors.primary,
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
-        ),
-        value: value,
-        onChanged: onChanged,
-        activeColor: colors.primary,
       ),
     );
   }

@@ -12,6 +12,7 @@ class NotificationState {
   final bool showOnlyUnread;
   final bool showOnlyPriority;
   final int completedTodayCount;
+  final int selectedTab;
   final NotificationSettingsState settings;
 
   const NotificationState({
@@ -24,6 +25,7 @@ class NotificationState {
     this.showOnlyUnread = false,
     this.showOnlyPriority = false,
     this.completedTodayCount = 18,
+    this.selectedTab = 0,
     this.settings = const NotificationSettingsState(),
   });
 
@@ -37,6 +39,7 @@ class NotificationState {
     bool? showOnlyUnread,
     bool? showOnlyPriority,
     int? completedTodayCount,
+    int? selectedTab,
     NotificationSettingsState? settings,
   }) {
     return NotificationState(
@@ -49,6 +52,7 @@ class NotificationState {
       showOnlyUnread: showOnlyUnread ?? this.showOnlyUnread,
       showOnlyPriority: showOnlyPriority ?? this.showOnlyPriority,
       completedTodayCount: completedTodayCount ?? this.completedTodayCount,
+      selectedTab: selectedTab ?? this.selectedTab,
       settings: settings ?? this.settings,
     );
   }
@@ -81,13 +85,13 @@ class NotificationController extends Notifier<NotificationState> {
       items: [
         NotificationItem(
           id: 'n1',
-          title: 'Membership Expiring Today',
-          description: 'Rahul Sharma (Seat A-12) membership expires today.',
+          title: 'Plan Expiring Today',
+          description: 'Rahul Sharma (Seat A-12) plan expires today at 11:59 PM.',
           timestamp: now.subtract(const Duration(minutes: 5)),
           category: NotificationCategory.renewals,
-          priority: NotificationPriority.urgent,
+          priority: NotificationPriority.high,
           studentName: 'Rahul Sharma',
-          studentId: 1024,
+          studentId: 1,
           seatNumber: 'A-12',
           actions: const [
             NotificationAction(
@@ -105,12 +109,40 @@ class NotificationController extends Notifier<NotificationState> {
         ),
         NotificationItem(
           id: 'n2',
-          title: '3 Students Pending Payments',
-          description: 'Total ₹8,400 pending collection across 3 members.',
-          timestamp: now.subtract(const Duration(minutes: 18)),
+          title: 'Pending Payment: Plan Expired',
+          description: 'Arjun Mehta (Seat B1) plan expired. ₹1,200 pending payment due.',
+          timestamp: now.subtract(const Duration(minutes: 15)),
+          category: NotificationCategory.payments,
+          priority: NotificationPriority.urgent,
+          studentName: 'Arjun Mehta',
+          studentId: 3,
+          seatNumber: 'B1',
+          amount: 1200,
+          actions: const [
+            NotificationAction(
+              label: 'Collect Fee',
+              icon: Icons.account_balance_wallet_outlined,
+              actionKey: 'collect_fee',
+              isPrimary: true,
+            ),
+            NotificationAction(
+              label: 'WhatsApp Reminder',
+              icon: Icons.chat_bubble_outline_rounded,
+              actionKey: 'whatsapp',
+            ),
+          ],
+        ),
+        NotificationItem(
+          id: 'n3',
+          title: 'Pending Payment: Plan Expired',
+          description: 'Sneha Kapoor (Seat B3) plan expired 2 days ago. ₹1,500 due.',
+          timestamp: now.subtract(const Duration(hours: 1)),
           category: NotificationCategory.payments,
           priority: NotificationPriority.high,
-          amount: 8400,
+          studentName: 'Sneha Kapoor',
+          studentId: 4,
+          seatNumber: 'B3',
+          amount: 1500,
           actions: const [
             NotificationAction(
               label: 'Collect Fee',
@@ -121,14 +153,14 @@ class NotificationController extends Notifier<NotificationState> {
           ],
         ),
         NotificationItem(
-          id: 'n3',
+          id: 'n4',
           title: 'Payment Received',
           description: 'Rahul Sharma paid ₹800 via UPI.',
-          timestamp: now.subtract(const Duration(minutes: 32)),
+          timestamp: now.subtract(const Duration(hours: 2)),
           category: NotificationCategory.payments,
           priority: NotificationPriority.medium,
           studentName: 'Rahul Sharma',
-          studentId: 1024,
+          studentId: 1,
           receiptNumber: 'AEW1023',
           amount: 800,
           isRead: true,
@@ -142,15 +174,15 @@ class NotificationController extends Notifier<NotificationState> {
           ],
         ),
         NotificationItem(
-          id: 'n4',
+          id: 'n5',
           title: 'New Admission',
-          description: 'Priya Verma assigned to Seat A-12.',
-          timestamp: now.subtract(const Duration(hours: 2)),
+          description: 'Priya Verma assigned to Seat A2.',
+          timestamp: now.subtract(const Duration(hours: 4)),
           category: NotificationCategory.admissions,
           priority: NotificationPriority.medium,
           studentName: 'Priya Verma',
-          studentId: 1045,
-          seatNumber: 'A-12',
+          studentId: 2,
+          seatNumber: 'A2',
           actions: const [
             NotificationAction(
               label: 'View Student',
@@ -161,15 +193,15 @@ class NotificationController extends Notifier<NotificationState> {
           ],
         ),
         NotificationItem(
-          id: 'n5',
+          id: 'n6',
           title: 'Seat Changed',
-          description: 'Rahul moved from Seat A-12 to B-04.',
-          timestamp: now.subtract(const Duration(hours: 3)),
+          description: 'Rahul moved from Seat A1 to B1.',
+          timestamp: now.subtract(const Duration(hours: 6)),
           category: NotificationCategory.seats,
           priority: NotificationPriority.low,
-          studentName: 'Rahul',
-          studentId: 1024,
-          seatNumber: 'B-04',
+          studentName: 'Rahul Sharma',
+          studentId: 1,
+          seatNumber: 'B1',
           isRead: true,
           actions: const [
             NotificationAction(
@@ -180,10 +212,10 @@ class NotificationController extends Notifier<NotificationState> {
           ],
         ),
         NotificationItem(
-          id: 'n6',
+          id: 'n7',
           title: 'Announcement Sent',
           description: 'Holiday notice delivered to 185 Students.',
-          timestamp: now.subtract(const Duration(hours: 5)),
+          timestamp: now.subtract(const Duration(days: 1)),
           category: NotificationCategory.announcements,
           priority: NotificationPriority.low,
           isRead: true,
@@ -192,28 +224,6 @@ class NotificationController extends Notifier<NotificationState> {
               label: 'View Report',
               icon: Icons.insights_rounded,
               actionKey: 'view_report',
-            ),
-          ],
-        ),
-        NotificationItem(
-          id: 'n7',
-          title: 'Receipt Generated',
-          description: 'Receipt #AEW1023 created successfully.',
-          timestamp: now.subtract(const Duration(days: 1)),
-          category: NotificationCategory.payments,
-          priority: NotificationPriority.low,
-          receiptNumber: 'AEW1023',
-          isRead: true,
-          actions: const [
-            NotificationAction(
-              label: 'Preview PDF',
-              icon: Icons.picture_as_pdf_outlined,
-              actionKey: 'preview_pdf',
-            ),
-            NotificationAction(
-              label: 'Share',
-              icon: Icons.share_outlined,
-              actionKey: 'share',
             ),
           ],
         ),
@@ -327,16 +337,34 @@ class NotificationController extends Notifier<NotificationState> {
     );
   }
 
+  void selectTab(int index) {
+    state = state.copyWith(selectedTab: index);
+  }
+
   void selectCategory(NotificationCategory cat) {
     state = state.copyWith(selectedCategory: cat, showOnlyUnread: false, showOnlyPriority: false);
   }
 
+  void applyFilter(NotificationCategory category, {bool? unreadOnly, bool? priorityOnly}) {
+    state = state.copyWith(
+      selectedCategory: category,
+      showOnlyUnread: unreadOnly ?? false,
+      showOnlyPriority: priorityOnly ?? false,
+    );
+  }
+
   void toggleUnreadFilter() {
-    state = state.copyWith(showOnlyUnread: !state.showOnlyUnread);
+    state = state.copyWith(
+      showOnlyUnread: !state.showOnlyUnread,
+      showOnlyPriority: false,
+    );
   }
 
   void togglePriorityFilter() {
-    state = state.copyWith(showOnlyPriority: !state.showOnlyPriority);
+    state = state.copyWith(
+      showOnlyPriority: !state.showOnlyPriority,
+      showOnlyUnread: false,
+    );
   }
 
   void setSearchQuery(String query) {
@@ -358,6 +386,12 @@ class NotificationController extends Notifier<NotificationState> {
   void dismissNotification(String id) {
     state = state.copyWith(
       items: state.items.where((i) => i.id != id).toList(),
+    );
+  }
+
+  void dismissInsight(String insightId) {
+    state = state.copyWith(
+      insights: state.insights.where((i) => i.id != insightId).toList(),
     );
   }
 

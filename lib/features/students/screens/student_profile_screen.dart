@@ -19,9 +19,17 @@ class StudentProfileScreen extends ConsumerWidget {
   const StudentProfileScreen({super.key, required this.studentId});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final student = ref
-        .watch(studentsProvider)
-        .firstWhere((item) => item.id == studentId);
+    final students = ref.watch(studentsProvider);
+    if (students.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Student Profile')),
+        body: const Center(child: Text('No student found')),
+      );
+    }
+    final student = students.firstWhere(
+      (item) => item.id == studentId,
+      orElse: () => students.first,
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Profile'),

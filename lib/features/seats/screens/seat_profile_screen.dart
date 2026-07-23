@@ -19,9 +19,17 @@ class SeatProfileScreen extends ConsumerWidget {
   const SeatProfileScreen({super.key, required this.seatId});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final seat = ref
-        .watch(seatsProvider)
-        .firstWhere((item) => item.seatId == seatId);
+    final seats = ref.watch(seatsProvider);
+    if (seats.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Seat Profile')),
+        body: const Center(child: Text('No seat found')),
+      );
+    }
+    final seat = seats.firstWhere(
+      (item) => item.seatId == seatId,
+      orElse: () => seats.first,
+    );
     Student? student;
     for (final s in ref.watch(studentsProvider)) {
       if (s.id == seat.studentId) student = s;

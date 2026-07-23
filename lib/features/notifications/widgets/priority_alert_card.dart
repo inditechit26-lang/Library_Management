@@ -15,8 +15,6 @@ class PriorityAlertCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (priorityItems.isEmpty) return const SizedBox.shrink();
 
-    final colors = Theme.of(context).colorScheme;
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
@@ -99,8 +97,6 @@ class _PriorityItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
