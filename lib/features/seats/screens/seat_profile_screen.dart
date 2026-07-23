@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../receipts/widgets/receipt_bottom_sheet.dart';
+import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../../students/controllers/students_controller.dart';
 import '../../students/models/student.dart';
 import '../../students/widgets/edit_student_sheet.dart';
@@ -138,11 +139,9 @@ class SeatProfileScreen extends ConsumerWidget {
     isScrollControlled: true,
     builder: (_) => RenewBottomSheet(student: s),
   );
-  void _receipt(BuildContext c, Student s) => showModalBottomSheet(
-    context: c,
-    isScrollControlled: true,
-    builder: (_) => ReceiptBottomSheet(student: s),
-  );
+  void _receipt(BuildContext c, Student s) =>
+      ReceiptPdfViewerScreen.open(c, s);
+
   void _edit(BuildContext c, WidgetRef ref, Student s) => showModalBottomSheet(
     context: c,
     isScrollControlled: true,

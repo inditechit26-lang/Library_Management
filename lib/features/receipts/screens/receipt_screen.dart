@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/utils/formatters.dart';
 import '../widgets/receipt_bottom_sheet.dart';
+import 'receipt_pdf_viewer_screen.dart';
 import '../../students/controllers/students_controller.dart';
 import '../../students/models/student.dart';
 import '../../students/widgets/profile_header.dart';
@@ -270,15 +271,9 @@ class _State extends ConsumerState<ReceiptScreen> {
     builder: (_) => RenewBottomSheet(student: student),
   );
 
-  void _viewReceipt(Student student) => showModalBottomSheet(
-    context: context,
-    backgroundColor: Theme.of(context).colorScheme.surface,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-    ),
-    builder: (_) =>
-        ReceiptBottomSheet(student: student, newExpiry: student.expiry),
-  );
+  void _viewReceipt(Student student) =>
+      ReceiptPdfViewerScreen.open(context, student, newExpiry: student.expiry);
+
 
   Future<void> _sendWhatsAppReminder(Student student) async {
     final digits = student.phone.replaceAll(RegExp(r'\D'), '');

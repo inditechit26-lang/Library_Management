@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../receipts/widgets/receipt_bottom_sheet.dart';
 import '../../receipts/services/receipt_service.dart';
+import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../controllers/students_controller.dart';
 import '../models/student.dart';
 import '../widgets/document_vault.dart';
@@ -92,46 +93,11 @@ class StudentProfileScreen extends ConsumerWidget {
     ),
     builder: (_) => RenewBottomSheet(student: student),
   );
-  void _receipt(BuildContext context, Student student) => showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-    ),
-    builder: (_) => ReceiptBottomSheet(student: student),
-  );
+  void _receipt(BuildContext context, Student student) =>
+      ReceiptPdfViewerScreen.open(context, student);
 
   void _receiptOptions(BuildContext context, Student student) =>
-      showModalBottomSheet<void>(
-        context: context,
-        builder: (sheet) => SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.visibility_outlined),
-                  title: const Text('Preview Receipt'),
-                  onTap: () {
-                    Navigator.pop(sheet);
-                    _receipt(context, student);
-                  },
-                ),
-                ListTile(
-                  leading: const WhatsAppLogo(size: 21),
-                  title: const Text('Send Receipt'),
-                  onTap: () {
-                    Navigator.pop(sheet);
-                    ReceiptService.share(student);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      _receipt(context, student);
 
   void _edit(BuildContext context, WidgetRef ref, Student student) =>
       showModalBottomSheet(

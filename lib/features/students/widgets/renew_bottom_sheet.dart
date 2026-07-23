@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/utils/formatters.dart';
 import '../../admissions/widgets/custom_plan_card.dart';
 import '../../receipts/widgets/receipt_bottom_sheet.dart';
+import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
 import '../controllers/students_controller.dart';
@@ -243,13 +244,10 @@ class _State extends ConsumerState<RenewBottomSheet> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => ReceiptBottomSheet(
-                  student: receiptStudent,
-                  newExpiry: expiry,
-                ),
+              onPressed: () => ReceiptPdfViewerScreen.open(
+                context,
+                receiptStudent,
+                newExpiry: expiry,
               ),
               child: const Text('View Receipt'),
             ),
