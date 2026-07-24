@@ -10,6 +10,7 @@ class AdmissionController extends ChangeNotifier {
   MembershipType membership = MembershipType.fullTime;
   MembershipPeriod? period;
   String? selectedSeat;
+  String? selectedHalfTimeShift;
   bool paymentConfirmed = false;
   bool completed = false;
   final Set<String> documents = {};
@@ -59,11 +60,28 @@ class AdmissionController extends ChangeNotifier {
 
   void updatePricing(PricingSettings value) {
     pricing = value;
+    if (membership == MembershipType.halfTime &&
+        selectedHalfTimeShift == null &&
+        pricing.halfTimeShifts.isNotEmpty) {
+      selectedHalfTimeShift = pricing.halfTimeShifts.first;
+    }
   }
 
   void chooseMembership(MembershipType value) {
     membership = value;
-    if (value == MembershipType.halfTime) selectedSeat = null;
+    if (value == MembershipType.halfTime) {
+      selectedSeat = null;
+      if (selectedHalfTimeShift == null && pricing.halfTimeShifts.isNotEmpty) {
+        selectedHalfTimeShift = pricing.halfTimeShifts.first;
+      }
+    } else {
+      selectedHalfTimeShift = null;
+    }
+    notifyListeners();
+  }
+
+  void setHalfTimeShift(String shift) {
+    selectedHalfTimeShift = shift;
     notifyListeners();
   }
 
@@ -154,7 +172,9 @@ class AdmissionController extends ChangeNotifier {
       notes: notes.trim(),
       seat: membership == MembershipType.fullTime
           ? selectedSeat ?? ''
-          : 'Flexible',
+          : selectedHalfTimeShift != null
+              ? 'Flexible (${selectedHalfTimeShift!})'
+              : 'Flexible',
       joined: joined,
       expiry: expiry,
       fee: fee,

@@ -5,13 +5,20 @@ import '../../students/models/student.dart';
 class MembershipSelector extends StatelessWidget {
   final MembershipType selected;
   final double fullTimeMonthly, halfTimeMonthly;
+  final List<String> shifts;
+  final String? selectedShift;
   final ValueChanged<MembershipType> onChanged;
+  final ValueChanged<String>? onShiftChanged;
+
   const MembershipSelector({
     super.key,
     required this.selected,
     required this.fullTimeMonthly,
     required this.halfTimeMonthly,
+    this.shifts = const [],
+    this.selectedShift,
     required this.onChanged,
+    this.onShiftChanged,
   });
 
   @override
@@ -40,8 +47,219 @@ class MembershipSelector extends StatelessWidget {
         selected: selected == MembershipType.halfTime,
         onTap: () => onChanged(MembershipType.halfTime),
       ),
+      if (selected == MembershipType.halfTime && shifts.isNotEmpty) ...[
+        const SizedBox(height: 14),
+        _HalfTimeShiftSelector(
+          shifts: shifts,
+          selectedShift: selectedShift,
+          onShiftChanged: onShiftChanged,
+        ),
+      ],
     ],
   );
+}
+
+class _HalfTimeShiftSelector extends StatefulWidget {
+  final List<String> shifts;
+  final String? selectedShift;
+  final ValueChanged<String>? onShiftChanged;
+
+  const _HalfTimeShiftSelector({
+    required this.shifts,
+    required this.selectedShift,
+    required this.onShiftChanged,
+  });
+
+  @override
+  State<_HalfTimeShiftSelector> createState() => _HalfTimeShiftSelectorState();
+}
+
+class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
+  bool _isCustomMode = false;
+  final _customTimeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _customTimeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickCustomTimeRange() async {
+    final start = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+      helpText: 'Select Half-Time Shift Start Time',
+    );
+    if (start == null || !mounted) return;
+
+    final end = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: (start.hour + 6) % 24, minute: start.minute),
+      helpText: 'Select Half-Time Shift End Time',
+    );
+    if (end == null || !mounted) return;
+
+    final formatted =
+        'Custom (${start.format(context)} - ${end.format(context)})';
+    _customTimeController.text = formatted;
+    widget.onShiftChanged?.call(formatted);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final activeShift = widget.selectedShift ?? widget.shifts.first;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8F7FF),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF7069DC).withValues(alpha: 0.4),
+          width: 1.2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.access_time_filled_rounded,
+                size: 20,
+                color: Color(0xFF5650C7),
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Set Half-Time Shift Time',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF2C2E3E),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Required',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...widget.shifts.map((shift) {
+                final isSelected = !_isCustomMode && activeShift == shift;
+                return ChoiceChip(
+                  label: Text(shift),
+                  selected: isSelected,
+                  selectedColor: const Color(0xFF5650C7),
+                  backgroundColor: Colors.white,
+                  labelStyle: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? Colors.white : const Color(0xFF4B4F5E),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(
+                      color: isSelected
+                          ? const Color(0xFF5650C7)
+                          : const Color(0xFFE2E4EC),
+                    ),
+                  ),
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() => _isCustomMode = false);
+                      widget.onShiftChanged?.call(shift);
+                    }
+                  },
+                );
+              }),
+              ChoiceChip(
+                label: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.more_time_rounded, size: 14),
+                    SizedBox(width: 4),
+                    Text('Set Custom Time'),
+                  ],
+                ),
+                selected: _isCustomMode,
+                selectedColor: const Color(0xFF5650C7),
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  color: _isCustomMode ? Colors.white : const Color(0xFF4B4F5E),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: _isCustomMode
+                        ? const Color(0xFF5650C7)
+                        : const Color(0xFFE2E4EC),
+                  ),
+                ),
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() => _isCustomMode = true);
+                    _pickCustomTimeRange();
+                  }
+                },
+              ),
+            ],
+          ),
+          if (_isCustomMode) ...[
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: _pickCustomTimeRange,
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF5650C7)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.time_to_leave_rounded,
+                        size: 18, color: Color(0xFF5650C7)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _customTimeController.text.isEmpty
+                            ? 'Tap to pick shift timing...'
+                            : _customTimeController.text,
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          color: _customTimeController.text.isEmpty
+                              ? Colors.grey.shade600
+                              : const Color(0xFF2C2E3E),
+                        ),
+                      ),
+                    ),
+                    const Icon(Icons.edit_calendar_rounded,
+                        size: 18, color: Color(0xFF5650C7)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _PlanCard extends StatelessWidget {

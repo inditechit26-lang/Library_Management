@@ -166,17 +166,19 @@ class _MembershipPricingScreenState
 
           // Tab Contents
           SizedBox(
-            height: 620,
+            height: 820,
             child: TabBarView(
               controller: _tabController,
               children: [
                 _PlanEditorGroup(
                   membership: MembershipType.fullTime,
                   pricing: pricing.fullTime,
+                  shifts: pricing.halfTimeShifts,
                 ),
                 _PlanEditorGroup(
                   membership: MembershipType.halfTime,
                   pricing: pricing.halfTime,
+                  shifts: pricing.halfTimeShifts,
                 ),
               ],
             ),
@@ -190,10 +192,12 @@ class _MembershipPricingScreenState
 class _PlanEditorGroup extends ConsumerWidget {
   final MembershipType membership;
   final PlanPricing pricing;
+  final List<String> shifts;
 
   const _PlanEditorGroup({
     required this.membership,
     required this.pricing,
+    required this.shifts,
   });
 
   @override
@@ -209,7 +213,6 @@ class _PlanEditorGroup extends ConsumerWidget {
     ];
 
     return ListView(
-      physics: const NeverScrollableScrollPhysics(),
       children: [
         for (final item in periods) ...[
           _PricingCard(
@@ -232,7 +235,234 @@ class _PlanEditorGroup extends ConsumerWidget {
           ),
           const SizedBox(height: 14),
         ],
+        if (membership == MembershipType.halfTime) ...[
+          const SizedBox(height: 6),
+          _HalfTimeShiftConfigCard(
+            shifts: shifts,
+            isDark: isDark,
+          ),
+          const SizedBox(height: 24),
+        ],
       ],
+    );
+  }
+}
+
+class _HalfTimeShiftConfigCard extends ConsumerStatefulWidget {
+  final List<String> shifts;
+  final bool isDark;
+
+  const _HalfTimeShiftConfigCard({
+    required this.shifts,
+    required this.isDark,
+  });
+
+  @override
+  ConsumerState<_HalfTimeShiftConfigCard> createState() =>
+      __HalfTimeShiftConfigCardState();
+}
+
+class __HalfTimeShiftConfigCardState
+    extends ConsumerState<_HalfTimeShiftConfigCard> {
+  final _shiftController = TextEditingController();
+
+  @override
+  void dispose() {
+    _shiftController.dispose();
+    super.dispose();
+  }
+
+  void _addShift() {
+    final text = _shiftController.text.trim();
+    if (text.isNotEmpty) {
+      ref.read(pricingProvider.notifier).addHalfTimeShift(text);
+      _shiftController.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = widget.isDark;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : const Color(0xFF1E2238).withValues(alpha: 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.access_time_filled_rounded,
+                  size: 20,
+                  color: Color(0xFF8B5CF6),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Half Time Shift Options',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      'Configured shift times selectable during half time student admission',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Column(
+            children: [
+              for (int i = 0; i < widget.shifts.length; i++) ...[
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF131724)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF242A3E)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.schedule_rounded,
+                        size: 18,
+                        color: Color(0xFF8B5CF6),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          widget.shifts[i],
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline_rounded,
+                            size: 20, color: Colors.redAccent),
+                        onPressed: () => ref
+                            .read(pricingProvider.notifier)
+                            .removeHalfTimeShift(i),
+                        tooltip: 'Remove Shift',
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _shiftController,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'e.g. Night Shift (10:00 PM - 06:00 AM)',
+                    hintStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    filled: true,
+                    fillColor: isDark
+                        ? const Color(0xFF131724)
+                        : const Color(0xFFF8FAFC),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: isDark
+                            ? const Color(0xFF242A3E)
+                            : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF8B5CF6),
+                        width: 1.8,
+                      ),
+                    ),
+                  ),
+                  onSubmitted: (_) => _addShift(),
+                ),
+              ),
+              const SizedBox(width: 10),
+              FilledButton.icon(
+                onPressed: _addShift,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B5CF6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.add_rounded, size: 18),
+                label: const Text(
+                  'Add',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

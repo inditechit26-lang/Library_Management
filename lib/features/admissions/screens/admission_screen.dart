@@ -172,7 +172,10 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
           selected: admission.membership,
           fullTimeMonthly: pricing.fullTime.monthly,
           halfTimeMonthly: pricing.halfTime.monthly,
+          shifts: pricing.halfTimeShifts,
+          selectedShift: admission.selectedHalfTimeShift,
           onChanged: admission.chooseMembership,
+          onShiftChanged: admission.setHalfTimeShift,
         ),
         const SizedBox(height: 22),
         PricingSelector(

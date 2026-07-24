@@ -39,6 +39,22 @@ class PricingController extends Notifier<PricingSettings> {
         ? state.copyWith(fullTime: updated)
         : state.copyWith(halfTime: updated);
   }
+
+  void updateHalfTimeShifts(List<String> shifts) {
+    state = state.copyWith(halfTimeShifts: shifts);
+  }
+
+  void addHalfTimeShift(String shift) {
+    if (shift.trim().isEmpty) return;
+    final updated = List<String>.from(state.halfTimeShifts)..add(shift.trim());
+    state = state.copyWith(halfTimeShifts: updated);
+  }
+
+  void removeHalfTimeShift(int index) {
+    if (index < 0 || index >= state.halfTimeShifts.length) return;
+    final updated = List<String>.from(state.halfTimeShifts)..removeAt(index);
+    state = state.copyWith(halfTimeShifts: updated);
+  }
 }
 
 final pricingProvider = NotifierProvider<PricingController, PricingSettings>(

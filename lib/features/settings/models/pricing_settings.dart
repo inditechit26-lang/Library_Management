@@ -40,16 +40,28 @@ class PlanPricing {
 
 class PricingSettings {
   final PlanPricing fullTime, halfTime;
-  const PricingSettings({required this.fullTime, required this.halfTime});
+  final List<String> halfTimeShifts;
+  const PricingSettings({
+    required this.fullTime,
+    required this.halfTime,
+    this.halfTimeShifts = const [
+      'Morning Shift (06:00 AM - 02:00 PM)',
+      'Evening Shift (02:00 PM - 10:00 PM)',
+    ],
+  });
 
   PlanPricing forMembership(MembershipType membership) =>
       membership == MembershipType.fullTime ? fullTime : halfTime;
 
-  PricingSettings copyWith({PlanPricing? fullTime, PlanPricing? halfTime}) =>
-      PricingSettings(
-        fullTime: fullTime ?? this.fullTime,
-        halfTime: halfTime ?? this.halfTime,
-      );
+  PricingSettings copyWith({
+    PlanPricing? fullTime,
+    PlanPricing? halfTime,
+    List<String>? halfTimeShifts,
+  }) => PricingSettings(
+    fullTime: fullTime ?? this.fullTime,
+    halfTime: halfTime ?? this.halfTime,
+    halfTimeShifts: halfTimeShifts ?? this.halfTimeShifts,
+  );
 
   static const defaults = PricingSettings(
     fullTime: PlanPricing(
@@ -72,6 +84,10 @@ class PricingSettings {
         MembershipPeriod.annual: 'Best Value',
       },
     ),
+    halfTimeShifts: [
+      'Morning Shift (06:00 AM - 02:00 PM)',
+      'Evening Shift (02:00 PM - 10:00 PM)',
+    ],
   );
 }
 
