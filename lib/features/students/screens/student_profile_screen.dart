@@ -87,7 +87,6 @@ class StudentProfileScreen extends ConsumerWidget {
   void _renew(BuildContext context, Student student) => showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
     ),

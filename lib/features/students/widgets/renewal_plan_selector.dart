@@ -54,73 +54,83 @@ class _Plan extends StatelessWidget {
     required this.onTap,
   });
   @override
-  Widget build(BuildContext context) => AnimatedScale(
-    scale: selected ? 1 : .98,
-    duration: const Duration(milliseconds: 200),
-    child: Material(
-      color: selected ? const Color(0xFFF3F2FF) : Colors.white,
-      borderRadius: BorderRadius.circular(17),
-      child: InkWell(
-        onTap: onTap,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = selected
+        ? (isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF3F2FF))
+        : colors.surface;
+    final borderColor = selected ? colors.primary : colors.outline;
+
+    return AnimatedScale(
+      scale: selected ? 1 : .98,
+      duration: const Duration(milliseconds: 200),
+      child: Material(
+        color: bg,
         borderRadius: BorderRadius.circular(17),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          height: 86,
-          padding: const EdgeInsets.all(13),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF625BCD)
-                  : const Color(0xFFE5E7EF),
-              width: selected ? 1.5 : 1,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(17),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            height: 86,
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(
+                color: borderColor,
+                width: selected ? 1.5 : 1,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                period == MembershipPeriod.custom
-                    ? Icons.edit_calendar_outlined
-                    : Icons.calendar_month_outlined,
-                color: const Color(0xFF5650C7),
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      period.label,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      amount == null ? period.duration : money(amount!),
-                      style: const TextStyle(
-                        fontSize: 9,
-                        color: Color(0xFF858B9C),
-                      ),
-                    ),
-                  ],
+            child: Row(
+              children: [
+                Icon(
+                  period == MembershipPeriod.custom
+                      ? Icons.edit_calendar_outlined
+                      : Icons.calendar_month_outlined,
+                  color: colors.primary,
+                  size: 20,
                 ),
-              ),
-              if (selected)
-                const Icon(
-                  Icons.check_circle,
-                  color: Color(0xFF5650C7),
-                  size: 18,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        period.label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: colors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        amount == null ? period.duration : money(amount!),
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-            ],
+                if (selected)
+                  Icon(
+                    Icons.check_circle,
+                    color: colors.primary,
+                    size: 18,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class RenewalCustomFields extends StatelessWidget {
@@ -138,46 +148,49 @@ class RenewalCustomFields extends StatelessWidget {
     required this.onAmount,
   });
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(15),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFBFBFE),
-      border: Border.all(color: const Color(0xFFDDD9FF)),
-      borderRadius: BorderRadius.circular(18),
-    ),
-    child: Column(
-      children: [
-        InkWell(
-          onTap: () => _pick(context),
-          borderRadius: BorderRadius.circular(15),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: const Color(0xFFE5E7EF)),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.event_outlined, color: Color(0xFF5650C7)),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    selectedExpiry == null
-                        ? 'Select Expiry Date'
-                        : DateFormat('dd MMM yyyy').format(selectedExpiry!),
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => _pick(context),
+            borderRadius: BorderRadius.circular(15),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border.all(color: colors.outline),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.event_outlined, color: colors.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      selectedExpiry == null
+                          ? 'Select Expiry Date'
+                          : DateFormat('dd MMM yyyy').format(selectedExpiry!),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: colors.onSurface,
+                      ),
                     ),
                   ),
-                ),
-                const Icon(Icons.chevron_right),
-              ],
+                  Icon(Icons.chevron_right, color: colors.onSurfaceVariant),
+                ],
+              ),
             ),
           ),
-        ),
         const SizedBox(height: 11),
         TextField(
           controller: amount,
@@ -191,6 +204,7 @@ class RenewalCustomFields extends StatelessWidget {
       ],
     ),
   );
+  }
 
   Future<void> _pick(BuildContext context) async {
     final value = await showDatePicker(

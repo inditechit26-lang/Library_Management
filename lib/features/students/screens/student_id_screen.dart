@@ -49,20 +49,20 @@ class _StudentIdScreenState extends State<StudentIdScreen> {
                       ),
                     ),
                     const SizedBox(height: 18),
-                    const Row(
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.verified_user_outlined,
                           size: 16,
                           color: Color(0xFF24845F),
                         ),
-                        SizedBox(width: 7),
+                        const SizedBox(width: 7),
                         Text(
                           'Verified digital identity',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF727788),
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -133,24 +133,26 @@ class _Actions extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.fromLTRB(
-      16,
-      14,
-      16,
-      MediaQuery.paddingOf(context).bottom + 12,
-    ),
-    decoration: const BoxDecoration(
-      color: Colors.white,
-      border: Border(top: BorderSide(color: Color(0xFFE5E7ED))),
-      boxShadow: [
-        BoxShadow(
-          color: Color(0x0C20243B),
-          blurRadius: 20,
-          offset: Offset(0, -5),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        14,
+        16,
+        MediaQuery.paddingOf(context).bottom + 12,
+      ),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.outline)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0C20243B),
+            blurRadius: 20,
+            offset: Offset(0, -5),
+          ),
+        ],
+      ),
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -203,6 +205,7 @@ class _Actions extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 class _Action extends StatelessWidget {

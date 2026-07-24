@@ -25,13 +25,15 @@ class _State extends State<AdmissionPaymentQrCard> {
       'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=${widget.amount}&cu=INR';
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE5E7EF)),
-      borderRadius: BorderRadius.circular(22),
-    ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(22),
+      ),
     child: Column(
       children: [
         Container(
@@ -109,6 +111,7 @@ class _State extends State<AdmissionPaymentQrCard> {
       ],
     ),
   );
+  }
 
   void _fullScreen(BuildContext context) => showDialog<void>(
     context: context,

@@ -91,7 +91,10 @@ class SeatProfileScreen extends ConsumerWidget {
         top: false,
         child: Container(
           padding: const EdgeInsets.all(10),
-          color: Colors.white,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outline)),
+          ),
           child: Row(
             children: [
               _action(Icons.phone_outlined, 'Call', () => _call(value)),
@@ -189,13 +192,15 @@ class _SeatInformation extends StatelessWidget {
   final String number;
   const _SeatInformation({required this.number});
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: const Color(0xFFE5E7EF)),
-    ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.outline),
+      ),
     child: Row(
       children: [
         Container(
@@ -227,4 +232,6 @@ class _SeatInformation extends StatelessWidget {
       ],
     ),
   );
+  }
 }
+

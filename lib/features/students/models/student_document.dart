@@ -1,4 +1,4 @@
-enum StudentDocumentType { aadhaar, collegeId, passportPhoto, other }
+enum StudentDocumentType { aadhaarFront, aadhaarBack, aadhaar, collegeId, passportPhoto, other }
 
 class StudentDocument {
   final String id, name, path, uploadedAt;

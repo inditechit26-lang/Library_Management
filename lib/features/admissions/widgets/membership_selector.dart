@@ -157,22 +157,23 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
             children: [
               ...widget.shifts.map((shift) {
                 final isSelected = !_isCustomMode && activeShift == shift;
+                final colors = Theme.of(context).colorScheme;
                 return ChoiceChip(
                   label: Text(shift),
                   selected: isSelected,
-                  selectedColor: const Color(0xFF5650C7),
-                  backgroundColor: Colors.white,
+                  selectedColor: colors.primary,
+                  backgroundColor: colors.surface,
                   labelStyle: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: isSelected ? Colors.white : const Color(0xFF4B4F5E),
+                    color: isSelected ? colors.onPrimary : colors.onSurfaceVariant,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
                       color: isSelected
-                          ? const Color(0xFF5650C7)
-                          : const Color(0xFFE2E4EC),
+                          ? colors.primary
+                          : colors.outline,
                     ),
                   ),
                   onSelected: (selected) {
@@ -193,19 +194,19 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
                   ],
                 ),
                 selected: _isCustomMode,
-                selectedColor: const Color(0xFF5650C7),
-                backgroundColor: Colors.white,
+                selectedColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 labelStyle: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
-                  color: _isCustomMode ? Colors.white : const Color(0xFF4B4F5E),
+                  color: _isCustomMode ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
                     color: _isCustomMode
-                        ? const Color(0xFF5650C7)
-                        : const Color(0xFFE2E4EC),
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.outline,
                   ),
                 ),
                 onSelected: (selected) {
@@ -226,14 +227,14 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF5650C7)),
+                  border: Border.all(color: Theme.of(context).colorScheme.primary),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.time_to_leave_rounded,
-                        size: 18, color: Color(0xFF5650C7)),
+                    Icon(Icons.time_to_leave_rounded,
+                        size: 18, color: Theme.of(context).colorScheme.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -244,13 +245,13 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                           color: _customTimeController.text.isEmpty
-                              ? Colors.grey.shade600
-                              : const Color(0xFF2C2E3E),
+                              ? Theme.of(context).colorScheme.onSurfaceVariant
+                              : Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
-                    const Icon(Icons.edit_calendar_rounded,
-                        size: 18, color: Color(0xFF5650C7)),
+                    Icon(Icons.edit_calendar_rounded,
+                        size: 18, color: Theme.of(context).colorScheme.primary),
                   ],
                 ),
               ),
@@ -279,27 +280,36 @@ class _PlanCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => AnimatedScale(
-    scale: selected ? 1 : .985,
-    duration: const Duration(milliseconds: 220),
-    curve: Curves.easeOutCubic,
-    child: Material(
-      color: selected ? const Color(0xFFF5F4FF) : Colors.white,
-      borderRadius: BorderRadius.circular(22),
-      child: InkWell(
-        onTap: onTap,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = selected
+        ? (isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF5F4FF))
+        : colors.surface;
+
+    return AnimatedScale(
+      scale: selected ? 1 : .985,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      child: Material(
+        color: bg,
         borderRadius: BorderRadius.circular(22),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF7069DC)
-                  : const Color(0xFFE5E7EF),
-              width: selected ? 1.5 : 1,
-            ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(22),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: selected
+                    ? colors.primary
+                    : colors.outline,
+                width: selected ? 1.5 : 1,
+              ),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x0A20243B),
@@ -387,6 +397,7 @@ class _PlanCard extends StatelessWidget {
       ),
     ),
   );
+  }
 }
 
 class _Benefit extends StatelessWidget {

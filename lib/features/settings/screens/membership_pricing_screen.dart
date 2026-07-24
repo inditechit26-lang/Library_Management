@@ -288,10 +288,10 @@ class __HalfTimeShiftConfigCardState
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          color: theme.colorScheme.outline,
           width: 1.2,
         ),
         boxShadow: [
@@ -493,10 +493,10 @@ class _PricingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          color: theme.colorScheme.outline,
           width: 1.2,
         ),
         boxShadow: [

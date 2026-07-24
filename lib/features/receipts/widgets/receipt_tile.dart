@@ -21,12 +21,10 @@ class ReceiptTile extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: isDark ? theme.colorScheme.surface : Colors.white,
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isDark
-                  ? theme.colorScheme.outline.withOpacity(0.35)
-                  : const Color(0xFFE6E8F0),
+              color: theme.colorScheme.outline,
               width: 1.2,
             ),
             boxShadow: [

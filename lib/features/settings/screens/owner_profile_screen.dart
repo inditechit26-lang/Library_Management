@@ -260,14 +260,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark
-            ? Theme.of(context).colorScheme.surface
-            : Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : const Color(0xFFE2E8F0),
+          color: Theme.of(context).colorScheme.outline,
         ),
         boxShadow: [
           BoxShadow(

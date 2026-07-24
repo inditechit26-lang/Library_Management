@@ -93,28 +93,35 @@ class _PricingCard extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) => AnimatedScale(
-    scale: selected ? 1 : .98,
-    duration: const Duration(milliseconds: 220),
-    curve: Curves.easeOutCubic,
-    child: Material(
-      color: selected ? const Color(0xFFF5F4FF) : Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = selected
+        ? (isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF5F4FF))
+        : colors.surface;
+
+    return AnimatedScale(
+      scale: selected ? 1 : .98,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      child: Material(
+        color: bg,
         borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          height: 148,
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF6A63D7)
-                  : const Color(0xFFE5E7EF),
-              width: selected ? 1.5 : 1,
-            ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            height: 148,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected ? colors.primary : colors.outline,
+                width: selected ? 1.5 : 1,
+              ),
             boxShadow: selected
                 ? const [
                     BoxShadow(
@@ -196,4 +203,6 @@ class _PricingCard extends StatelessWidget {
       ),
     ),
   );
+  }
 }
+

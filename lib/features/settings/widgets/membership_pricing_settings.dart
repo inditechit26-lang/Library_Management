@@ -15,10 +15,10 @@ class MembershipPricingSettings extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          color: theme.colorScheme.outline,
           width: 1.2,
         ),
         boxShadow: [

@@ -21,7 +21,10 @@ class RenewalDateSummary extends StatelessWidget {
         Row(
           children: [
             Expanded(child: _Data('CURRENT EXPIRY', current)),
-            const Icon(Icons.arrow_forward, color: Colors.black38),
+            Icon(
+              Icons.arrow_forward,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             Expanded(child: _Data('NEW EXPIRY', expiry, end: true)),
           ],
         ),
@@ -63,9 +66,12 @@ class RenewalPaymentCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 7),
-        const Text(
+        Text(
           AppConstants.upiId,
-          style: TextStyle(fontSize: 10, color: Color(0xFF858B9C)),
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     ),
@@ -93,23 +99,26 @@ class _Surface extends StatelessWidget {
   final Widget child;
   const _Surface({required this.child});
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE5E7EF)),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0920243B),
-          blurRadius: 24,
-          offset: Offset(0, 8),
-        ),
-      ],
-    ),
-    child: child,
-  );
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0920243B),
+            blurRadius: 24,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
 
 class _Data extends StatelessWidget {
@@ -120,7 +129,13 @@ class _Data extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: end ? CrossAxisAlignment.end : CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(fontSize: 9, color: Colors.black45)),
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 9,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ),
       Text(
         value,
         textAlign: end ? TextAlign.right : TextAlign.left,

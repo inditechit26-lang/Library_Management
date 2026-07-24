@@ -15,20 +15,22 @@ class AdmissionReviewCard extends StatelessWidget {
     required this.payment,
   });
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE5E7EF)),
-      borderRadius: BorderRadius.circular(22),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0C20243B),
-          blurRadius: 30,
-          offset: Offset(0, 10),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0C20243B),
+            blurRadius: 30,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
     child: Column(
       children: [
         _Row('Student', student),
@@ -41,6 +43,7 @@ class AdmissionReviewCard extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 class _Row extends StatelessWidget {

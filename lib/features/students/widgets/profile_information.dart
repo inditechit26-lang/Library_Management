@@ -85,7 +85,7 @@ class _Section extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, color: const Color(0xFF514BC0)),
+            Icon(icon, color: Theme.of(context).colorScheme.primary),
             const SizedBox(width: 9),
             Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           ],

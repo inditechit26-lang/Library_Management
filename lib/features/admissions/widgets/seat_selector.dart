@@ -19,14 +19,21 @@ class AdmissionSeatSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     if (membership == MembershipType.halfTime) {
       return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(24),
-        decoration: _cardDecoration,
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          border: Border.all(color: colors.outline),
+          borderRadius: BorderRadius.circular(22),
+        ),
         child: const Column(
           children: [
-            _IconBox(icon: Icons.event_seat_outlined),
+            _IconBox(icon: Icons.access_time_rounded, size: 52),
             SizedBox(height: 14),
             Text(
               'Flexible Seating',
@@ -43,7 +50,14 @@ class AdmissionSeatSelector extends StatelessWidget {
     }
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: _cardDecoration,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A20243B), blurRadius: 28, offset: Offset(0, 9)),
+        ],
+      ),
       child: Column(
         children: [
           GridView.builder(
@@ -74,7 +88,7 @@ class AdmissionSeatSelector extends StatelessWidget {
               duration: const Duration(milliseconds: 240),
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFF3F2FF),
+                color: isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF3F2FF),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -89,8 +103,8 @@ class AdmissionSeatSelector extends StatelessWidget {
                   ),
                   Text(
                     selected!,
-                    style: const TextStyle(
-                      color: Color(0xFF5650C7),
+                    style: TextStyle(
+                      color: colors.primary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -102,15 +116,6 @@ class AdmissionSeatSelector extends StatelessWidget {
       ),
     );
   }
-
-  static final _cardDecoration = BoxDecoration(
-    color: Colors.white,
-    border: Border.all(color: const Color(0xFFE5E7EF)),
-    borderRadius: BorderRadius.circular(22),
-    boxShadow: const [
-      BoxShadow(color: Color(0x0A20243B), blurRadius: 28, offset: Offset(0, 9)),
-    ],
-  );
 }
 
 class _Seat extends StatelessWidget {

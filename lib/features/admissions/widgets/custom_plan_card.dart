@@ -55,13 +55,15 @@ class _State extends State<CustomPlanCard> {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: const Color(0xFFFBFBFE),
-      border: Border.all(color: const Color(0xFFDDD9FF)),
-      borderRadius: BorderRadius.circular(22),
-    ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(22),
+      ),
     child: Column(
       children: [
         Row(
@@ -108,6 +110,7 @@ class _State extends State<CustomPlanCard> {
       ],
     ),
   );
+  }
 
   Future<void> _pickStart(BuildContext context) async {
     final value = await showDatePicker(
@@ -142,17 +145,19 @@ class _DateField extends StatelessWidget {
     required this.onTap,
   });
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(16),
-    child: Container(
-      height: 62,
-      padding: const EdgeInsets.symmetric(horizontal: 13),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE5E7EF)),
-        borderRadius: BorderRadius.circular(16),
-      ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        height: 62,
+        padding: const EdgeInsets.symmetric(horizontal: 13),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          border: Border.all(color: colors.outline),
+          borderRadius: BorderRadius.circular(16),
+        ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,4 +175,6 @@ class _DateField extends StatelessWidget {
       ),
     ),
   );
+  }
 }
+

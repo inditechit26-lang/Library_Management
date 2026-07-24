@@ -11,33 +11,36 @@ class PremiumCard extends StatelessWidget {
     this.onTap,
   });
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.white,
-    shadowColor: Colors.transparent,
-    borderRadius: BorderRadius.circular(20),
-    child: InkWell(
-      onTap: onTap,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surface,
+      shadowColor: Colors.transparent,
       borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: padding,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE5E7EF)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0D20243B),
-              blurRadius: 30,
-              offset: Offset(0, 10),
-            ),
-            BoxShadow(
-              color: Color(0x05FFFFFF),
-              blurRadius: 1,
-              offset: Offset(0, -1),
-            ),
-          ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colors.outline),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0D20243B),
+                blurRadius: 30,
+                offset: Offset(0, 10),
+              ),
+              BoxShadow(
+                color: Color(0x05FFFFFF),
+                blurRadius: 1,
+                offset: Offset(0, -1),
+              ),
+            ],
+          ),
+          child: child,
         ),
-        child: child,
       ),
-    ),
-  );
+    );
+  }
 }

@@ -190,14 +190,12 @@ class _State extends ConsumerState<AssignStudentSheet> {
                             border: Border.all(
                               color: isAlreadySameSeat
                                   ? theme.colorScheme.primary.withOpacity(0.4)
-                                  : isDark
-                                      ? const Color(0xFF262C40)
-                                      : const Color(0xFFE2E8F0),
+                                  : theme.colorScheme.outline,
                               width: 1.2,
                             ),
                           ),
                           child: Material(
-                            color: isDark ? const Color(0xFF181C2B) : Colors.white,
+                            color: theme.colorScheme.surface,
                             borderRadius: BorderRadius.circular(18),
                             child: ListTile(
                             contentPadding: const EdgeInsets.symmetric(
@@ -326,7 +324,7 @@ class _State extends ConsumerState<AssignStudentSheet> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        backgroundColor: isDark ? const Color(0xFF181C2B) : Colors.white,
+        backgroundColor: theme.colorScheme.surface,
         title: Row(
           children: [
             Container(

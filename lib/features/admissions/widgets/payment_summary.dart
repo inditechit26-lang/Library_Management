@@ -13,20 +13,22 @@ class AdmissionPaymentSummary extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: const Color(0xFFE5E7EF)),
-      borderRadius: BorderRadius.circular(22),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x0A20243B),
-          blurRadius: 26,
-          offset: Offset(0, 9),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border.all(color: colors.outline),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A20243B),
+            blurRadius: 26,
+            offset: Offset(0, 9),
+          ),
+        ],
+      ),
     child: Column(
       children: [
         _Row('Membership Plan', membership),
@@ -36,6 +38,7 @@ class AdmissionPaymentSummary extends StatelessWidget {
       ],
     ),
   );
+  }
 }
 
 class _Row extends StatelessWidget {

@@ -128,14 +128,16 @@ class AdmissionNavigation extends StatelessWidget {
     required this.onNext,
   });
   @override
-  Widget build(BuildContext context) => SafeArea(
-    top: false,
-    child: Container(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFE8EAF1))),
-      ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          border: Border(top: BorderSide(color: colors.outline)),
+        ),
       child: Row(
         children: [
           if (step > 0)
@@ -157,4 +159,7 @@ class AdmissionNavigation extends StatelessWidget {
       ),
     ),
   );
+  }
 }
+
+

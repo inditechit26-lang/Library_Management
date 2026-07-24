@@ -32,9 +32,9 @@ class MembershipCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(
+            Icon(
               Icons.workspace_premium_outlined,
-              color: Color(0xFF514BC0),
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 9),
             Text(

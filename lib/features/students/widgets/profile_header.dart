@@ -30,17 +30,21 @@ class StudentProfileHeader extends StatelessWidget {
             ),
             child: CircleAvatar(
               radius: 42,
-              backgroundColor: const Color(0xFFEDECF8),
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : const Color(0xFFEDECF8),
               backgroundImage: student.photoPath == null
                   ? null
                   : FileImage(File(student.photoPath!)),
               child: student.photoPath == null
                   ? Text(
                       student.initials,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF514BC0),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Theme.of(context).colorScheme.onPrimaryContainer
+                            : const Color(0xFF514BC0),
                       ),
                     )
                   : null,
@@ -131,19 +135,25 @@ class _Pill extends StatelessWidget {
   final String text;
   const _Pill(this.text);
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-    decoration: BoxDecoration(
-      color: const Color(0xFFF0EFFF),
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 10,
-        color: Color(0xFF514BC0),
-        fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colors.primaryContainer.withValues(alpha: 0.35)
+            : const Color(0xFFF0EFFF),
+        borderRadius: BorderRadius.circular(10),
       ),
-    ),
-  );
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10,
+          color: isDark ? colors.primary : const Color(0xFF514BC0),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
 }

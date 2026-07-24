@@ -178,9 +178,9 @@ class _State extends ConsumerState<ReceiptScreen> {
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF181C2B) : Colors.white,
+              color: theme.colorScheme.surface,
               border: Border.all(
-                color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                color: theme.colorScheme.outline,
                 width: 1.2,
               ),
               borderRadius: BorderRadius.circular(24),
@@ -336,10 +336,10 @@ class _FeeOverview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          color: theme.colorScheme.outline,
           width: 1.2,
         ),
         boxShadow: [
@@ -507,10 +507,10 @@ class _FeeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF181C2B) : Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+          color: theme.colorScheme.outline,
           width: 1.2,
         ),
         boxShadow: [
