@@ -29,8 +29,8 @@ class StudentIdService {
             height: 153.07,
             padding: const pw.EdgeInsets.all(12),
             decoration: pw.BoxDecoration(
-              color: PdfColors.white,
-              border: pw.Border.all(color: PdfColor.fromHex('#D8DAE3')),
+              color: PdfColor.fromHex('#0B2335'),
+              border: pw.Border.all(color: PdfColor.fromHex('#7ED8E9')),
               borderRadius: pw.BorderRadius.circular(10),
             ),
             child: pw.Column(
@@ -42,14 +42,14 @@ class StudentIdService {
                       width: 25,
                       height: 25,
                       decoration: pw.BoxDecoration(
-                        color: PdfColor.fromHex('#5145C8'),
+                        color: PdfColor.fromHex('#F1FBFC'),
                         borderRadius: pw.BorderRadius.circular(7),
                       ),
                       child: pw.Center(
                         child: pw.Text(
                           'SR',
                           style: pw.TextStyle(
-                            color: PdfColors.white,
+                            color: PdfColor.fromHex('#0B2335'),
                             fontWeight: pw.FontWeight.bold,
                             fontSize: 9,
                           ),
@@ -65,13 +65,14 @@ class StudentIdService {
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
                             fontSize: 9,
+                            color: PdfColors.white,
                           ),
                         ),
                         pw.Text(
-                          'DIGITAL MEMBER ID',
+                          'PREMIER MEMBER CREDENTIAL',
                           style: const pw.TextStyle(
                             fontSize: 5,
-                            color: PdfColors.grey600,
+                            color: PdfColor(0.48, 0.85, 0.91),
                           ),
                         ),
                       ],
@@ -87,7 +88,10 @@ class StudentIdService {
                         width: 48,
                         height: 58,
                         decoration: pw.BoxDecoration(
-                          color: PdfColor.fromHex('#EEEFFC'),
+                          color: PdfColor.fromHex('#173345'),
+                          border: pw.Border.all(
+                            color: PdfColor.fromHex('#70E1CA'),
+                          ),
                           borderRadius: pw.BorderRadius.circular(7),
                         ),
                         child: photo == null
@@ -97,7 +101,7 @@ class StudentIdService {
                                   style: pw.TextStyle(
                                     fontSize: 15,
                                     fontWeight: pw.FontWeight.bold,
-                                    color: PdfColor.fromHex('#5145C8'),
+                                    color: PdfColor.fromHex('#C8F7F0'),
                                   ),
                                 ),
                               )
@@ -110,16 +114,23 @@ class StudentIdService {
                       pw.SizedBox(width: 10),
                       pw.Expanded(child: _details(student)),
                       pw.SizedBox(width: 8),
-                      pw.BarcodeWidget(
-                        barcode: pw.Barcode.qrCode(),
-                        data: payload(student, revision: revision),
-                        width: 51,
-                        height: 51,
+                      pw.Container(
+                        width: 57,
+                        height: 57,
+                        padding: const pw.EdgeInsets.all(4),
+                        decoration: pw.BoxDecoration(
+                          color: PdfColors.white,
+                          borderRadius: pw.BorderRadius.circular(7),
+                        ),
+                        child: pw.BarcodeWidget(
+                          barcode: pw.Barcode.qrCode(),
+                          data: payload(student, revision: revision),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                pw.Divider(color: PdfColor.fromHex('#E3E4EA'), height: 8),
+                pw.Divider(color: PdfColor.fromHex('#365365'), height: 8),
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
@@ -128,13 +139,14 @@ class StudentIdService {
                       style: pw.TextStyle(
                         fontSize: 6,
                         fontWeight: pw.FontWeight.bold,
+                        color: PdfColor.fromHex('#D8E9EE'),
                       ),
                     ),
                     pw.Text(
                       'Valid until ${student.expiry}',
                       style: const pw.TextStyle(
                         fontSize: 6,
-                        color: PdfColors.grey700,
+                        color: PdfColor(0.61, 0.70, 0.73),
                       ),
                     ),
                   ],
@@ -154,24 +166,35 @@ class StudentIdService {
       pw.Text(
         student.name,
         maxLines: 1,
-        style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+        style: pw.TextStyle(
+          fontSize: 10,
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColors.white,
+        ),
       ),
       pw.SizedBox(height: 3),
       pw.Text(
         student.membership == MembershipType.fullTime
             ? 'Full Time Member'
             : 'Half Time Member',
-        style: pw.TextStyle(fontSize: 6, color: PdfColor.fromHex('#5145C8')),
+        style: pw.TextStyle(fontSize: 6, color: PdfColor.fromHex('#83DDEB')),
       ),
       pw.SizedBox(height: 6),
       pw.Text(
         'SEAT  ${student.seat}',
-        style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+        style: pw.TextStyle(
+          fontSize: 7,
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColors.white,
+        ),
       ),
       pw.SizedBox(height: 3),
       pw.Text(
         'JOINED  ${student.joined}',
-        style: const pw.TextStyle(fontSize: 6, color: PdfColors.grey700),
+        style: const pw.TextStyle(
+          fontSize: 6,
+          color: PdfColor(0.61, 0.70, 0.73),
+        ),
       ),
     ],
   );
