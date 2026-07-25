@@ -184,13 +184,19 @@ class _IconBox extends StatelessWidget {
   final double size;
   const _IconBox({required this.icon, this.size = 52});
   @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      color: const Color(0xFFEAE8FF),
-      borderRadius: BorderRadius.circular(size * .3),
-    ),
-    child: Icon(icon, color: const Color(0xFF5650C7), size: size * .48),
-  );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: isDark
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
+            : const Color(0xFFEAE8FF),
+        borderRadius: BorderRadius.circular(size * .3),
+      ),
+      child: Icon(icon, color: theme.colorScheme.primary, size: size * .48),
+    );
+  }
 }

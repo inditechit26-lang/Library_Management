@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/utils/formatters.dart';
+import '../../admissions/widgets/custom_plan_card.dart';
 import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';

@@ -113,10 +113,12 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F7FF),
+        color: theme.brightness == Brightness.dark
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.25)
+            : const Color(0xFFF8F7FF),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFF7069DC).withValues(alpha: 0.4),
+          color: theme.colorScheme.primary.withValues(alpha: 0.4),
           width: 1.2,
         ),
       ),
@@ -125,18 +127,18 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.access_time_filled_rounded,
                 size: 20,
-                color: Color(0xFF5650C7),
+                color: theme.colorScheme.primary,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Set Half-Time Shift Time',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF2C2E3E),
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const Spacer(),

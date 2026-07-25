@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../controllers/students_controller.dart';
 import '../models/student.dart';
