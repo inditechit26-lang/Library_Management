@@ -318,6 +318,12 @@ class _LoginFormState extends State<LoginForm> {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               padding: const EdgeInsets.symmetric(horizontal: 16),
+              foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
+              textStyle: const TextStyle(
+                inherit: true,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
               side: BorderSide(
                 color: isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0),
                 width: 1.2,
@@ -333,19 +339,12 @@ class _LoginFormState extends State<LoginForm> {
                     height: 22,
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const GoogleLogoWidget(size: 20),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        ),
-                      ),
+                      GoogleLogoWidget(size: 20),
+                      SizedBox(width: 12),
+                      Text('Continue with Google'),
                     ],
                   ),
           ),
