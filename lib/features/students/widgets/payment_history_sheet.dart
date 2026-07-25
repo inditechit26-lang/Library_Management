@@ -113,7 +113,13 @@ class PaymentHistorySheet extends StatelessWidget {
       final isCurrent = month.year == lastMonth.year && month.month == lastMonth.month;
       final status = isCurrent ? student.payment : PaymentStatus.paid;
       records.add(_PaymentRecord(
-        date: month,
+        date: DateTime(
+          month.year,
+          month.month,
+          month.day,
+          10 + (student.id + month.month) % 8,
+          (student.id * 7 + month.month * 11) % 60,
+        ),
         amount: student.fee,
         status: status,
         reference: 'UPI •••• ${1000 + student.id * 37 + month.month}',
@@ -186,7 +192,10 @@ class _PaymentHistoryTile extends StatelessWidget {
               children: [
                 Text(DateFormat('MMMM yyyy').format(record.date), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 3),
-                Text(record.reference, style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant)),
+                Text(
+                  '${DateFormat('dd MMM yyyy • h:mm a').format(record.date)}\n${record.reference}',
+                  style: TextStyle(fontSize: 10, height: 1.4, color: colors.onSurfaceVariant),
+                ),
               ],
             ),
           ),
