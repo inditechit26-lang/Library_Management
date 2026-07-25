@@ -205,6 +205,7 @@ class DocumentVault extends ConsumerWidget {
         duration: const Duration(seconds: 2),
       ),
     );
+    // ignore: deprecated_member_use
     await Share.shareXFiles([XFile(doc.path)], text: doc.name);
   }
 
@@ -236,6 +237,7 @@ class DocumentVault extends ConsumerWidget {
         duration: Duration(seconds: 2),
       ),
     );
+    // ignore: deprecated_member_use
     await Share.shareXFiles(xFiles, text: 'Aadhaar Card');
   }
 
