@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/utils/formatters.dart';
-import '../widgets/receipt_bottom_sheet.dart';
 import 'receipt_pdf_viewer_screen.dart';
 import '../../students/controllers/students_controller.dart';
 import '../../students/models/student.dart';
-import '../../students/widgets/profile_header.dart';
 import '../../students/widgets/renew_bottom_sheet.dart';
+import '../../settings/controllers/whatsapp_template_controller.dart';
+import '../../settings/controllers/owner_profile_controller.dart';
 
 enum _MembershipFilter { all, expired, active, expiringSoon }
 
@@ -276,16 +275,17 @@ class _State extends ConsumerState<ReceiptScreen> {
 
 
   Future<void> _sendWhatsAppReminder(Student student) async {
+    final template = ref.read(whatsappTemplateProvider);
+    final ownerProfile = ref.read(ownerProfileProvider);
+    final formattedMsg = WhatsAppTemplateNotifier.buildStudentRenewalMessage(
+      template: template,
+      student: student,
+      ownerProfile: ownerProfile,
+    );
+
     final digits = student.phone.replaceAll(RegExp(r'\D'), '');
     final phone = digits.length == 10 ? '91$digits' : digits;
-    final message = Uri.encodeComponent(
-      'Hello ${student.name},\n\n'
-      'This is a friendly reminder from StudyDesk. Your library membership is '
-      'scheduled to expire on ${student.expiry}. To ensure uninterrupted access '
-      'to your study space and services, kindly renew your membership at your '
-      'earliest convenience.\n\n'
-      'Warm regards,\nStudyDesk Management',
-    );
+    final message = Uri.encodeComponent(formattedMsg);
 
     final urisToTry = [
       Uri.parse('https://wa.me/$phone?text=$message'),

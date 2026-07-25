@@ -4,7 +4,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../../core/utils/formatters.dart';
 import '../../students/models/student.dart';
 
 class ReceiptService {

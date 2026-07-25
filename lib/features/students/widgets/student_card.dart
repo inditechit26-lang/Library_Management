@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/utils/formatters.dart';
 import '../models/student.dart';
-import 'profile_header.dart';
 
 class StudentCard extends StatefulWidget {
   final Student student;

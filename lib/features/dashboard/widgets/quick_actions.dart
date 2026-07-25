@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DashboardQuickActions extends StatelessWidget {
   final VoidCallback onAddStudent;
@@ -57,11 +58,12 @@ class DashboardQuickActions extends StatelessWidget {
               const Color(0xFF5145EA),
               onTap: onAddStudent,
             ),
-            const _Action(
+            _Action(
               Icons.insert_chart_rounded,
               'Generate report',
-              Color(0xFFF3ECFF),
-              Color(0xFF8553C6),
+              const Color(0xFFF3ECFF),
+              const Color(0xFF8553C6),
+              onTap: () => context.push('/reports'),
             ),
           ],
         ),

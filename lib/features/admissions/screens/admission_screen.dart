@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
+import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../../seats/controllers/seats_controller.dart';
 import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
@@ -288,10 +288,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
         Navigator.pop(context);
         context.push('/students/${created!.id}');
       },
-      onPrint: () {},
-      onShare: () => SharePlus.instance.share(
-        ShareParams(text: '$receipt ${created!.name}'),
-      ),
+      onPrint: () => ReceiptPdfViewerScreen.open(context, created!),
+      onShare: () => ReceiptPdfViewerScreen.open(context, created!),
       onDone: () => Navigator.pop(context),
     );
   }

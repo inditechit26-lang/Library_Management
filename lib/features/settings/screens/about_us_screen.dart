@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/app_logo.dart';
 
 class AboutUsScreen extends StatelessWidget {
   const AboutUsScreen({super.key});
@@ -23,27 +24,9 @@ class AboutUsScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6E62FF), Color(0xFF574DEB)],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF574DEB).withValues(alpha: 0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.local_library_rounded,
-                      color: Colors.white,
-                      size: 44,
-                    ),
+                  const AppLogo(
+                    size: 80,
+                    borderRadius: 20,
                   ),
                   const SizedBox(height: 16),
                   Text(

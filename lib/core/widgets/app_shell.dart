@@ -6,6 +6,7 @@ import '../../features/seats/screens/seat_management_screen.dart';
 import '../../features/receipts/screens/receipt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app_logo.dart';
 import '../settings/app_settings.dart';
 
 class AppShell extends ConsumerStatefulWidget {
@@ -175,6 +176,8 @@ class _Header extends StatelessWidget {
     ),
     child: Row(
       children: [
+        const AppLogo(size: 38, borderRadius: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

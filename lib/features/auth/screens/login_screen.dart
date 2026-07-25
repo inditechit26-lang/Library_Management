@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../core/widgets/app_logo.dart';
 import '../widgets/login_form.dart';
 import '../widgets/signup_form.dart';
 
@@ -155,32 +156,9 @@ class _LoginScreenState extends State<LoginScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // Top Section: Large App Logo, Title & Subtitle Centered
-                            Container(
-                              width: 68,
-                              height: 68,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF6366F1),
-                                    Color(0xFF8B5CF6),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF6366F1).withOpacity(0.42),
-                                    blurRadius: 28,
-                                    offset: const Offset(0, 12),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.local_library_rounded,
-                                color: Colors.white,
-                                size: 36,
-                              ),
+                            const AppLogo(
+                              size: 76,
+                              borderRadius: 24,
                             ),
                             const SizedBox(height: 18),
                             Text(
