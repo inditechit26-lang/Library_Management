@@ -16,6 +16,7 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   int index = 0;
+  late final PageController _pageController;
   static const labels = ['Dashboard', 'Students', 'Seats', 'Fees', 'Settings'];
   static const icons = [
     Icons.home_outlined,
@@ -24,6 +25,19 @@ class _AppShellState extends ConsumerState<AppShell> {
     Icons.account_balance_wallet_outlined,
     Icons.settings_outlined,
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: index);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final language = ref.watch(appSettingsProvider).language;
@@ -54,7 +68,11 @@ class _AppShellState extends ConsumerState<AppShell> {
             children: [
               _Header(title: translatedLabels[index]),
               Expanded(
-                child: IndexedStack(index: index, children: screens),
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (value) => setState(() => index = value),
+                  children: screens,
+                ),
               ),
             ],
           ),
@@ -130,7 +148,16 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
-  void _selectTab(int value) => setState(() => index = value);
+  void _selectTab(int value) {
+    if (value == index) return;
+
+    setState(() => index = value);
+    _pageController.animateToPage(
+      value,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
 }
 
 class _Header extends StatelessWidget {

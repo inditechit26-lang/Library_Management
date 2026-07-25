@@ -86,26 +86,28 @@ class DocumentVault extends ConsumerWidget {
 
           // Aadhaar Section (Max 2 Photos: Front & Back)
           _AadhaarVaultSection(
-            studentId: studentId,
-            frontDoc: aadhaarFront,
-            backDoc: aadhaarBack,
-            legacyDoc: legacyAadhaar,
-            onAddOrReplaceFront: () => _pickWithType(
+            documents: [
+              ?aadhaarFront,
+              ?aadhaarBack,
+              if (aadhaarFront == null) ?legacyAadhaar,
+            ],
+            onAddOrReplace: () => _pickAadhaar(
               context,
               ref,
-              StudentDocumentType.aadhaarFront,
-              aadhaarFront ?? legacyAadhaar,
-            ),
-            onAddOrReplaceBack: () => _pickWithType(
-              context,
-              ref,
-              StudentDocumentType.aadhaarBack,
-              aadhaarBack,
+              frontDoc: aadhaarFront ?? legacyAadhaar,
+              backDoc: aadhaarBack,
             ),
             onPreview: (doc) => _preview(context, doc),
-            onDelete: (id) => ref
-                .read(studentDocumentsProvider(studentId).notifier)
-                .remove(id),
+            onDeleteAll: () => _confirmRemoveAadhaar(context, () {
+              final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
+              for (final doc in [
+                aadhaarFront,
+                aadhaarBack,
+                legacyAadhaar,
+              ].whereType<StudentDocument>()) {
+                notifier.remove(doc.id);
+              }
+            }),
           ),
 
           if (otherDocs.isNotEmpty) ...[
@@ -147,6 +149,21 @@ class DocumentVault extends ConsumerWidget {
     final type = replacing?.type ?? await _chooseType(context, docs);
     if (type == null || !context.mounted) return;
 
+    if (type == StudentDocumentType.aadhaar) {
+      final frontDoc = docs.cast<StudentDocument?>().firstWhere(
+        (d) =>
+            d?.type == StudentDocumentType.aadhaarFront ||
+            d?.type == StudentDocumentType.aadhaar,
+        orElse: () => null,
+      );
+      final backDoc = docs.cast<StudentDocument?>().firstWhere(
+        (d) => d?.type == StudentDocumentType.aadhaarBack,
+        orElse: () => null,
+      );
+      await _pickAadhaar(context, ref, frontDoc: frontDoc, backDoc: backDoc);
+      return;
+    }
+
     StudentDocument? targetReplacing = replacing;
     if (targetReplacing == null) {
       if (type == StudentDocumentType.aadhaarFront) {
@@ -162,7 +179,7 @@ class DocumentVault extends ConsumerWidget {
       }
     }
 
-    await _pickWithType(context, ref, type, targetReplacing);
+    await _pickWithType(context, ref, type, targetReplacing, null, null);
   }
 
   Future<void> _pickWithType(
@@ -170,6 +187,8 @@ class DocumentVault extends ConsumerWidget {
     WidgetRef ref,
     StudentDocumentType type,
     StudentDocument? replacing,
+    String? displayName,
+    String? helperText,
   ) async {
     final choice = await showModalBottomSheet<String>(
       context: context,
@@ -178,8 +197,8 @@ class DocumentVault extends ConsumerWidget {
         child: Wrap(
           children: [
             ListTile(
-              title: Text('${context.tr('Add')} ${_typeName(type)}'),
-              subtitle: Text(context.tr('Choose a source')),
+              title: Text('${context.tr('Add')} ${displayName ?? _typeName(type)}'),
+              subtitle: Text(helperText ?? context.tr('Choose a source')),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
@@ -191,11 +210,12 @@ class DocumentVault extends ConsumerWidget {
               title: Text(context.tr('Gallery')),
               onTap: () => Navigator.pop(context, 'gallery'),
             ),
-            ListTile(
-              leading: const Icon(Icons.picture_as_pdf_outlined),
-              title: Text(context.tr('PDF or Image')),
-              onTap: () => Navigator.pop(context, 'file'),
-            ),
+            if (displayName != 'Aadhaar Card')
+              ListTile(
+                leading: const Icon(Icons.picture_as_pdf_outlined),
+                title: Text(context.tr('PDF or Image')),
+                onTap: () => Navigator.pop(context, 'file'),
+              ),
           ],
         ),
       ),
@@ -210,7 +230,7 @@ class DocumentVault extends ConsumerWidget {
     if (picked == null) return;
     final doc = StudentDocument(
       id: replacing?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-      name: _typeName(type),
+      name: displayName ?? _typeName(type),
       path: picked.path,
       uploadedAt: '18 Jul 2026',
       type: type,
@@ -220,13 +240,66 @@ class DocumentVault extends ConsumerWidget {
     replacing == null ? notifier.add(doc) : notifier.replace(replacing.id, doc);
   }
 
+  Future<void> _pickAadhaar(
+    BuildContext context,
+    WidgetRef ref, {
+    required StudentDocument? frontDoc,
+    required StudentDocument? backDoc,
+  }) async {
+    final type = frontDoc == null
+        ? StudentDocumentType.aadhaarFront
+        : StudentDocumentType.aadhaarBack;
+    final replacing = type == StudentDocumentType.aadhaarFront ? frontDoc : backDoc;
+    final helperText = frontDoc == null
+        ? 'Choose a clear card image. You can add one more image afterwards.'
+        : backDoc == null
+        ? 'Add the second image to complete this Aadhaar card.'
+        : 'Choose a replacement image for this Aadhaar card.';
+
+    await _pickWithType(
+      context,
+      ref,
+      type,
+      replacing,
+      'Aadhaar Card',
+      helperText,
+    );
+  }
+
+  Future<void> _confirmRemoveAadhaar(
+    BuildContext context,
+    VoidCallback onConfirm,
+  ) async {
+    final shouldRemove = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove Aadhaar card?'),
+        content: const Text(
+          'All images saved with this Aadhaar card will be removed from the student record.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (shouldRemove == true) onConfirm();
+  }
+
   Future<StudentDocumentType?> _chooseType(
     BuildContext context,
     List<StudentDocument> docs,
   ) {
-    final hasFront = docs.any((d) => d.type == StudentDocumentType.aadhaarFront);
-    final hasBack = docs.any((d) => d.type == StudentDocumentType.aadhaarBack);
-
     return showModalBottomSheet<StudentDocumentType>(
       context: context,
       builder: (sheet) => SafeArea(
@@ -241,12 +314,15 @@ class DocumentVault extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 10),
-              for (final type in StudentDocumentType.values)
-                if (type != StudentDocumentType.aadhaar)
+              for (final type in [
+                StudentDocumentType.aadhaar,
+                StudentDocumentType.collegeId,
+                StudentDocumentType.passportPhoto,
+                StudentDocumentType.other,
+              ])
                   ListTile(
                     leading: Icon(
-                      type == StudentDocumentType.aadhaarFront ||
-                              type == StudentDocumentType.aadhaarBack
+                      type == StudentDocumentType.aadhaar
                           ? Icons.badge_outlined
                           : type == StudentDocumentType.collegeId
                           ? Icons.school_outlined
@@ -255,11 +331,6 @@ class DocumentVault extends ConsumerWidget {
                           : Icons.description_outlined,
                     ),
                     title: Text(_typeName(type)),
-                    subtitle: type == StudentDocumentType.aadhaarFront && hasFront
-                        ? const Text('Already uploaded (Tap to replace)', style: TextStyle(fontSize: 10))
-                        : type == StudentDocumentType.aadhaarBack && hasBack
-                        ? const Text('Already uploaded (Tap to replace)', style: TextStyle(fontSize: 10))
-                        : null,
                     onTap: () => Navigator.pop(sheet, type),
                   ),
             ],
@@ -333,24 +404,16 @@ class DocumentVault extends ConsumerWidget {
 }
 
 class _AadhaarVaultSection extends StatelessWidget {
-  final int studentId;
-  final StudentDocument? frontDoc;
-  final StudentDocument? backDoc;
-  final StudentDocument? legacyDoc;
-  final VoidCallback onAddOrReplaceFront;
-  final VoidCallback onAddOrReplaceBack;
+  final List<StudentDocument> documents;
+  final VoidCallback onAddOrReplace;
   final ValueChanged<StudentDocument> onPreview;
-  final ValueChanged<String> onDelete;
+  final VoidCallback onDeleteAll;
 
   const _AadhaarVaultSection({
-    required this.studentId,
-    required this.frontDoc,
-    required this.backDoc,
-    required this.legacyDoc,
-    required this.onAddOrReplaceFront,
-    required this.onAddOrReplaceBack,
+    required this.documents,
+    required this.onAddOrReplace,
     required this.onPreview,
-    required this.onDelete,
+    required this.onDeleteAll,
   });
 
   @override
@@ -358,13 +421,17 @@ class _AadhaarVaultSection extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final hasDocuments = documents.isNotEmpty;
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? colors.surfaceContainer : const Color(0xFFF7F7FD),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.5),
+          color: hasDocuments
+              ? colors.primary.withValues(alpha: 0.35)
+              : colors.outlineVariant.withValues(alpha: 0.7),
         ),
       ),
       child: Column(
@@ -374,62 +441,94 @@ class _AadhaarVaultSection extends StatelessWidget {
             children: [
               const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF514BC0)),
               const SizedBox(width: 6),
-              const Expanded(
-                child: Text(
-                  'Aadhaar Card (Max 2 Photos)',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+              Expanded(
+                child: const Text(
+                  'Aadhaar Card',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Front & Back',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: colors.onPrimaryContainer,
+              if (hasDocuments)
+                PopupMenuButton<String>(
+                  iconSize: 20,
+                  onSelected: (value) {
+                    if (value == 'replace') onAddOrReplace();
+                    if (value == 'delete') onDeleteAll();
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'replace', child: Text('Manage images')),
+                    PopupMenuItem(value: 'delete', child: Text('Remove Aadhaar card')),
+                  ],
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Optional',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: colors.onPrimaryContainer,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _AadhaarSlotCard(
-                  label: 'Front Side',
-                  document: frontDoc ?? legacyDoc,
-                  onTap: onAddOrReplaceFront,
-                  onPreview: () {
-                    final doc = frontDoc ?? legacyDoc;
-                    if (doc != null) onPreview(doc);
-                  },
-                  onDelete: () {
-                    final doc = frontDoc ?? legacyDoc;
-                    if (doc != null) onDelete(doc.id);
-                  },
-                ),
+          const SizedBox(height: 7),
+          Text(
+            hasDocuments
+                ? '${documents.length} of 2 images securely saved. Tap an image to preview it.'
+                : 'Upload up to two images. They will stay together in one secure record.',
+            style: TextStyle(fontSize: 11, height: 1.35, color: colors.onSurfaceVariant),
+          ),
+          if (hasDocuments) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 76,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: documents.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (_, index) {
+                  final document = documents[index];
+                  return InkWell(
+                    onTap: () => onPreview(document),
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 116,
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: colors.outlineVariant),
+                      ),
+                      child: document.isImage && File(document.path).existsSync()
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(9),
+                              child: Image.file(File(document.path), fit: BoxFit.cover),
+                            )
+                          : Icon(Icons.picture_as_pdf_outlined, color: colors.primary),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _AadhaarSlotCard(
-                  label: 'Back Side',
-                  document: backDoc,
-                  onTap: onAddOrReplaceBack,
-                  onPreview: () {
-                    if (backDoc != null) onPreview(backDoc!);
-                  },
-                  onDelete: () {
-                    if (backDoc != null) onDelete(backDoc!.id);
-                  },
-                ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: onAddOrReplace,
+              icon: Icon(
+                hasDocuments ? Icons.add_photo_alternate_outlined : Icons.upload_rounded,
+                size: 18,
               ),
-            ],
+              label: Text(
+                hasDocuments ? 'Add or replace image' : 'Upload Aadhaar images',
+              ),
+            ),
           ),
         ],
       ),
@@ -437,19 +536,24 @@ class _AadhaarVaultSection extends StatelessWidget {
   }
 }
 
+// Retained for existing document preview layouts that may be restored later.
+// ignore: unused_element
 class _AadhaarSlotCard extends StatelessWidget {
   final String label;
   final StudentDocument? document;
   final VoidCallback onTap;
+  // ignore: unused_element_parameter
   final VoidCallback? onPreview;
+  // ignore: unused_element_parameter
   final VoidCallback? onDelete;
 
+  // ignore: unused_element_parameter
   const _AadhaarSlotCard({
     required this.label,
     required this.document,
     required this.onTap,
-    this.onPreview,
-    this.onDelete,
+    required this.onPreview,
+    required this.onDelete,
   });
 
   @override
