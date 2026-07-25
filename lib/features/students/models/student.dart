@@ -4,9 +4,16 @@ enum MembershipType { fullTime, halfTime }
 
 enum SeatCategory { ac, nonAc }
 
+enum PaymentMode { upi, cash }
+
 extension SeatCategoryX on SeatCategory {
   String get label => this == SeatCategory.ac ? 'AC Section' : 'Non-AC Section';
   String get shortLabel => this == SeatCategory.ac ? 'AC' : 'Non-AC';
+}
+
+extension PaymentModeX on PaymentMode {
+  String get label => this == PaymentMode.cash ? 'Cash' : 'UPI';
+  String get fullLabel => this == PaymentMode.cash ? 'Cash Payment' : 'UPI / Digital Transfer';
 }
 
 class Student {
@@ -20,6 +27,7 @@ class Student {
   final PaymentStatus payment;
   final MembershipType membership;
   final SeatCategory category;
+  final PaymentMode paymentMode;
   final bool hasRenewedPlan;
 
   const Student({
@@ -33,6 +41,7 @@ class Student {
     required this.payment,
     required this.membership,
     this.category = SeatCategory.ac,
+    this.paymentMode = PaymentMode.upi,
     required this.initials,
     this.seatId,
     this.photoPath,
@@ -55,6 +64,7 @@ class Student {
     PaymentStatus? payment,
     MembershipType? membership,
     SeatCategory? category,
+    PaymentMode? paymentMode,
     String? previousExpiry,
     bool? hasRenewedPlan,
   }) => Student(
@@ -72,6 +82,7 @@ class Student {
     payment: payment ?? this.payment,
     membership: membership ?? this.membership,
     category: category ?? this.category,
+    paymentMode: paymentMode ?? this.paymentMode,
     previousExpiry: previousExpiry ?? this.previousExpiry,
     hasRenewedPlan: hasRenewedPlan ?? this.hasRenewedPlan,
     initials: name == null

@@ -20,6 +20,7 @@ class RenewBottomSheet extends ConsumerStatefulWidget {
 
 class _State extends ConsumerState<RenewBottomSheet> {
   MembershipPeriod period = MembershipPeriod.monthly;
+  PaymentMode mode = PaymentMode.upi;
   late DateTime customStart;
   DateTime? customExpiry;
   int? customDays;
@@ -132,7 +133,11 @@ class _State extends ConsumerState<RenewBottomSheet> {
                   amount: valid ? amount : 0,
                 ),
                 const SizedBox(height: 12),
-                RenewalPaymentCard(amount: valid ? amount : 0),
+                RenewalPaymentCard(
+                  amount: valid ? amount : 0,
+                  mode: mode,
+                  onModeChanged: (val) => setState(() => mode = val),
+                ),
                 const SizedBox(height: 14),
                 RenewalSlideConfirm(
                   value: slide,
@@ -189,7 +194,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
   void _complete() {
     ref
         .read(studentsProvider.notifier)
-        .renew(widget.student, expiry, fee: amount);
+        .renew(widget.student, expiry, fee: amount, paymentMode: mode);
     setState(() => done = true);
   }
 
@@ -198,6 +203,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
       expiry: expiry,
       fee: amount,
       payment: PaymentStatus.paid,
+      paymentMode: mode,
     );
     return SingleChildScrollView(
       key: const ValueKey(true),
@@ -235,6 +241,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
               children: [
                 _line('Plan', period.label),
                 _line('Amount', money(amount)),
+                _line('Payment Mode', mode.fullLabel),
                 _line('New expiry', expiry),
               ],
             ),

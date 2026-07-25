@@ -13,6 +13,7 @@ class AdmissionController extends ChangeNotifier {
   String? selectedSeat;
   String? selectedHalfTimeShift;
   bool paymentConfirmed = false;
+  PaymentMode paymentMode = PaymentMode.upi;
   bool completed = false;
   final Set<String> documents = {};
   DateTime customStart = DateTime.now();
@@ -153,6 +154,11 @@ class AdmissionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setPaymentMode(PaymentMode mode) {
+    paymentMode = mode;
+    notifyListeners();
+  }
+
   void toggleDocument(String value) {
     documents.contains(value) ? documents.remove(value) : documents.add(value);
     notifyListeners();
@@ -195,6 +201,7 @@ class AdmissionController extends ChangeNotifier {
       payment: paymentConfirmed ? PaymentStatus.paid : PaymentStatus.pending,
       membership: membership,
       category: category,
+      paymentMode: paymentMode,
       initials: parts
           .where((part) => part.isNotEmpty)
           .take(2)

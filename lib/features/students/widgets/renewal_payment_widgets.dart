@@ -3,6 +3,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/payment_confirmation_slider.dart';
+import '../models/student.dart';
 
 class RenewalDateSummary extends StatelessWidget {
   final String current, expiry, plan;
@@ -42,40 +43,179 @@ class RenewalDateSummary extends StatelessWidget {
 
 class RenewalPaymentCard extends StatelessWidget {
   final double amount;
-  const RenewalPaymentCard({super.key, required this.amount});
+  final PaymentMode mode;
+  final ValueChanged<PaymentMode> onModeChanged;
+
+  const RenewalPaymentCard({
+    super.key,
+    required this.amount,
+    required this.mode,
+    required this.onModeChanged,
+  });
+
   @override
-  Widget build(BuildContext context) => _Surface(
-    child: Column(
-      children: [
-        Text(
-          money(amount),
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(11),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isCash = mode == PaymentMode.cash;
+
+    return _Surface(
+      child: Column(
+        children: [
+          Text(
+            money(amount),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 12),
+          if (!isCash) ...[
+            Container(
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(17),
+                border: Border.all(color: const Color(0xFFEEEFF4)),
+              ),
+              child: QrImageView(
+                data:
+                    'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=$amount&cu=INR',
+                size: 152,
+              ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              AppConstants.upiId,
+              style: TextStyle(
+                fontSize: 10,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ] else ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.payments_rounded, size: 36, color: colors.primary),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Cash Payment Selected',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: colors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Collect ${money(amount)} in cash from student.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: _ModeChip(
+                  label: 'UPI / QR',
+                  icon: Icons.qr_code_2_rounded,
+                  selected: mode == PaymentMode.upi,
+                  onTap: () => onModeChanged(PaymentMode.upi),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _ModeChip(
+                  label: 'Cash Payment',
+                  icon: Icons.payments_outlined,
+                  selected: mode == PaymentMode.cash,
+                  onTap: () => onModeChanged(PaymentMode.cash),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModeChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ModeChip({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(17),
-            border: Border.all(color: const Color(0xFFEEEFF4)),
+            color: selected
+                ? colors.primary.withValues(alpha: 0.12)
+                : colors.surfaceContainerHighest.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected
+                  ? colors.primary
+                  : colors.outlineVariant.withValues(alpha: 0.5),
+              width: selected ? 1.5 : 1,
+            ),
           ),
-          child: QrImageView(
-            data:
-                'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=$amount&cu=INR',
-            size: 152,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: selected ? colors.primary : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 7),
-        Text(
-          AppConstants.upiId,
-          style: TextStyle(
-            fontSize: 10,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class RenewalSlideConfirm extends StatelessWidget {

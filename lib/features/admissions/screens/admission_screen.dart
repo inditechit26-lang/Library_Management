@@ -151,6 +151,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
           amount: admission.fee,
           confirmed: admission.paymentConfirmed,
           onConfirmed: admission.setPaymentConfirmed,
+          mode: admission.paymentMode,
+          onModeChanged: admission.setPaymentMode,
         ),
       ],
     ),

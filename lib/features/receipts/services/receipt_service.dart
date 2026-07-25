@@ -106,7 +106,7 @@ class ReceiptService {
                   children: [
                     _metaItem('Receipt No.', receiptNo, primaryColor),
                     _metaItem('Date & Time', issueDate, null),
-                    _metaItem('Payment Mode', 'UPI / Digital Transfer', null),
+                    _metaItem('Payment Mode', student.paymentMode.fullLabel, null),
                     _metaItem('Status', 'SUCCESSFUL', PdfColors.green700),
                   ],
                 ),
