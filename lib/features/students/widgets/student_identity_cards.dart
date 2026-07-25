@@ -69,12 +69,14 @@ class _SeatCard extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            flexible ? 'Flexible' : student.seat,
-            maxLines: 1,
+            flexible
+                ? (student.seat.isNotEmpty ? student.seat : 'Flexible')
+                : student.seat,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 25,
-              height: 1,
+            style: TextStyle(
+              fontSize: flexible ? 13 : 25,
+              height: 1.1,
               fontWeight: FontWeight.w900,
             ),
           ),

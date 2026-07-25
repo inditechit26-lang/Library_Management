@@ -134,6 +134,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       membership: admission.membership,
       seats: ref.watch(seatsProvider),
       selected: admission.selectedSeat,
+      selectedShift: admission.selectedHalfTimeShift,
       onSelected: admission.chooseSeat,
       studentName: name.text.trim(),
     ),
@@ -244,7 +245,9 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       : 'Half Time';
   String get _seat => admission.membership == MembershipType.fullTime
       ? admission.selectedSeat ?? ''
-      : 'Flexible Seating';
+      : admission.selectedHalfTimeShift != null
+          ? 'Flexible (${admission.selectedHalfTimeShift})'
+          : 'Flexible Seating';
 
   void _next() {
     if (admission.step == 0 && !(formKey.currentState?.validate() ?? false)) {

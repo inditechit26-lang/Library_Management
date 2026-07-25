@@ -89,7 +89,9 @@ class StudentProfileHeader extends StatelessWidget {
             _Pill(
               student.membership == MembershipType.fullTime
                   ? 'Seat ${student.seat}'
-                  : 'Flexible Seating',
+                  : student.seat.isNotEmpty
+                      ? student.seat
+                      : 'Flexible Seating',
             ),
             _Pill(student.payment.name),
           ],

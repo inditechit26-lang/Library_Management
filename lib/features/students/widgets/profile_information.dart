@@ -24,10 +24,12 @@ class StudentInformationCard extends StatelessWidget {
             : 'Half Time',
       ),
       _Row(
-        'Seat Number',
+        student.membership == MembershipType.fullTime ? 'Seat Number' : 'Seat / Shift',
         student.membership == MembershipType.fullTime
             ? student.seat
-            : 'Flexible Seating',
+            : student.seat.isNotEmpty
+                ? student.seat
+                : 'Flexible Seating',
       ),
       _Row('Notes', student.notes.isEmpty ? '—' : student.notes),
     ],

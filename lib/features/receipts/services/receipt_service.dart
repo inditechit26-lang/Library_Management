@@ -183,10 +183,14 @@ class ReceiptService {
                             isBold: true,
                           ),
                           _infoRow(
-                            'Assigned Seat',
+                            student.membership == MembershipType.fullTime
+                                ? 'Assigned Seat'
+                                : 'Assigned Seat / Shift',
                             student.membership == MembershipType.fullTime
                                 ? student.seat
-                                : 'Flexi Desk',
+                                : student.seat.isNotEmpty
+                                    ? student.seat
+                                    : 'Flexi Desk',
                           ),
                           _infoRow(
                             'Previous Expiry',

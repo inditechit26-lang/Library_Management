@@ -128,10 +128,12 @@ class ReceiptBottomSheet extends StatelessWidget {
                 ),
                 _line(
                   context,
-                  'Seat',
+                  student.membership == MembershipType.fullTime ? 'Seat' : 'Seat / Shift',
                   student.membership == MembershipType.fullTime
                       ? student.seat
-                      : 'Flexible',
+                      : student.seat.isNotEmpty
+                          ? student.seat
+                          : 'Flexible',
                 ),
                 _line(context, 'Joining date', student.joined),
                 _line(
