@@ -244,6 +244,49 @@ class _Title extends StatelessWidget {
   }
 }
 
+class _AnimatedMetricValue extends StatelessWidget {
+  final String rawValue;
+  final TextStyle style;
+
+  const _AnimatedMetricValue({
+    required this.rawValue,
+    required this.style,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final regex = RegExp(r'^([^0-9.]*)([0-9.]+)(.*)$');
+    final match = regex.firstMatch(rawValue);
+
+    if (match == null) {
+      return Text(rawValue, style: style);
+    }
+
+    final prefix = match.group(1) ?? '';
+    final numStr = match.group(2) ?? '0';
+    final suffix = match.group(3) ?? '';
+
+    final decimals = numStr.contains('.') ? numStr.split('.')[1].length : 0;
+    final targetVal = double.tryParse(numStr) ?? 0.0;
+
+    return TweenAnimationBuilder<double>(
+      key: ValueKey(rawValue),
+      tween: Tween<double>(begin: 0.0, end: targetVal),
+      duration: const Duration(milliseconds: 1200),
+      curve: Curves.easeOutCubic,
+      builder: (context, currentVal, child) {
+        final formatted = decimals > 0
+            ? currentVal.toStringAsFixed(decimals)
+            : currentVal.toInt().toString();
+        return Text(
+          '$prefix$formatted$suffix',
+          style: style,
+        );
+      },
+    );
+  }
+}
+
 class _Metric extends StatelessWidget {
   final String label, value, note;
   final Color color;
@@ -286,8 +329,8 @@ class _Metric extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 9),
-        Text(
-          value,
+        _AnimatedMetricValue(
+          rawValue: value,
           style: TextStyle(
             fontSize: 25,
             height: 1.0,
@@ -297,8 +340,8 @@ class _Metric extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 7),
-        Text(
-          note,
+        _AnimatedMetricValue(
+          rawValue: note,
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w600,
@@ -360,25 +403,30 @@ class _Progress extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        FractionallySizedBox(
-          widthFactor: value,
-          child: Container(
-            height: 7,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  color.withOpacity(0.82),
-                  color,
+        TweenAnimationBuilder<double>(
+          tween: Tween<double>(begin: 0.0, end: value),
+          duration: const Duration(milliseconds: 1200),
+          curve: Curves.easeOutCubic,
+          builder: (context, animatedVal, child) => FractionallySizedBox(
+            widthFactor: animatedVal,
+            child: Container(
+              height: 7,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    color.withOpacity(0.82),
+                    color,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.35),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.35),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
           ),
         ),
