@@ -11,6 +11,7 @@ import '../../students/widgets/activity_timeline.dart';
 import '../../students/widgets/membership_card.dart';
 import '../../students/widgets/profile_header.dart';
 import '../../students/widgets/profile_information.dart';
+import '../../students/widgets/payment_history_sheet.dart';
 import '../../students/widgets/renew_bottom_sheet.dart';
 import '../controllers/seats_controller.dart';
 
@@ -78,7 +79,7 @@ class SeatProfileScreen extends ConsumerWidget {
           const SizedBox(height: 14),
           PaymentInformationCard(
             student: value,
-            onReceipt: () => _receipt(context, value),
+            onPaymentHistory: () => PaymentHistorySheet.open(context, value),
           ),
           const SizedBox(height: 14),
           DocumentVault(studentId: value.id),
