@@ -131,6 +131,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     ),
     1 => _membershipStep(),
     2 => AdmissionSeatSelector(
+      category: admission.category,
       membership: admission.membership,
       seats: ref.watch(seatsProvider),
       selected: admission.selectedSeat,

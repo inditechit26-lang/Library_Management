@@ -92,7 +92,9 @@ class _State extends State<AdmissionPaymentQrCard> {
                   key: const ValueKey(true),
                   height: 54,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F7F0),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF1B3D31)
+                        : const Color(0xFFE8F7F0),
                     borderRadius: BorderRadius.circular(17),
                   ),
                   child: const Center(
@@ -130,24 +132,31 @@ class _Action extends StatelessWidget {
   final VoidCallback onTap;
   const _Action({required this.icon, required this.label, required this.onTap});
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          children: [
-            Icon(icon, size: 18, color: const Color(0xFF686E80)),
-            const SizedBox(height: 5),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w700),
-            ),
-          ],
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            children: [
+              Icon(icon, size: 18, color: colors.primary),
+              const SizedBox(height: 5),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

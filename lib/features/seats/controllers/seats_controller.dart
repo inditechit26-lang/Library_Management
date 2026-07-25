@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../students/models/student.dart';
 import '../models/seat.dart';
 
 class SeatsController extends Notifier<List<Seat>> {
@@ -20,6 +21,7 @@ class SeatsController extends Notifier<List<Seat>> {
         seatId: 'seat-${index + 1}',
         seatLabel: label,
         status: status,
+        category: index < 20 ? SeatCategory.ac : SeatCategory.nonAc,
         studentId: studentId,
         createdAt: now,
         updatedAt: now,
