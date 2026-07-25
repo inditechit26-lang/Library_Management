@@ -2,6 +2,13 @@ enum PaymentStatus { paid, pending, expired }
 
 enum MembershipType { fullTime, halfTime }
 
+enum SeatCategory { ac, nonAc }
+
+extension SeatCategoryX on SeatCategory {
+  String get label => this == SeatCategory.ac ? 'AC Section' : 'Non-AC Section';
+  String get shortLabel => this == SeatCategory.ac ? 'AC' : 'Non-AC';
+}
+
 class Student {
   final int id;
   final String name, phone, seat, joined, expiry, initials;
@@ -12,7 +19,9 @@ class Student {
   final double fee;
   final PaymentStatus payment;
   final MembershipType membership;
+  final SeatCategory category;
   final bool hasRenewedPlan;
+
   const Student({
     required this.id,
     required this.name,
@@ -23,6 +32,7 @@ class Student {
     required this.fee,
     required this.payment,
     required this.membership,
+    this.category = SeatCategory.ac,
     required this.initials,
     this.seatId,
     this.photoPath,
@@ -31,6 +41,7 @@ class Student {
     this.previousExpiry,
     this.hasRenewedPlan = false,
   });
+
   Student copyWith({
     String? name,
     String? phone,
@@ -43,6 +54,7 @@ class Student {
     double? fee,
     PaymentStatus? payment,
     MembershipType? membership,
+    SeatCategory? category,
     String? previousExpiry,
     bool? hasRenewedPlan,
   }) => Student(
@@ -59,6 +71,7 @@ class Student {
     fee: fee ?? this.fee,
     payment: payment ?? this.payment,
     membership: membership ?? this.membership,
+    category: category ?? this.category,
     previousExpiry: previousExpiry ?? this.previousExpiry,
     hasRenewedPlan: hasRenewedPlan ?? this.hasRenewedPlan,
     initials: name == null

@@ -177,9 +177,7 @@ class ReceiptService {
                           pw.SizedBox(height: 10),
                           _infoRow(
                             'Plan Type',
-                            student.membership == MembershipType.fullTime
-                                ? 'Full Time (Dedicated)'
-                                : 'Half Time (Flexible)',
+                            '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.label})',
                             isBold: true,
                           ),
                           _infoRow(

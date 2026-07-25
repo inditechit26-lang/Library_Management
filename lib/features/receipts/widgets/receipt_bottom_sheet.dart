@@ -122,9 +122,7 @@ class ReceiptBottomSheet extends StatelessWidget {
                 _line(
                   context,
                   'Membership',
-                  student.membership == MembershipType.fullTime
-                      ? 'Full Time'
-                      : 'Half Time',
+                  '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
                 ),
                 _line(
                   context,

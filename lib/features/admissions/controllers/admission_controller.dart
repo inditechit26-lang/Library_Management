@@ -7,6 +7,7 @@ class AdmissionController extends ChangeNotifier {
   AdmissionController(this.pricing);
   PricingSettings pricing;
   int step = 0;
+  SeatCategory category = SeatCategory.ac;
   MembershipType membership = MembershipType.fullTime;
   MembershipPeriod? period;
   String? selectedSeat;
@@ -23,9 +24,13 @@ class AdmissionController extends ChangeNotifier {
       ? customAmount ?? _calculatedCustomFee
       : period == null
       ? 0
-      : pricing.forMembership(membership).priceFor(period!);
+      : pricing
+            .forMembershipAndCategory(membership, category)
+            .priceFor(period!);
+
   DateTime get joiningDate =>
       period == MembershipPeriod.custom ? customStart : DateTime.now();
+
   DateTime get expiryDate {
     if (period == MembershipPeriod.custom) {
       return customEnd ??
@@ -40,9 +45,11 @@ class AdmissionController extends ChangeNotifier {
   }
 
   int get totalDays => expiryDate.difference(joiningDate).inDays;
+
   double get _calculatedCustomFee {
     if (customEnd == null || totalDays <= 0) return 0;
-    final monthlyRate = pricing.forMembership(membership).monthly;
+    final monthlyRate =
+        pricing.forMembershipAndCategory(membership, category).monthly;
     return (monthlyRate / 30 * totalDays).roundToDouble();
   }
 
@@ -53,6 +60,7 @@ class AdmissionController extends ChangeNotifier {
   String get duration => period == MembershipPeriod.custom
       ? '$totalDays ${totalDays == 1 ? 'Day' : 'Days'}'
       : period?.duration ?? '';
+
   bool get pricingValid =>
       period != null &&
       (period != MembershipPeriod.custom ||
@@ -65,6 +73,12 @@ class AdmissionController extends ChangeNotifier {
         pricing.halfTimeShifts.isNotEmpty) {
       selectedHalfTimeShift = pricing.halfTimeShifts.first;
     }
+  }
+
+  void chooseCategory(SeatCategory value) {
+    category = value;
+    paymentConfirmed = false;
+    notifyListeners();
   }
 
   void chooseMembership(MembershipType value) {
@@ -180,6 +194,7 @@ class AdmissionController extends ChangeNotifier {
       fee: fee,
       payment: paymentConfirmed ? PaymentStatus.paid : PaymentStatus.pending,
       membership: membership,
+      category: category,
       initials: parts
           .where((part) => part.isNotEmpty)
           .take(2)

@@ -21,6 +21,7 @@ class _State extends ConsumerState<EditStudentSheet> {
   final form = GlobalKey<FormState>();
   late final TextEditingController name, phone, seat, fee, emergency, notes;
   late MembershipType membership;
+  late SeatCategory category;
   String? photoPath;
   String? selectedShift;
 
@@ -34,6 +35,7 @@ class _State extends ConsumerState<EditStudentSheet> {
     emergency = TextEditingController(text: widget.student.emergencyContact);
     notes = TextEditingController(text: widget.student.notes);
     membership = widget.student.membership;
+    category = widget.student.category;
     photoPath = widget.student.photoPath;
 
     if (widget.student.seat.startsWith('Flexible (') &&
@@ -178,6 +180,24 @@ class _State extends ConsumerState<EditStudentSheet> {
                 decoration: const InputDecoration(labelText: 'Notes'),
               ),
               const SizedBox(height: 12),
+              SegmentedButton<SeatCategory>(
+                segments: const [
+                  ButtonSegment(
+                    value: SeatCategory.ac,
+                    label: Text('AC Section'),
+                    icon: Icon(Icons.ac_unit_rounded, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: SeatCategory.nonAc,
+                    label: Text('Non-AC Section'),
+                    icon: Icon(Icons.air_rounded, size: 16),
+                  ),
+                ],
+                selected: {category},
+                onSelectionChanged: (value) =>
+                    setState(() => category = value.first),
+              ),
+              const SizedBox(height: 12),
               SegmentedButton<MembershipType>(
                 segments: const [
                   ButtonSegment(
@@ -295,6 +315,7 @@ class _State extends ConsumerState<EditStudentSheet> {
         seat: finalSeat,
         fee: double.tryParse(fee.text) ?? widget.student.fee,
         membership: membership,
+        category: category,
         photoPath: photoPath,
         emergencyContact: emergency.text.trim(),
         notes: notes.text.trim(),

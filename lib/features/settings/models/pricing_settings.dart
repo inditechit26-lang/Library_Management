@@ -39,32 +39,58 @@ class PlanPricing {
 }
 
 class PricingSettings {
-  final PlanPricing fullTime, halfTime;
+  final PlanPricing fullTimeAc, halfTimeAc;
+  final PlanPricing fullTimeNonAc, halfTimeNonAc;
   final List<String> halfTimeShifts;
+
   const PricingSettings({
-    required this.fullTime,
-    required this.halfTime,
+    required this.fullTimeAc,
+    required this.halfTimeAc,
+    required this.fullTimeNonAc,
+    required this.halfTimeNonAc,
     this.halfTimeShifts = const [
       'Morning Shift (06:00 AM - 02:00 PM)',
       'Evening Shift (02:00 PM - 10:00 PM)',
     ],
   });
 
+  PlanPricing get fullTime => fullTimeAc;
+  PlanPricing get halfTime => halfTimeAc;
+
   PlanPricing forMembership(MembershipType membership) =>
-      membership == MembershipType.fullTime ? fullTime : halfTime;
+      forMembershipAndCategory(membership, SeatCategory.ac);
+
+  PlanPricing forMembershipAndCategory(
+    MembershipType membership,
+    SeatCategory category,
+  ) {
+    if (category == SeatCategory.ac) {
+      return membership == MembershipType.fullTime ? fullTimeAc : halfTimeAc;
+    } else {
+      return membership == MembershipType.fullTime
+          ? fullTimeNonAc
+          : halfTimeNonAc;
+    }
+  }
 
   PricingSettings copyWith({
+    PlanPricing? fullTimeAc,
+    PlanPricing? halfTimeAc,
+    PlanPricing? fullTimeNonAc,
+    PlanPricing? halfTimeNonAc,
     PlanPricing? fullTime,
     PlanPricing? halfTime,
     List<String>? halfTimeShifts,
   }) => PricingSettings(
-    fullTime: fullTime ?? this.fullTime,
-    halfTime: halfTime ?? this.halfTime,
+    fullTimeAc: fullTimeAc ?? fullTime ?? this.fullTimeAc,
+    halfTimeAc: halfTimeAc ?? halfTime ?? this.halfTimeAc,
+    fullTimeNonAc: fullTimeNonAc ?? this.fullTimeNonAc,
+    halfTimeNonAc: halfTimeNonAc ?? this.halfTimeNonAc,
     halfTimeShifts: halfTimeShifts ?? this.halfTimeShifts,
   );
 
   static const defaults = PricingSettings(
-    fullTime: PlanPricing(
+    fullTimeAc: PlanPricing(
       monthly: 1800,
       quarterly: 5200,
       halfYearly: 10000,
@@ -74,11 +100,31 @@ class PricingSettings {
         MembershipPeriod.annual: 'Best Value',
       },
     ),
-    halfTime: PlanPricing(
+    halfTimeAc: PlanPricing(
       monthly: 1200,
       quarterly: 3400,
       halfYearly: 6500,
       annual: 12000,
+      badges: {
+        MembershipPeriod.quarterly: 'Most Popular',
+        MembershipPeriod.annual: 'Best Value',
+      },
+    ),
+    fullTimeNonAc: PlanPricing(
+      monthly: 1400,
+      quarterly: 4000,
+      halfYearly: 7800,
+      annual: 15000,
+      badges: {
+        MembershipPeriod.quarterly: 'Most Popular',
+        MembershipPeriod.annual: 'Best Value',
+      },
+    ),
+    halfTimeNonAc: PlanPricing(
+      monthly: 900,
+      quarterly: 2600,
+      halfYearly: 5000,
+      annual: 9500,
       badges: {
         MembershipPeriod.quarterly: 'Most Popular',
         MembershipPeriod.annual: 'Best Value',
