@@ -38,11 +38,11 @@ class StudentInformationCard extends StatelessWidget {
 
 class PaymentInformationCard extends StatelessWidget {
   final Student student;
-  final VoidCallback onReceipt;
+  final VoidCallback onPaymentHistory;
   const PaymentInformationCard({
     super.key,
     required this.student,
-    required this.onReceipt,
+    required this.onPaymentHistory,
   });
   @override
   Widget build(BuildContext context) => _Section(
@@ -57,15 +57,20 @@ class PaymentInformationCard extends StatelessWidget {
       ListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(
-          'Receipt History',
+          'Payment History',
           style: TextStyle(
             fontSize: 12,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        trailing: TextButton(
-          onPressed: onReceipt,
-          child: Text(context.tr('View receipts')),
+        subtitle: Text(
+          'Review monthly payments and their status.',
+          style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        trailing: TextButton.icon(
+          onPressed: onPaymentHistory,
+          icon: const Icon(Icons.history_rounded, size: 17),
+          label: const Text('View history'),
         ),
       ),
     ],

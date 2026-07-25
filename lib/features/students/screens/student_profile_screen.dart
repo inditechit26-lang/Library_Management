@@ -7,6 +7,7 @@ import '../models/student.dart';
 import '../widgets/document_vault.dart';
 import '../widgets/edit_student_sheet.dart';
 import '../widgets/membership_card.dart';
+import '../widgets/payment_history_sheet.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_information.dart';
 import '../widgets/renew_bottom_sheet.dart';
@@ -70,7 +71,7 @@ class StudentProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 14),
                 PaymentInformationCard(
                   student: student,
-                  onReceipt: () => _receipt(context, student),
+                  onPaymentHistory: () => PaymentHistorySheet.open(context, student),
                 ),
                 const SizedBox(height: 14),
                 DocumentVault(studentId: student.id),
