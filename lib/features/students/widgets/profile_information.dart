@@ -19,10 +19,9 @@ class StudentInformationCard extends StatelessWidget {
       _Row('Joining Date', student.joined),
       _Row(
         'Membership Type',
-        student.membership == MembershipType.fullTime
-            ? 'Full Time'
-            : 'Half Time',
+        '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
       ),
+      _Row('Hall Section', student.category.label),
       _Row(
         student.membership == MembershipType.fullTime ? 'Seat Number' : 'Seat / Shift',
         student.membership == MembershipType.fullTime
