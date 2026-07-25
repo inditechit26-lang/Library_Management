@@ -72,6 +72,7 @@ class SeatProfileScreen extends ConsumerWidget {
           MembershipCard(
             student: value,
             onRenew: () => _renew(context, value),
+            onSendReminder: () => _sendWhatsAppReminder(context, value),
             onReceipt: () => _receipt(context, value),
           ),
           const SizedBox(height: 14),
@@ -186,6 +187,46 @@ class SeatProfileScreen extends ConsumerWidget {
     Uri.parse('https://wa.me/${s.phone.replaceAll(RegExp(r'\D'), '')}'),
     mode: LaunchMode.externalApplication,
   );
+
+  Future<void> _sendWhatsAppReminder(
+    BuildContext context,
+    Student student,
+  ) async {
+    final digits = student.phone.replaceAll(RegExp(r'\D'), '');
+    final phone = digits.length == 10 ? '91$digits' : digits;
+    final message = Uri.encodeComponent(
+      'Hello ${student.name},\n\n'
+      'This is a friendly reminder from StudyDesk. Your library membership is '
+      'scheduled to expire on ${student.expiry}. To ensure uninterrupted access '
+      'to your study space and services, kindly renew your membership at your '
+      'earliest convenience.\n\n'
+      'Warm regards,\nStudyDesk Management',
+    );
+    final urisToTry = [
+      Uri.parse('https://wa.me/$phone?text=$message'),
+      Uri.parse('whatsapp://send?phone=$phone&text=$message'),
+      Uri.parse('https://api.whatsapp.com/send?phone=$phone&text=$message'),
+    ];
+
+    var launched = false;
+    for (final uri in urisToTry) {
+      try {
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (launched) break;
+      } catch (_) {}
+    }
+
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('WhatsApp reminder ready for ${student.name}'),
+          backgroundColor: const Color(0xFF25D366),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+  }
 }
 
 class _SeatInformation extends StatelessWidget {

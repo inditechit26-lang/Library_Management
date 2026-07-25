@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/payment_confirmation_slider.dart';
+import '../../settings/controllers/payment_settings_controller.dart';
 import '../../students/models/student.dart';
 
-class AdmissionPaymentQrCard extends StatefulWidget {
+class AdmissionPaymentQrCard extends ConsumerStatefulWidget {
   final double amount;
   final bool confirmed;
   final ValueChanged<bool> onConfirmed;
@@ -24,10 +25,10 @@ class AdmissionPaymentQrCard extends StatefulWidget {
   });
 
   @override
-  State<AdmissionPaymentQrCard> createState() => _State();
+  ConsumerState<AdmissionPaymentQrCard> createState() => _State();
 }
 
-class _State extends State<AdmissionPaymentQrCard> {
+class _State extends ConsumerState<AdmissionPaymentQrCard> {
   late PaymentMode _currentMode;
 
   @override
@@ -44,11 +45,11 @@ class _State extends State<AdmissionPaymentQrCard> {
     }
   }
 
-  String get data =>
-      'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=${widget.amount}&cu=INR';
-
   @override
   Widget build(BuildContext context) {
+    final paymentSettings = ref.watch(paymentSettingsProvider);
+    final data = paymentSettings.getQrData(widget.amount);
+    final upiId = paymentSettings.activeUpiId;
     final colors = Theme.of(context).colorScheme;
     final isCash = _currentMode == PaymentMode.cash;
 
@@ -78,9 +79,9 @@ class _State extends State<AdmissionPaymentQrCard> {
               child: QrImageView(data: data, size: 166),
             ),
             const SizedBox(height: 12),
-            const Text(
-              AppConstants.upiId,
-              style: TextStyle(fontSize: 11, color: Color(0xFF777D8E)),
+            Text(
+              upiId,
+              style: const TextStyle(fontSize: 11, color: Color(0xFF777D8E)),
             ),
             const SizedBox(height: 4),
             Text(
@@ -95,13 +96,13 @@ class _State extends State<AdmissionPaymentQrCard> {
                   icon: Icons.copy_outlined,
                   label: 'Copy UPI',
                   onTap: () => Clipboard.setData(
-                    const ClipboardData(text: AppConstants.upiId),
+                    ClipboardData(text: upiId),
                   ),
                 ),
                 _Action(
                   icon: Icons.fullscreen,
                   label: 'Full Screen QR',
-                  onTap: () => _fullScreen(context),
+                  onTap: () => _fullScreen(context, data),
                 ),
                 _Action(
                   icon: Icons.share_outlined,
@@ -219,12 +220,12 @@ class _State extends State<AdmissionPaymentQrCard> {
     );
   }
 
-  void _fullScreen(BuildContext context) => showDialog<void>(
+  void _fullScreen(BuildContext context, String qrData) => showDialog<void>(
     context: context,
     builder: (_) => Dialog(
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: QrImageView(data: data, size: 280),
+        child: QrImageView(data: qrData, size: 280),
       ),
     ),
   );

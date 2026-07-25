@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/payment_confirmation_slider.dart';
+import '../../settings/controllers/payment_settings_controller.dart';
 import '../models/student.dart';
 
 class RenewalDateSummary extends StatelessWidget {
@@ -41,7 +42,7 @@ class RenewalDateSummary extends StatelessWidget {
   );
 }
 
-class RenewalPaymentCard extends StatelessWidget {
+class RenewalPaymentCard extends ConsumerWidget {
   final double amount;
   final PaymentMode mode;
   final ValueChanged<PaymentMode> onModeChanged;
@@ -54,7 +55,8 @@ class RenewalPaymentCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paymentSettings = ref.watch(paymentSettingsProvider);
     final colors = Theme.of(context).colorScheme;
     final isCash = mode == PaymentMode.cash;
 
@@ -75,14 +77,13 @@ class RenewalPaymentCard extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFEEEFF4)),
               ),
               child: QrImageView(
-                data:
-                    'upi://pay?pa=${AppConstants.upiId}&pn=${Uri.encodeComponent(AppConstants.libraryName)}&am=$amount&cu=INR',
+                data: paymentSettings.getQrData(amount),
                 size: 152,
               ),
             ),
             const SizedBox(height: 7),
             Text(
-              AppConstants.upiId,
+              paymentSettings.activeUpiId,
               style: TextStyle(
                 fontSize: 10,
                 color: colors.onSurfaceVariant,

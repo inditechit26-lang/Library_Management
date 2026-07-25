@@ -11,6 +11,7 @@ import '../../features/notifications/screens/notification_screen.dart';
 import '../../features/notifications/screens/notification_settings_screen.dart';
 import '../../features/settings/screens/about_us_screen.dart';
 import '../../features/settings/screens/privacy_policy_screen.dart';
+import '../../features/settings/screens/payment_settings_screen.dart';
 import '../../features/settings/screens/whatsapp_templates_screen.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../widgets/app_shell.dart';
@@ -43,6 +44,10 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(
         path: '/settings/pricing',
         builder: (context, state) => const MembershipPricingScreen(),
+      ),
+      GoRoute(
+        path: '/settings/payment',
+        builder: (context, state) => const PaymentSettingsScreen(),
       ),
       GoRoute(
         path: '/settings/whatsapp-templates',
