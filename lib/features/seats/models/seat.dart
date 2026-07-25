@@ -1,3 +1,5 @@
+import '../../students/models/student.dart';
+
 enum SeatStatus { available, occupied, reserved, maintenance, blocked }
 
 enum SeatViewMode { floor, grid, list }
@@ -8,6 +10,7 @@ class Seat {
   final String seatId;
   final String seatLabel;
   final SeatStatus status;
+  final SeatCategory category;
   final int? studentId;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -16,6 +19,7 @@ class Seat {
     required this.seatId,
     required this.seatLabel,
     required this.status,
+    this.category = SeatCategory.ac,
     required this.createdAt,
     required this.updatedAt,
     this.studentId,
@@ -24,6 +28,7 @@ class Seat {
   Seat copyWith({
     String? seatLabel,
     SeatStatus? status,
+    SeatCategory? category,
     int? studentId,
     bool clearStudent = false,
     DateTime? updatedAt,
@@ -31,6 +36,7 @@ class Seat {
     seatId: seatId,
     seatLabel: seatLabel ?? this.seatLabel,
     status: status ?? this.status,
+    category: category ?? this.category,
     studentId: clearStudent ? null : studentId ?? this.studentId,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,

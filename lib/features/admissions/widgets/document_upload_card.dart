@@ -138,42 +138,55 @@ class _Document extends StatelessWidget {
     required this.onTap,
   });
   @override
-  Widget build(BuildContext context) => Material(
-    color: selected ? const Color(0xFFF0EFFF) : const Color(0xFFFAFAFD),
-    borderRadius: BorderRadius.circular(14),
-    child: InkWell(
-      onTap: onTap,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final bg = selected
+        ? (isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF0EFFF))
+        : (isDark ? colors.surfaceContainerLow : const Color(0xFFFAFAFD));
+
+    final border = selected
+        ? colors.primary
+        : (isDark ? colors.outlineVariant : const Color(0xFFE8E9EF));
+
+    return Material(
+      color: bg,
       borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: selected ? const Color(0xFFCFCBFF) : const Color(0xFFE8E9EF),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            border: Border.all(color: border),
+            borderRadius: BorderRadius.circular(14),
           ),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              selected ? Icons.check_circle : icon,
-              size: 19,
-              color: selected
-                  ? const Color(0xFF5650C7)
-                  : const Color(0xFF858B9D),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
+          child: Row(
+            children: [
+              Icon(
+                selected ? Icons.check_circle : icon,
+                size: 19,
+                color: selected
+                    ? colors.primary
+                    : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: colors.onSurface,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

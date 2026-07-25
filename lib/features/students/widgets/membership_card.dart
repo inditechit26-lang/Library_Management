@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import '../../../core/settings/app_settings.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/premium_card.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../models/student.dart';
 import 'package:intl/intl.dart';
 
 class MembershipCard extends StatelessWidget {
   final Student student;
   final VoidCallback onRenew;
+  final VoidCallback onSendReminder;
   final VoidCallback onReceipt;
   const MembershipCard({
     super.key,
     required this.student,
     required this.onRenew,
+    required this.onSendReminder,
     required this.onReceipt,
   });
   int get daysRemaining {
@@ -68,20 +71,38 @@ class MembershipCard extends StatelessWidget {
         if (student.hasRenewedPlan)
           SizedBox(
             width: double.infinity,
-            child: FilledButton.tonalIcon(
+            child: FilledButton.icon(
               onPressed: onReceipt,
-              icon: const Icon(Icons.receipt_long_outlined),
-              label: const Text('View Receipt'),
+              icon: const Icon(Icons.picture_as_pdf_rounded),
+              label: const Text('View Payment Receipt (PDF)'),
             ),
           )
-        else if (daysRemaining <= 5)
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: onRenew,
-              icon: const Icon(Icons.refresh),
-              label: Text(context.tr('Renew Membership')),
-            ),
+        else
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onRenew,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Renew Plan'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onSendReminder,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                  ),
+                  icon: const FaIcon(
+                    FontAwesomeIcons.whatsapp,
+                    size: 17,
+                    color: Colors.white,
+                  ),
+                  label: const Text('WhatsApp'),
+                ),
+              ),
+            ],
           ),
       ],
     ),
