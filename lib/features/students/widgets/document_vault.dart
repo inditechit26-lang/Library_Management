@@ -332,7 +332,7 @@ class DocumentVault extends ConsumerWidget {
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                 ),
                 subtitle: const Text(
-                  'Automatically sets Front & Back images in order',
+                  'Multi-select up to 2 images at once',
                   style: TextStyle(fontSize: 10.5),
                 ),
                 onTap: () => Navigator.pop(context, 'multi_gallery'),
@@ -342,19 +342,10 @@ class DocumentVault extends ConsumerWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: const Text(
-                  'Take Photo (Front Side)',
+                  'Take Photo with Camera',
                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                 ),
-                onTap: () => Navigator.pop(context, 'camera_front'),
-              ),
-              ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                leading: const Icon(Icons.camera_alt_outlined),
-                title: const Text(
-                  'Take Photo (Back Side)',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                ),
-                onTap: () => Navigator.pop(context, 'camera_back'),
+                onTap: () => Navigator.pop(context, 'camera'),
               ),
             ],
           ),
@@ -372,11 +363,10 @@ class DocumentVault extends ConsumerWidget {
       final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
       final nowStr = '18 Jul 2026';
 
-      // 1st Image -> Front
       final frontPicked = pickedList[0];
       final docFront = StudentDocument(
         id: frontDoc?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
-        name: 'Aadhaar Card (Front)',
+        name: 'Aadhaar Card (Image 1)',
         path: frontPicked.path,
         uploadedAt: nowStr,
         type: StudentDocumentType.aadhaarFront,
@@ -384,12 +374,11 @@ class DocumentVault extends ConsumerWidget {
       );
       frontDoc == null ? notifier.add(docFront) : notifier.replace(frontDoc.id, docFront);
 
-      // 2nd Image -> Back (if selected)
       if (pickedList.length > 1) {
         final backPicked = pickedList[1];
         final docBack = StudentDocument(
           id: backDoc?.id ?? (DateTime.now().microsecondsSinceEpoch + 1).toString(),
-          name: 'Aadhaar Card (Back)',
+          name: 'Aadhaar Card (Image 2)',
           path: backPicked.path,
           uploadedAt: nowStr,
           type: StudentDocumentType.aadhaarBack,
@@ -397,20 +386,19 @@ class DocumentVault extends ConsumerWidget {
         );
         backDoc == null ? notifier.add(docBack) : notifier.replace(backDoc.id, docBack);
       }
-    } else if (choice == 'camera_front') {
-      await _pickSingleAadhaarSlot(
-        context,
-        ref,
-        StudentDocumentType.aadhaarFront,
-        frontDoc,
+    } else if (choice == 'camera') {
+      final picked = await service.fromCamera();
+      if (picked == null) return;
+      final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
+      final doc = StudentDocument(
+        id: frontDoc?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        name: 'Aadhaar Card',
+        path: picked.path,
+        uploadedAt: '18 Jul 2026',
+        type: frontDoc == null ? StudentDocumentType.aadhaarFront : StudentDocumentType.aadhaarBack,
+        isImage: true,
       );
-    } else if (choice == 'camera_back') {
-      await _pickSingleAadhaarSlot(
-        context,
-        ref,
-        StudentDocumentType.aadhaarBack,
-        backDoc,
-      );
+      frontDoc == null ? notifier.add(doc) : notifier.replace(frontDoc.id, doc);
     }
   }
 
