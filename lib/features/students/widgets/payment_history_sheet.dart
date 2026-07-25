@@ -122,7 +122,10 @@ class PaymentHistorySheet extends StatelessWidget {
         ),
         amount: student.fee,
         status: status,
-        reference: 'UPI •••• ${1000 + student.id * 37 + month.month}',
+        mode: student.paymentMode,
+        reference: student.paymentMode == PaymentMode.cash
+            ? 'Cash collection'
+            : 'UPI ref. ${1000 + student.id * 37 + month.month}',
       ));
       month = DateTime(month.year, month.month + 1, month.day);
     }
@@ -134,12 +137,14 @@ class _PaymentRecord {
   final DateTime date;
   final double amount;
   final PaymentStatus status;
+  final PaymentMode mode;
   final String reference;
 
   const _PaymentRecord({
     required this.date,
     required this.amount,
     required this.status,
+    required this.mode,
     required this.reference,
   });
 }
@@ -153,6 +158,7 @@ class _PaymentHistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final isPaid = record.status == PaymentStatus.paid;
+    final isCash = record.mode == PaymentMode.cash;
     final statusColor = isPaid
         ? const Color(0xFF168A4B)
         : record.status == PaymentStatus.pending
@@ -181,7 +187,11 @@ class _PaymentHistoryTile extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isPaid ? Icons.check_rounded : Icons.schedule_rounded,
+              isCash
+                  ? Icons.payments_outlined
+                  : isPaid
+                  ? Icons.account_balance_wallet_outlined
+                  : Icons.schedule_rounded,
               color: statusColor,
             ),
           ),
@@ -193,8 +203,27 @@ class _PaymentHistoryTile extends StatelessWidget {
                 Text(DateFormat('MMMM yyyy').format(record.date), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 3),
                 Text(
-                  '${DateFormat('dd MMM yyyy • h:mm a').format(record.date)}\n${record.reference}',
+                  DateFormat('dd MMM yyyy, h:mm a').format(record.date),
                   style: TextStyle(fontSize: 10, height: 1.4, color: colors.onSurfaceVariant),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(
+                      isCash ? Icons.payments_outlined : Icons.qr_code_rounded,
+                      size: 13,
+                      color: colors.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${record.mode.fullLabel} · ${record.reference}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
