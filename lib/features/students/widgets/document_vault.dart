@@ -28,6 +28,7 @@ class DocumentVault extends ConsumerWidget {
 
     final effectiveFront = aadhaarFront ?? legacyAadhaar;
     final effectiveBack = aadhaarBack;
+    final hasAadhaar = effectiveFront != null || effectiveBack != null;
 
     final otherDocs = docs.where(
       (d) =>
@@ -139,40 +140,41 @@ class DocumentVault extends ConsumerWidget {
           ),
           const SizedBox(height: 18),
 
-          // Aadhaar Section (Uniform 2-Card Front & Back Layout)
-          _AadhaarVaultSection(
-            frontDoc: effectiveFront,
-            backDoc: effectiveBack,
-            onPickAadhaar: () => _pickAadhaar(
-              context,
-              ref,
+          if (hasAadhaar) ...[
+            _AadhaarVaultSection(
               frontDoc: effectiveFront,
               backDoc: effectiveBack,
+              onPickAadhaar: () => _pickAadhaar(
+                context,
+                ref,
+                frontDoc: effectiveFront,
+                backDoc: effectiveBack,
+              ),
+              onPickSingleSlot: (type) => _pickSingleAadhaarSlot(
+                context,
+                ref,
+                type,
+                type == StudentDocumentType.aadhaarFront ? effectiveFront : effectiveBack,
+              ),
+              onPreview: (doc) => _preview(context, doc),
+              onDeleteSlot: (doc) => ref
+                  .read(studentDocumentsProvider(studentId).notifier)
+                  .remove(doc.id),
+              onDeleteAll: () => _confirmRemoveAadhaar(context, () {
+                final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
+                for (final doc in [
+                  aadhaarFront,
+                  aadhaarBack,
+                  legacyAadhaar,
+                ].whereType<StudentDocument>()) {
+                  notifier.remove(doc.id);
+                }
+              }),
             ),
-            onPickSingleSlot: (type) => _pickSingleAadhaarSlot(
-              context,
-              ref,
-              type,
-              type == StudentDocumentType.aadhaarFront ? effectiveFront : effectiveBack,
-            ),
-            onPreview: (doc) => _preview(context, doc),
-            onDeleteSlot: (doc) => ref
-                .read(studentDocumentsProvider(studentId).notifier)
-                .remove(doc.id),
-            onDeleteAll: () => _confirmRemoveAadhaar(context, () {
-              final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
-              for (final doc in [
-                aadhaarFront,
-                aadhaarBack,
-                legacyAadhaar,
-              ].whereType<StudentDocument>()) {
-                notifier.remove(doc.id);
-              }
-            }),
-          ),
+          ],
 
           if (otherDocs.isNotEmpty) ...[
-            const SizedBox(height: 20),
+            if (hasAadhaar) const SizedBox(height: 20),
             Row(
               children: [
                 Text(
@@ -213,8 +215,8 @@ class DocumentVault extends ConsumerWidget {
                     .remove(doc.id),
               ),
             ),
-          ] else if (effectiveFront == null && effectiveBack == null) ...[
-            const SizedBox(height: 16),
+          ] else if (!hasAadhaar) ...[
+            const SizedBox(height: 8),
             const _EmptyVault(),
           ],
         ],
