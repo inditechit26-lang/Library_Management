@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/settings/app_settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/documents_controller.dart';
@@ -150,6 +151,7 @@ class DocumentVault extends ConsumerWidget {
                 frontDoc: effectiveFront,
                 backDoc: effectiveBack,
                 onPreview: () => _previewAadhaar(context, effectiveFront, effectiveBack),
+                onDownload: () => _downloadAadhaar(context, effectiveFront, effectiveBack),
                 onReupload: () => _pickAadhaar(
                   context,
                   ref,
@@ -172,6 +174,7 @@ class DocumentVault extends ConsumerWidget {
               (doc) => _DocumentTile(
                 document: doc,
                 onPreview: () => _preview(context, doc),
+                onDownload: () => _downloadDocument(context, doc),
                 onReplace: () => _pick(context, ref, doc, docs),
                 onDelete: () => ref
                     .read(studentDocumentsProvider(studentId).notifier)
@@ -182,6 +185,58 @@ class DocumentVault extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadDocument(BuildContext context, StudentDocument doc) async {
+    final file = File(doc.path);
+    if (!file.existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Document file "${doc.name}" not found locally.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Downloading ${doc.name}...'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+    await Share.shareXFiles([XFile(doc.path)], text: doc.name);
+  }
+
+  Future<void> _downloadAadhaar(
+    BuildContext context,
+    StudentDocument? frontDoc,
+    StudentDocument? backDoc,
+  ) async {
+    final docs = [frontDoc, backDoc].whereType<StudentDocument>().toList();
+    final xFiles = <XFile>[];
+    for (final d in docs) {
+      if (File(d.path).existsSync()) {
+        xFiles.add(XFile(d.path));
+      }
+    }
+    if (xFiles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Aadhaar card image files not found locally.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Downloading Aadhaar Card...'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+    await Share.shareXFiles(xFiles, text: 'Aadhaar Card');
   }
 
   Future<void> _pick(
@@ -592,6 +647,7 @@ class _AadhaarTile extends StatelessWidget {
   final StudentDocument? frontDoc;
   final StudentDocument? backDoc;
   final VoidCallback onPreview;
+  final VoidCallback onDownload;
   final VoidCallback onReupload;
   final VoidCallback onDelete;
 
@@ -599,6 +655,7 @@ class _AadhaarTile extends StatelessWidget {
     required this.frontDoc,
     required this.backDoc,
     required this.onPreview,
+    required this.onDownload,
     required this.onReupload,
     required this.onDelete,
   });
@@ -668,13 +725,51 @@ class _AadhaarTile extends StatelessWidget {
           iconSize: 20,
           onSelected: (value) {
             if (value == 'preview') onPreview();
+            if (value == 'download') onDownload();
             if (value == 'reupload') onReupload();
             if (value == 'delete') onDelete();
           },
           itemBuilder: (_) => [
-            PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
-            PopupMenuItem(value: 'reupload', child: const Text('Re-upload')),
-            PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
+            PopupMenuItem(
+              value: 'preview',
+              child: Row(
+                children: [
+                  const Icon(Icons.remove_red_eye_outlined, size: 18),
+                  const SizedBox(width: 10),
+                  Text(context.tr('Preview')),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'download',
+              child: Row(
+                children: [
+                  const Icon(Icons.download_rounded, size: 18),
+                  const SizedBox(width: 10),
+                  const Text('Download'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'reupload',
+              child: Row(
+                children: [
+                  const Icon(Icons.sync_rounded, size: 18),
+                  const SizedBox(width: 10),
+                  const Text('Re-upload'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                  const SizedBox(width: 10),
+                  Text(context.tr('Delete'), style: const TextStyle(color: Colors.redAccent)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -843,10 +938,11 @@ class _EmptyVault extends StatelessWidget {
 
 class _DocumentTile extends StatelessWidget {
   final StudentDocument document;
-  final VoidCallback onPreview, onReplace, onDelete;
+  final VoidCallback onPreview, onDownload, onReplace, onDelete;
   const _DocumentTile({
     required this.document,
     required this.onPreview,
+    required this.onDownload,
     required this.onReplace,
     required this.onDelete,
   });
@@ -896,15 +992,53 @@ class _DocumentTile extends StatelessWidget {
         ),
         trailing: PopupMenuButton<String>(
           iconSize: 20,
-          onSelected: (value) => value == 'preview'
-              ? onPreview()
-              : value == 'replace'
-              ? onReplace()
-              : onDelete(),
+          onSelected: (value) {
+            if (value == 'preview') onPreview();
+            if (value == 'download') onDownload();
+            if (value == 'replace') onReplace();
+            if (value == 'delete') onDelete();
+          },
           itemBuilder: (_) => [
-            PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
-            PopupMenuItem(value: 'replace', child: Text(context.tr('Replace'))),
-            PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
+            PopupMenuItem(
+              value: 'preview',
+              child: Row(
+                children: [
+                  const Icon(Icons.remove_red_eye_outlined, size: 18),
+                  const SizedBox(width: 10),
+                  Text(context.tr('Preview')),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'download',
+              child: Row(
+                children: [
+                  const Icon(Icons.download_rounded, size: 18),
+                  const SizedBox(width: 10),
+                  const Text('Download'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'replace',
+              child: Row(
+                children: [
+                  const Icon(Icons.sync_rounded, size: 18),
+                  const SizedBox(width: 10),
+                  Text(context.tr('Replace')),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                  const SizedBox(width: 10),
+                  Text(context.tr('Delete'), style: const TextStyle(color: Colors.redAccent)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
