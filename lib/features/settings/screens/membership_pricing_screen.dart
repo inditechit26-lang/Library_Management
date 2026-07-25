@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../students/models/student.dart';
@@ -120,9 +121,7 @@ class _MembershipPricingScreenState
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF191D2C)
-                  : const Color(0xFFF1F5F9),
+              color: isDark ? const Color(0xFF191D2C) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
                 color: isDark
@@ -237,10 +236,7 @@ class _PlanEditorGroup extends ConsumerWidget {
         ],
         if (membership == MembershipType.halfTime) ...[
           const SizedBox(height: 6),
-          _HalfTimeShiftConfigCard(
-            shifts: shifts,
-            isDark: isDark,
-          ),
+          _HalfTimeShiftConfigCard(shifts: shifts, isDark: isDark),
           const SizedBox(height: 24),
         ],
       ],
@@ -252,10 +248,7 @@ class _HalfTimeShiftConfigCard extends ConsumerStatefulWidget {
   final List<String> shifts;
   final bool isDark;
 
-  const _HalfTimeShiftConfigCard({
-    required this.shifts,
-    required this.isDark,
-  });
+  const _HalfTimeShiftConfigCard({required this.shifts, required this.isDark});
 
   @override
   ConsumerState<_HalfTimeShiftConfigCard> createState() =>
@@ -264,20 +257,351 @@ class _HalfTimeShiftConfigCard extends ConsumerStatefulWidget {
 
 class __HalfTimeShiftConfigCardState
     extends ConsumerState<_HalfTimeShiftConfigCard> {
-  final _shiftController = TextEditingController();
+  TimeOfDay _startTime = const TimeOfDay(hour: 6, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 14, minute: 0);
+  int? _editingIndex;
+  String? _editingLabel;
 
-  @override
-  void dispose() {
-    _shiftController.dispose();
-    super.dispose();
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '${hour.toString().padLeft(2, '0')}:$minute $period';
   }
 
-  void _addShift() {
-    final text = _shiftController.text.trim();
-    if (text.isNotEmpty) {
-      ref.read(pricingProvider.notifier).addHalfTimeShift(text);
-      _shiftController.clear();
+  String _suggestedShiftLabel(TimeOfDay time) {
+    if (time.hour >= 5 && time.hour < 12) return 'Morning Shift';
+    if (time.hour >= 12 && time.hour < 17) return 'Afternoon Shift';
+    if (time.hour >= 17 && time.hour < 21) return 'Evening Shift';
+    return 'Night Shift';
+  }
+
+  String _shiftValue() {
+    final label = _editingLabel ?? _suggestedShiftLabel(_startTime);
+    return '$label (${_formatTime(_startTime)} - ${_formatTime(_endTime)})';
+  }
+
+  TimeOfDay _timeFromParts(String hour, String minute, String period) {
+    final hour12 = int.parse(hour);
+    final hour24 = (hour12 % 12) + (period.toUpperCase() == 'PM' ? 12 : 0);
+    return TimeOfDay(hour: hour24, minute: int.parse(minute));
+  }
+
+  void _editShift(int index) {
+    final shift = widget.shifts[index];
+    final match = RegExp(
+      r'^(.*?)\s*\((\d{1,2}):(\d{2})\s*(AM|PM)\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)\)$',
+      caseSensitive: false,
+    ).firstMatch(shift);
+
+    setState(() {
+      _editingIndex = index;
+      _editingLabel = match?.group(1)?.trim();
+      if (match != null) {
+        _startTime = _timeFromParts(
+          match.group(2)!,
+          match.group(3)!,
+          match.group(4)!,
+        );
+        _endTime = _timeFromParts(
+          match.group(5)!,
+          match.group(6)!,
+          match.group(7)!,
+        );
+      }
+    });
+  }
+
+  void _cancelEditing() {
+    setState(() {
+      _editingIndex = null;
+      _editingLabel = null;
+      _startTime = const TimeOfDay(hour: 6, minute: 0);
+      _endTime = const TimeOfDay(hour: 14, minute: 0);
+    });
+  }
+
+  void _saveShift() {
+    final notifier = ref.read(pricingProvider.notifier);
+    if (_editingIndex case final index?) {
+      notifier.updateHalfTimeShift(index, _shiftValue());
+    } else {
+      notifier.addHalfTimeShift(_shiftValue());
     }
+    _cancelEditing();
+  }
+
+  Future<TimeOfDay?> _showWheelTimePicker(
+    BuildContext context,
+    TimeOfDay initialTime,
+    String title,
+  ) async {
+    var selectedHour = initialTime.hourOfPeriod == 0
+        ? 12
+        : initialTime.hourOfPeriod;
+    var selectedMinute = initialTime.minute;
+    var selectedPeriod = initialTime.period == DayPeriod.am ? 0 : 1;
+    final hourController = FixedExtentScrollController(
+      initialItem: selectedHour - 1,
+    );
+    final minuteController = FixedExtentScrollController(
+      initialItem: selectedMinute,
+    );
+    final periodController = FixedExtentScrollController(
+      initialItem: selectedPeriod,
+    );
+
+    final result = await showModalBottomSheet<TimeOfDay>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        return SafeArea(
+          child: SizedBox(
+            height: 350,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(
+                          sheetContext,
+                          TimeOfDay(
+                            hour:
+                                (selectedHour % 12) +
+                                (selectedPeriod == 1 ? 12 : 0),
+                            minute: selectedMinute,
+                          ),
+                        ),
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'HOUR',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'MINUTE',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          'AM / PM',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController: hourController,
+                          itemExtent: 46,
+                          useMagnifier: true,
+                          magnification: 1.15,
+                          onSelectedItemChanged: (index) {
+                            selectedHour = index + 1;
+                          },
+                          children: [
+                            for (var hour = 1; hour <= 12; hour++)
+                              Center(
+                                child: Text(
+                                  hour.toString().padLeft(2, '0'),
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const Text(
+                        ':',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoPicker.builder(
+                          scrollController: minuteController,
+                          itemExtent: 46,
+                          useMagnifier: true,
+                          magnification: 1.15,
+                          childCount: 60,
+                          onSelectedItemChanged: (index) {
+                            selectedMinute = index;
+                          },
+                          itemBuilder: (context, minute) => Center(
+                            child: Text(
+                              minute.toString().padLeft(2, '0'),
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController: periodController,
+                          itemExtent: 46,
+                          useMagnifier: true,
+                          magnification: 1.15,
+                          onSelectedItemChanged: (index) {
+                            selectedPeriod = index;
+                          },
+                          children: const [
+                            Center(
+                              child: Text(
+                                'AM',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            Center(
+                              child: Text(
+                                'PM',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    hourController.dispose();
+    minuteController.dispose();
+    periodController.dispose();
+    return result;
+  }
+
+  Future<void> _pickStartTime() async {
+    final time = await _showWheelTimePicker(
+      context,
+      _startTime,
+      'Select Start Time',
+    );
+    if (time != null && mounted) setState(() => _startTime = time);
+  }
+
+  Future<void> _pickEndTime() async {
+    final time = await _showWheelTimePicker(
+      context,
+      _endTime,
+      'Select End Time',
+    );
+    if (time != null && mounted) setState(() => _endTime = time);
+  }
+
+  Widget _timeField({
+    required String label,
+    required TimeOfDay time,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+        decoration: BoxDecoration(
+          color: widget.isDark
+              ? const Color(0xFF131724)
+              : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: widget.isDark
+                ? const Color(0xFF242A3E)
+                : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.schedule_rounded,
+              size: 20,
+              color: Color(0xFF8B5CF6),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _formatTime(time),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.unfold_more_rounded,
+              size: 18,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -290,10 +614,7 @@ class __HalfTimeShiftConfigCardState
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline,
-          width: 1.2,
-        ),
+        border: Border.all(color: theme.colorScheme.outline, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -351,8 +672,10 @@ class __HalfTimeShiftConfigCardState
             children: [
               for (int i = 0; i < widget.shifts.length; i++) ...[
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
                     color: isDark
@@ -383,8 +706,22 @@ class __HalfTimeShiftConfigCardState
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.remove_circle_outline_rounded,
-                            size: 20, color: Colors.redAccent),
+                        icon: const Icon(
+                          Icons.edit_rounded,
+                          size: 19,
+                          color: Color(0xFF8B5CF6),
+                        ),
+                        onPressed: () => _editShift(i),
+                        tooltip: 'Edit Shift Time',
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(6),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline_rounded,
+                          size: 20,
+                          color: Colors.redAccent,
+                        ),
                         onPressed: () => ref
                             .read(pricingProvider.notifier)
                             .removeHalfTimeShift(i),
@@ -402,64 +739,79 @@ class __HalfTimeShiftConfigCardState
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: _shiftController,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'e.g. Night Shift (10:00 PM - 06:00 AM)',
-                    hintStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                    filled: true,
-                    fillColor: isDark
-                        ? const Color(0xFF131724)
-                        : const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(
-                        color: isDark
-                            ? const Color(0xFF242A3E)
-                            : const Color(0xFFE2E8F0),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF8B5CF6),
-                        width: 1.8,
-                      ),
-                    ),
-                  ),
-                  onSubmitted: (_) => _addShift(),
+                child: _timeField(
+                  label: 'START TIME',
+                  time: _startTime,
+                  onTap: _pickStartTime,
                 ),
               ),
               const SizedBox(width: 10),
-              FilledButton.icon(
-                onPressed: _addShift,
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5CF6),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                icon: const Icon(Icons.add_rounded, size: 18),
-                label: const Text(
-                  'Add',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+              const Icon(
+                Icons.arrow_forward_rounded,
+                size: 18,
+                color: Color(0xFF8B5CF6),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _timeField(
+                  label: 'END TIME',
+                  time: _endTime,
+                  onTap: _pickEndTime,
                 ),
               ),
             ],
+          ),
+          if (_editingIndex != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.edit_note_rounded,
+                  size: 16,
+                  color: Color(0xFF8B5CF6),
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Editing ${_editingLabel ?? 'selected shift'}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: _cancelEditing,
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _saveShift,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF8B5CF6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: Icon(
+                _editingIndex == null ? Icons.add_rounded : Icons.check_rounded,
+                size: 18,
+              ),
+              label: Text(
+                _editingIndex == null ? 'Add Shift' : 'Save Shift Time',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
           ),
         ],
       ),
@@ -495,10 +847,7 @@ class _PricingCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: theme.colorScheme.outline,
-          width: 1.2,
-        ),
+        border: Border.all(color: theme.colorScheme.outline, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -519,11 +868,7 @@ class _PricingCard extends StatelessWidget {
                   color: theme.colorScheme.primary.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: theme.colorScheme.primary,
-                ),
+                child: Icon(icon, size: 20, color: theme.colorScheme.primary),
               ),
               const SizedBox(width: 12),
               Column(

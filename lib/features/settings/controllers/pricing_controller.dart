@@ -50,6 +50,17 @@ class PricingController extends Notifier<PricingSettings> {
     state = state.copyWith(halfTimeShifts: updated);
   }
 
+  void updateHalfTimeShift(int index, String shift) {
+    if (index < 0 ||
+        index >= state.halfTimeShifts.length ||
+        shift.trim().isEmpty) {
+      return;
+    }
+    final updated = List<String>.from(state.halfTimeShifts);
+    updated[index] = shift.trim();
+    state = state.copyWith(halfTimeShifts: updated);
+  }
+
   void removeHalfTimeShift(int index) {
     if (index < 0 || index >= state.halfTimeShifts.length) return;
     final updated = List<String>.from(state.halfTimeShifts)..removeAt(index);
