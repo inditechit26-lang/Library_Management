@@ -82,17 +82,15 @@ class StudentProfileHeader extends StatelessWidget {
           alignment: WrapAlignment.center,
           children: [
             _Pill(
-              student.membership == MembershipType.fullTime
-                  ? 'Full Time'
-                  : 'Half Time',
+              '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
             ),
-            _Pill(
-              student.membership == MembershipType.fullTime
-                  ? 'Seat ${student.seat}'
-                  : student.seat.isNotEmpty
-                      ? student.seat
-                      : 'Flexible Seating',
-            ),
+            if (student.membership == MembershipType.fullTime)
+              _Pill('Seat ${student.seat}')
+            else ...[
+              const _Pill('Flexible Seating'),
+              if (student.halfTimeShiftTime != null)
+                _Pill('⏰ ${student.halfTimeShiftTime}'),
+            ],
             _Pill(student.payment.name),
           ],
         ),

@@ -22,14 +22,15 @@ class StudentInformationCard extends StatelessWidget {
         '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
       ),
       _Row('Hall Section', student.category.label),
-      _Row(
-        student.membership == MembershipType.fullTime ? 'Seat Number' : 'Seat / Shift',
-        student.membership == MembershipType.fullTime
-            ? student.seat
-            : student.seat.isNotEmpty
-                ? student.seat
-                : 'Flexible Seating',
-      ),
+      if (student.membership == MembershipType.fullTime) ...[
+        _Row('Seat Number', student.seat),
+      ] else ...[
+        const _Row('Seat Number', 'Flexible Seating'),
+        _Row(
+          'Shift Time',
+          student.halfTimeShiftTime ?? 'Flexible Shift',
+        ),
+      ],
       _Row('Notes', student.notes.isEmpty ? '—' : student.notes),
     ],
   );

@@ -85,3 +85,16 @@ class Student {
               .join(),
   );
 }
+
+extension StudentShiftX on Student {
+  String? get halfTimeShiftTime {
+    if (membership != MembershipType.halfTime) return null;
+    if (seat.startsWith('Flexible (') && seat.endsWith(')')) {
+      return seat.substring(10, seat.length - 1);
+    }
+    if (seat.isNotEmpty && seat != 'Flexible' && seat != 'Flexible Seating') {
+      return seat;
+    }
+    return null;
+  }
+}

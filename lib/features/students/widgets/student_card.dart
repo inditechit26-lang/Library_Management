@@ -258,10 +258,10 @@ class _Details extends StatelessWidget {
             _Badge(
               label: student.membership == MembershipType.fullTime
                   ? 'Seat ${student.seat}'
-                  : student.seat.isNotEmpty
-                      ? student.seat
-                      : 'Flexible Seating',
-              icon: Icons.event_seat_outlined,
+                  : student.halfTimeShiftTime ?? 'Flexible Seating',
+              icon: student.membership == MembershipType.fullTime
+                  ? Icons.event_seat_outlined
+                  : Icons.access_time_rounded,
             ),
           ],
         ),
