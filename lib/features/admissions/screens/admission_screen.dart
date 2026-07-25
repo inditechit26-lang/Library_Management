@@ -134,6 +134,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       membership: admission.membership,
       seats: ref.watch(seatsProvider),
       selected: admission.selectedSeat,
+      selectedShift: admission.selectedHalfTimeShift,
       onSelected: admission.chooseSeat,
       studentName: name.text.trim(),
     ),
@@ -166,21 +167,26 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
 
   Widget _membershipStep() {
     final pricing = admission.pricing;
+    final categoryPricing = (MembershipType type) =>
+        pricing.forMembershipAndCategory(type, admission.category);
+
     final content = Column(
       children: [
         MembershipSelector(
+          selectedCategory: admission.category,
           selected: admission.membership,
-          fullTimeMonthly: pricing.fullTime.monthly,
-          halfTimeMonthly: pricing.halfTime.monthly,
+          fullTimeMonthly: categoryPricing(MembershipType.fullTime).monthly,
+          halfTimeMonthly: categoryPricing(MembershipType.halfTime).monthly,
           shifts: pricing.halfTimeShifts,
           selectedShift: admission.selectedHalfTimeShift,
+          onCategoryChanged: admission.chooseCategory,
           onChanged: admission.chooseMembership,
           onShiftChanged: admission.setHalfTimeShift,
         ),
         const SizedBox(height: 22),
         PricingSelector(
           selected: admission.period,
-          pricing: pricing.forMembership(admission.membership),
+          pricing: categoryPricing(admission.membership),
           onChanged: admission.choosePeriod,
         ),
         AnimatedSwitcher(
@@ -240,11 +246,13 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     _ => true,
   };
   String get _membership => admission.membership == MembershipType.fullTime
-      ? 'Full Time'
-      : 'Half Time';
+      ? 'Full Time (${admission.category.shortLabel})'
+      : 'Half Time (${admission.category.shortLabel})';
   String get _seat => admission.membership == MembershipType.fullTime
       ? admission.selectedSeat ?? ''
-      : 'Flexible Seating';
+      : admission.selectedHalfTimeShift != null
+          ? 'Flexible (${admission.selectedHalfTimeShift})'
+          : 'Flexible Seating';
 
   void _next() {
     if (admission.step == 0 && !(formKey.currentState?.validate() ?? false)) {

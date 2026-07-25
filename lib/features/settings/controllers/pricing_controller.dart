@@ -9,9 +9,10 @@ class PricingController extends Notifier<PricingSettings> {
   void update(
     MembershipType membership,
     MembershipPeriod period,
-    double value,
-  ) {
-    final current = state.forMembership(membership);
+    double value, {
+    SeatCategory category = SeatCategory.ac,
+  }) {
+    final current = state.forMembershipAndCategory(membership, category);
     final updated = switch (period) {
       MembershipPeriod.monthly => current.copyWith(monthly: value),
       MembershipPeriod.quarterly => current.copyWith(quarterly: value),
@@ -19,25 +20,40 @@ class PricingController extends Notifier<PricingSettings> {
       MembershipPeriod.annual => current.copyWith(annual: value),
       MembershipPeriod.custom => current,
     };
-    state = membership == MembershipType.fullTime
-        ? state.copyWith(fullTime: updated)
-        : state.copyWith(halfTime: updated);
+
+    if (category == SeatCategory.ac) {
+      state = membership == MembershipType.fullTime
+          ? state.copyWith(fullTimeAc: updated)
+          : state.copyWith(halfTimeAc: updated);
+    } else {
+      state = membership == MembershipType.fullTime
+          ? state.copyWith(fullTimeNonAc: updated)
+          : state.copyWith(halfTimeNonAc: updated);
+    }
   }
 
   void updateBadge(
     MembershipType membership,
     MembershipPeriod period,
-    String value,
-  ) {
-    final current = state.forMembership(membership);
+    String value, {
+    SeatCategory category = SeatCategory.ac,
+  }) {
+    final current = state.forMembershipAndCategory(membership, category);
     final badges = Map<MembershipPeriod, String>.from(current.badges);
     value.trim().isEmpty
         ? badges.remove(period)
         : badges[period] = value.trim();
     final updated = current.copyWith(badges: badges);
-    state = membership == MembershipType.fullTime
-        ? state.copyWith(fullTime: updated)
-        : state.copyWith(halfTime: updated);
+
+    if (category == SeatCategory.ac) {
+      state = membership == MembershipType.fullTime
+          ? state.copyWith(fullTimeAc: updated)
+          : state.copyWith(halfTimeAc: updated);
+    } else {
+      state = membership == MembershipType.fullTime
+          ? state.copyWith(fullTimeNonAc: updated)
+          : state.copyWith(halfTimeNonAc: updated);
+    }
   }
 
   void updateHalfTimeShifts(List<String> shifts) {

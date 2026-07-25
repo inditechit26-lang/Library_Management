@@ -249,17 +249,18 @@ class _Details extends StatelessWidget {
           runSpacing: 5,
           children: [
             _Badge(
-              label: student.membership == MembershipType.fullTime
-                  ? 'Full Time'
-                  : 'Half Time',
-              icon: student.membership == MembershipType.fullTime
-                  ? Icons.workspace_premium_outlined
-                  : Icons.schedule_outlined,
+              label:
+                  '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
+              icon: student.category == SeatCategory.ac
+                  ? Icons.ac_unit_rounded
+                  : Icons.air_rounded,
             ),
             _Badge(
               label: student.membership == MembershipType.fullTime
                   ? 'Seat ${student.seat}'
-                  : 'Flexible Seating',
+                  : student.seat.isNotEmpty
+                      ? student.seat
+                      : 'Flexible Seating',
               icon: Icons.event_seat_outlined,
             ),
           ],

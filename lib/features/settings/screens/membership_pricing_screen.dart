@@ -17,6 +17,7 @@ class _MembershipPricingScreenState
     extends ConsumerState<MembershipPricingScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  SeatCategory _selectedCategory = SeatCategory.ac;
 
   @override
   void initState() {
@@ -102,7 +103,7 @@ class _MembershipPricingScreenState
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        'Customize monthly, quarterly & annual rates with promotional badges.',
+                        'Customize AC & Non-AC rates for monthly, quarterly & annual plans.',
                         style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
@@ -115,9 +116,44 @@ class _MembershipPricingScreenState
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
-          // Custom Segmented Pill Tab Bar
+          // AC / Non-AC Section Switcher Bar
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF191D2C) : const Color(0xFFEFF1F7),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: isDark
+                    ? const Color(0xFF2A2F45)
+                    : const Color(0xFFE2E8F0),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _CategoryPillTab(
+                    label: 'AC Section',
+                    icon: Icons.ac_unit_rounded,
+                    isSelected: _selectedCategory == SeatCategory.ac,
+                    onTap: () => setState(() => _selectedCategory = SeatCategory.ac),
+                  ),
+                ),
+                Expanded(
+                  child: _CategoryPillTab(
+                    label: 'Non-AC Section',
+                    icon: Icons.air_rounded,
+                    isSelected: _selectedCategory == SeatCategory.nonAc,
+                    onTap: () => setState(() => _selectedCategory = SeatCategory.nonAc),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Custom Segmented Pill Tab Bar (Full Time / Half Time)
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -170,13 +206,21 @@ class _MembershipPricingScreenState
               controller: _tabController,
               children: [
                 _PlanEditorGroup(
+                  category: _selectedCategory,
                   membership: MembershipType.fullTime,
-                  pricing: pricing.fullTime,
+                  pricing: pricing.forMembershipAndCategory(
+                    MembershipType.fullTime,
+                    _selectedCategory,
+                  ),
                   shifts: pricing.halfTimeShifts,
                 ),
                 _PlanEditorGroup(
+                  category: _selectedCategory,
                   membership: MembershipType.halfTime,
-                  pricing: pricing.halfTime,
+                  pricing: pricing.forMembershipAndCategory(
+                    MembershipType.halfTime,
+                    _selectedCategory,
+                  ),
                   shifts: pricing.halfTimeShifts,
                 ),
               ],
@@ -188,12 +232,81 @@ class _MembershipPricingScreenState
   }
 }
 
+class _CategoryPillTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryPillTab({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark ? colors.surface : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 17,
+                color: isSelected ? colors.primary : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: isSelected ? colors.primary : colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PlanEditorGroup extends ConsumerWidget {
+  final SeatCategory category;
   final MembershipType membership;
   final PlanPricing pricing;
   final List<String> shifts;
 
   const _PlanEditorGroup({
+    required this.category,
     required this.membership,
     required this.pricing,
     required this.shifts,
@@ -224,12 +337,12 @@ class _PlanEditorGroup extends ConsumerWidget {
               final amount = double.tryParse(val) ?? 0;
               ref
                   .read(pricingProvider.notifier)
-                  .update(membership, item.$1, amount);
+                  .update(membership, item.$1, amount, category: category);
             },
             onBadgeChanged: (val) {
               ref
                   .read(pricingProvider.notifier)
-                  .updateBadge(membership, item.$1, val);
+                  .updateBadge(membership, item.$1, val, category: category);
             },
           ),
           const SizedBox(height: 14),

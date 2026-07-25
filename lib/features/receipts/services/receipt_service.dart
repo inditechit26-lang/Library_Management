@@ -176,16 +176,18 @@ class ReceiptService {
                           pw.SizedBox(height: 10),
                           _infoRow(
                             'Plan Type',
-                            student.membership == MembershipType.fullTime
-                                ? 'Full Time (Dedicated)'
-                                : 'Half Time (Flexible)',
+                            '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.label})',
                             isBold: true,
                           ),
                           _infoRow(
-                            'Assigned Seat',
+                            student.membership == MembershipType.fullTime
+                                ? 'Assigned Seat'
+                                : 'Assigned Seat / Shift',
                             student.membership == MembershipType.fullTime
                                 ? student.seat
-                                : 'Flexi Desk',
+                                : student.seat.isNotEmpty
+                                    ? student.seat
+                                    : 'Flexi Desk',
                           ),
                           _infoRow(
                             'Previous Expiry',

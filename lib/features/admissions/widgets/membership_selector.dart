@@ -3,20 +3,24 @@ import '../../../core/utils/formatters.dart';
 import '../../students/models/student.dart';
 
 class MembershipSelector extends StatelessWidget {
+  final SeatCategory selectedCategory;
   final MembershipType selected;
   final double fullTimeMonthly, halfTimeMonthly;
   final List<String> shifts;
   final String? selectedShift;
+  final ValueChanged<SeatCategory>? onCategoryChanged;
   final ValueChanged<MembershipType> onChanged;
   final ValueChanged<String>? onShiftChanged;
 
   const MembershipSelector({
     super.key,
+    required this.selectedCategory,
     required this.selected,
     required this.fullTimeMonthly,
     required this.halfTimeMonthly,
     this.shifts = const [],
     this.selectedShift,
+    this.onCategoryChanged,
     required this.onChanged,
     this.onShiftChanged,
   });
@@ -24,6 +28,11 @@ class MembershipSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     children: [
+      _CategorySectionBar(
+        selected: selectedCategory,
+        onChanged: onCategoryChanged,
+      ),
+      const SizedBox(height: 16),
       _PlanCard(
         title: 'FULL TIME',
         subtitle: 'Reserved Seat',
@@ -57,6 +66,122 @@ class MembershipSelector extends StatelessWidget {
       ],
     ],
   );
+}
+
+class _CategorySectionBar extends StatelessWidget {
+  final SeatCategory selected;
+  final ValueChanged<SeatCategory>? onChanged;
+
+  const _CategorySectionBar({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: theme.brightness == Brightness.dark
+            ? theme.colorScheme.surfaceContainerHigh
+            : const Color(0xFFEFF1F7),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SectionTab(
+              label: 'AC Section',
+              icon: Icons.ac_unit_rounded,
+              isSelected: selected == SeatCategory.ac,
+              onTap: () => onChanged?.call(SeatCategory.ac),
+            ),
+          ),
+          Expanded(
+            child: _SectionTab(
+              label: 'Non-AC Section',
+              icon: Icons.air_rounded,
+              isSelected: selected == SeatCategory.nonAc,
+              onTap: () => onChanged?.call(SeatCategory.nonAc),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionTab extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _SectionTab({
+    required this.label,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark ? colors.surface : Colors.white)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected
+                    ? colors.primary
+                    : colors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: isSelected
+                      ? colors.primary
+                      : colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _HalfTimeShiftSelector extends StatefulWidget {
@@ -113,10 +238,12 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F7FF),
+        color: theme.brightness == Brightness.dark
+            ? theme.colorScheme.primaryContainer.withValues(alpha: 0.25)
+            : const Color(0xFFF8F7FF),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: const Color(0xFF7069DC).withValues(alpha: 0.4),
+          color: theme.colorScheme.primary.withValues(alpha: 0.4),
           width: 1.2,
         ),
       ),
@@ -125,18 +252,18 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
         children: [
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.access_time_filled_rounded,
                 size: 20,
-                color: Color(0xFF5650C7),
+                color: theme.colorScheme.primary,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Set Half-Time Shift Time',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF2C2E3E),
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
               const Spacer(),

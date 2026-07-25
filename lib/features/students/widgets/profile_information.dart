@@ -19,15 +19,16 @@ class StudentInformationCard extends StatelessWidget {
       _Row('Joining Date', student.joined),
       _Row(
         'Membership Type',
-        student.membership == MembershipType.fullTime
-            ? 'Full Time'
-            : 'Half Time',
+        '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
       ),
+      _Row('Hall Section', student.category.label),
       _Row(
-        'Seat Number',
+        student.membership == MembershipType.fullTime ? 'Seat Number' : 'Seat / Shift',
         student.membership == MembershipType.fullTime
             ? student.seat
-            : 'Flexible Seating',
+            : student.seat.isNotEmpty
+                ? student.seat
+                : 'Flexible Seating',
       ),
       _Row('Notes', student.notes.isEmpty ? '—' : student.notes),
     ],
@@ -36,11 +37,11 @@ class StudentInformationCard extends StatelessWidget {
 
 class PaymentInformationCard extends StatelessWidget {
   final Student student;
-  final VoidCallback onReceipt;
+  final VoidCallback onPaymentHistory;
   const PaymentInformationCard({
     super.key,
     required this.student,
-    required this.onReceipt,
+    required this.onPaymentHistory,
   });
   @override
   Widget build(BuildContext context) => _Section(
@@ -55,15 +56,20 @@ class PaymentInformationCard extends StatelessWidget {
       ListTile(
         contentPadding: EdgeInsets.zero,
         title: Text(
-          'Receipt History',
+          'Payment History',
           style: TextStyle(
             fontSize: 12,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        trailing: TextButton(
-          onPressed: onReceipt,
-          child: Text(context.tr('View receipts')),
+        subtitle: Text(
+          'Review monthly payments and their status.',
+          style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+        ),
+        trailing: TextButton.icon(
+          onPressed: onPaymentHistory,
+          icon: const Icon(Icons.history_rounded, size: 17),
+          label: const Text('View history'),
         ),
       ),
     ],
