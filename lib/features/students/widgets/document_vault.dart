@@ -26,6 +26,9 @@ class DocumentVault extends ConsumerWidget {
       orElse: () => null,
     );
 
+    final effectiveFront = aadhaarFront ?? legacyAadhaar;
+    final effectiveBack = aadhaarBack;
+
     final otherDocs = docs.where(
       (d) =>
           d.type != StudentDocumentType.aadhaarFront &&
@@ -34,17 +37,27 @@ class DocumentVault extends ConsumerWidget {
     ).toList();
 
     final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: const [
+        color: isDark ? colors.surface : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark
+              ? colors.outline.withValues(alpha: 0.35)
+              : const Color(0xFFE6E8F0),
+          width: 1.2,
+        ),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0A292C47),
-            blurRadius: 28,
-            offset: Offset(0, 9),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : const Color(0xFF1E2238).withValues(alpha: 0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+            spreadRadius: -2,
           ),
         ],
       ),
@@ -53,51 +66,99 @@ class DocumentVault extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.folder_copy_outlined,
-                color: colors.primary,
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.folder_special_rounded,
+                  color: colors.primary,
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: 9),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Document Vault',
-                      style: TextStyle(fontWeight: FontWeight.w800),
-                    ),
                     Text(
-                      'Secure student documents',
+                      'Document Vault',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Verified student identification & records',
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
                         color: colors.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
               ),
-              IconButton.filledTonal(
-                onPressed: () => _pick(context, ref, null, docs),
-                icon: const Icon(Icons.add),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onPressed: () => _pick(context, ref, null, docs),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: colors.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add, size: 16, color: colors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Add',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: colors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 18),
 
-          // Aadhaar Section (Max 2 Photos: Front & Back)
+          // Aadhaar Section (Uniform 2-Card Front & Back Layout)
           _AadhaarVaultSection(
-            documents: [
-              ?aadhaarFront,
-              ?aadhaarBack,
-              if (aadhaarFront == null) ?legacyAadhaar,
-            ],
-            onAddOrReplace: () => _pickAadhaar(
+            frontDoc: effectiveFront,
+            backDoc: effectiveBack,
+            onPickAadhaar: () => _pickAadhaar(
               context,
               ref,
-              frontDoc: aadhaarFront ?? legacyAadhaar,
-              backDoc: aadhaarBack,
+              frontDoc: effectiveFront,
+              backDoc: effectiveBack,
+            ),
+            onPickSingleSlot: (type) => _pickSingleAadhaarSlot(
+              context,
+              ref,
+              type,
+              type == StudentDocumentType.aadhaarFront ? effectiveFront : effectiveBack,
             ),
             onPreview: (doc) => _preview(context, doc),
+            onDeleteSlot: (doc) => ref
+                .read(studentDocumentsProvider(studentId).notifier)
+                .remove(doc.id),
             onDeleteAll: () => _confirmRemoveAadhaar(context, () {
               final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
               for (final doc in [
@@ -111,16 +172,37 @@ class DocumentVault extends ConsumerWidget {
           ),
 
           if (otherDocs.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(
-              'Other Documents',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: colors.onSurfaceVariant,
-              ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Text(
+                  'Other Documents',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '${otherDocs.length}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             ...otherDocs.map(
               (doc) => _DocumentTile(
                 document: doc,
@@ -131,8 +213,8 @@ class DocumentVault extends ConsumerWidget {
                     .remove(doc.id),
               ),
             ),
-          ] else if (aadhaarFront == null && aadhaarBack == null && legacyAadhaar == null) ...[
-            const SizedBox(height: 12),
+          ] else if (effectiveFront == null && effectiveBack == null) ...[
+            const SizedBox(height: 16),
             const _EmptyVault(),
           ],
         ],
@@ -180,6 +262,171 @@ class DocumentVault extends ConsumerWidget {
     }
 
     await _pickWithType(context, ref, type, targetReplacing, null, null);
+  }
+
+  Future<void> _pickAadhaar(
+    BuildContext context,
+    WidgetRef ref, {
+    required StudentDocument? frontDoc,
+    required StudentDocument? backDoc,
+  }) async {
+    final colors = Theme.of(context).colorScheme;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(Icons.badge_rounded, color: colors.primary, size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Upload Aadhaar Card',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Select up to 2 images (Front & Back side)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                tileColor: colors.primaryContainer.withValues(alpha: 0.4),
+                leading: Icon(Icons.photo_library_rounded, color: colors.primary),
+                title: const Text(
+                  'Gallery (Select up to 2 images)',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                ),
+                subtitle: const Text(
+                  'Automatically sets Front & Back images in order',
+                  style: TextStyle(fontSize: 10.5),
+                ),
+                onTap: () => Navigator.pop(context, 'multi_gallery'),
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text(
+                  'Take Photo (Front Side)',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                onTap: () => Navigator.pop(context, 'camera_front'),
+              ),
+              ListTile(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text(
+                  'Take Photo (Back Side)',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                onTap: () => Navigator.pop(context, 'camera_back'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (choice == null || !context.mounted) return;
+    final service = DocumentService();
+
+    if (choice == 'multi_gallery') {
+      final pickedList = await service.multiFromGallery(maxImages: 2);
+      if (pickedList.isEmpty) return;
+
+      final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
+      final nowStr = '18 Jul 2026';
+
+      // 1st Image -> Front
+      final frontPicked = pickedList[0];
+      final docFront = StudentDocument(
+        id: frontDoc?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        name: 'Aadhaar Card (Front)',
+        path: frontPicked.path,
+        uploadedAt: nowStr,
+        type: StudentDocumentType.aadhaarFront,
+        isImage: true,
+      );
+      frontDoc == null ? notifier.add(docFront) : notifier.replace(frontDoc.id, docFront);
+
+      // 2nd Image -> Back (if selected)
+      if (pickedList.length > 1) {
+        final backPicked = pickedList[1];
+        final docBack = StudentDocument(
+          id: backDoc?.id ?? (DateTime.now().microsecondsSinceEpoch + 1).toString(),
+          name: 'Aadhaar Card (Back)',
+          path: backPicked.path,
+          uploadedAt: nowStr,
+          type: StudentDocumentType.aadhaarBack,
+          isImage: true,
+        );
+        backDoc == null ? notifier.add(docBack) : notifier.replace(backDoc.id, docBack);
+      }
+    } else if (choice == 'camera_front') {
+      await _pickSingleAadhaarSlot(
+        context,
+        ref,
+        StudentDocumentType.aadhaarFront,
+        frontDoc,
+      );
+    } else if (choice == 'camera_back') {
+      await _pickSingleAadhaarSlot(
+        context,
+        ref,
+        StudentDocumentType.aadhaarBack,
+        backDoc,
+      );
+    }
+  }
+
+  Future<void> _pickSingleAadhaarSlot(
+    BuildContext context,
+    WidgetRef ref,
+    StudentDocumentType type,
+    StudentDocument? replacing,
+  ) async {
+    final label = type == StudentDocumentType.aadhaarFront ? 'Front Side' : 'Back Side';
+    await _pickWithType(
+      context,
+      ref,
+      type,
+      replacing,
+      'Aadhaar ($label)',
+      'Upload image for Aadhaar $label',
+    );
   }
 
   Future<void> _pickWithType(
@@ -240,32 +487,6 @@ class DocumentVault extends ConsumerWidget {
     replacing == null ? notifier.add(doc) : notifier.replace(replacing.id, doc);
   }
 
-  Future<void> _pickAadhaar(
-    BuildContext context,
-    WidgetRef ref, {
-    required StudentDocument? frontDoc,
-    required StudentDocument? backDoc,
-  }) async {
-    final type = frontDoc == null
-        ? StudentDocumentType.aadhaarFront
-        : StudentDocumentType.aadhaarBack;
-    final replacing = type == StudentDocumentType.aadhaarFront ? frontDoc : backDoc;
-    final helperText = frontDoc == null
-        ? 'Choose a clear card image. You can add one more image afterwards.'
-        : backDoc == null
-        ? 'Add the second image to complete this Aadhaar card.'
-        : 'Choose a replacement image for this Aadhaar card.';
-
-    await _pickWithType(
-      context,
-      ref,
-      type,
-      replacing,
-      'Aadhaar Card',
-      helperText,
-    );
-  }
-
   Future<void> _confirmRemoveAadhaar(
     BuildContext context,
     VoidCallback onConfirm,
@@ -273,9 +494,10 @@ class DocumentVault extends ConsumerWidget {
     final shouldRemove = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Remove Aadhaar card?'),
         content: const Text(
-          'All images saved with this Aadhaar card will be removed from the student record.',
+          'Both Front & Back images saved with this Aadhaar card will be removed from the student record.',
         ),
         actions: [
           TextButton(
@@ -286,6 +508,7 @@ class DocumentVault extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
               foregroundColor: Theme.of(context).colorScheme.onError,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Remove'),
@@ -302,6 +525,10 @@ class DocumentVault extends ConsumerWidget {
   ) {
     return showModalBottomSheet<StudentDocumentType>(
       context: context,
+      showDragHandle: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (sheet) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(18),
@@ -311,28 +538,34 @@ class DocumentVault extends ConsumerWidget {
             children: [
               Text(
                 'Document type',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               for (final type in [
                 StudentDocumentType.aadhaar,
                 StudentDocumentType.collegeId,
                 StudentDocumentType.passportPhoto,
                 StudentDocumentType.other,
               ])
-                  ListTile(
-                    leading: Icon(
-                      type == StudentDocumentType.aadhaar
-                          ? Icons.badge_outlined
-                          : type == StudentDocumentType.collegeId
-                          ? Icons.school_outlined
-                          : type == StudentDocumentType.passportPhoto
-                          ? Icons.photo_camera_front_outlined
-                          : Icons.description_outlined,
-                    ),
-                    title: Text(_typeName(type)),
-                    onTap: () => Navigator.pop(sheet, type),
+                ListTile(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  leading: Icon(
+                    type == StudentDocumentType.aadhaar
+                        ? Icons.badge_outlined
+                        : type == StudentDocumentType.collegeId
+                        ? Icons.school_outlined
+                        : type == StudentDocumentType.passportPhoto
+                        ? Icons.photo_camera_front_outlined
+                        : Icons.description_outlined,
                   ),
+                  title: Text(
+                    _typeName(type),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  onTap: () => Navigator.pop(sheet, type),
+                ),
             ],
           ),
         ),
@@ -352,7 +585,8 @@ class DocumentVault extends ConsumerWidget {
   void _preview(BuildContext context, StudentDocument doc) => showDialog(
     context: context,
     builder: (_) => Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -363,7 +597,7 @@ class DocumentVault extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     doc.name,
-                    style: const TextStyle(fontWeight: FontWeight.w800),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                   ),
                 ),
                 IconButton(
@@ -372,27 +606,31 @@ class DocumentVault extends ConsumerWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
             if (doc.isImage)
               ClipRRect(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(16),
                 child: Image.file(
                   File(doc.path),
-                  height: 380,
+                  height: 360,
                   fit: BoxFit.contain,
                 ),
               )
             else
               const Padding(
-                padding: EdgeInsets.all(50),
+                padding: EdgeInsets.all(40),
                 child: Column(
                   children: [
                     Icon(
-                      Icons.picture_as_pdf_outlined,
+                      Icons.picture_as_pdf_rounded,
                       size: 64,
                       color: Color(0xFF514BC0),
                     ),
                     SizedBox(height: 12),
-                    Text('PDF document ready to view'),
+                    Text(
+                      'PDF document ready to view',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                   ],
                 ),
               ),
@@ -404,15 +642,21 @@ class DocumentVault extends ConsumerWidget {
 }
 
 class _AadhaarVaultSection extends StatelessWidget {
-  final List<StudentDocument> documents;
-  final VoidCallback onAddOrReplace;
+  final StudentDocument? frontDoc;
+  final StudentDocument? backDoc;
+  final VoidCallback onPickAadhaar;
+  final ValueChanged<StudentDocumentType> onPickSingleSlot;
   final ValueChanged<StudentDocument> onPreview;
+  final ValueChanged<StudentDocument> onDeleteSlot;
   final VoidCallback onDeleteAll;
 
   const _AadhaarVaultSection({
-    required this.documents,
-    required this.onAddOrReplace,
+    required this.frontDoc,
+    required this.backDoc,
+    required this.onPickAadhaar,
+    required this.onPickSingleSlot,
     required this.onPreview,
+    required this.onDeleteSlot,
     required this.onDeleteAll,
   });
 
@@ -421,17 +665,20 @@ class _AadhaarVaultSection extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final hasDocuments = documents.isNotEmpty;
+    final count = (frontDoc != null ? 1 : 0) + (backDoc != null ? 1 : 0);
+    final isComplete = count == 2;
+    final hasAny = count > 0;
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? colors.surfaceContainer : const Color(0xFFF7F7FD),
-        borderRadius: BorderRadius.circular(18),
+        color: isDark ? colors.surfaceContainerLow : const Color(0xFFF8F9FE),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: hasDocuments
-              ? colors.primary.withValues(alpha: 0.35)
-              : colors.outlineVariant.withValues(alpha: 0.7),
+          color: hasAny
+              ? colors.primary.withValues(alpha: 0.3)
+              : colors.outlineVariant.withValues(alpha: 0.6),
+          width: 1.2,
         ),
       ),
       child: Column(
@@ -439,94 +686,107 @@ class _AadhaarVaultSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.badge_outlined, size: 18, color: Color(0xFF514BC0)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: const Text(
-                  'Aadhaar Card',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              Icon(
+                Icons.badge_outlined,
+                size: 20,
+                color: colors.primary,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Aadhaar Card',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isComplete
+                      ? const Color(0xFFE8F5E9)
+                      : hasAny
+                          ? const Color(0xFFFFF3E0)
+                          : colors.primaryContainer.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$count/2 Uploaded',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: isComplete
+                        ? const Color(0xFF2E7D32)
+                        : hasAny
+                            ? const Color(0xFFE65100)
+                            : colors.primary,
+                  ),
                 ),
               ),
-              if (hasDocuments)
+              const Spacer(),
+              if (hasAny)
                 PopupMenuButton<String>(
                   iconSize: 20,
                   onSelected: (value) {
-                    if (value == 'replace') onAddOrReplace();
+                    if (value == 'upload') onPickAadhaar();
                     if (value == 'delete') onDeleteAll();
                   },
                   itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'replace', child: Text('Manage images')),
-                    PopupMenuItem(value: 'delete', child: Text('Remove Aadhaar card')),
+                    PopupMenuItem(value: 'upload', child: Text('Re-upload / Change')),
+                    PopupMenuItem(value: 'delete', child: Text('Remove Aadhaar')),
                   ],
                 )
-              else
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: colors.primaryContainer,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'Optional',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: colors.onPrimaryContainer,
-                    ),
-                  ),
-                ),
             ],
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 6),
           Text(
-            hasDocuments
-                ? '${documents.length} of 2 images securely saved. Tap an image to preview it.'
-                : 'Upload up to two images. They will stay together in one secure record.',
-            style: TextStyle(fontSize: 11, height: 1.35, color: colors.onSurfaceVariant),
+            'Keep front & back images uniform for instant verification.',
+            style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
           ),
-          if (hasDocuments) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 76,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: documents.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, index) {
-                  final document = documents[index];
-                  return InkWell(
-                    onTap: () => onPreview(document),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      width: 116,
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: colors.outlineVariant),
-                      ),
-                      child: document.isImage && File(document.path).existsSync()
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(9),
-                              child: Image.file(File(document.path), fit: BoxFit.cover),
-                            )
-                          : Icon(Icons.picture_as_pdf_outlined, color: colors.primary),
-                    ),
-                  );
-                },
+          const SizedBox(height: 14),
+
+          // Side-by-Side Uniform Cards
+          Row(
+            children: [
+              Expanded(
+                child: _UniformAadhaarCardSlot(
+                  label: 'FRONT SIDE',
+                  document: frontDoc,
+                  onTap: () => frontDoc != null
+                      ? onPreview(frontDoc!)
+                      : onPickSingleSlot(StudentDocumentType.aadhaarFront),
+                  onUpload: () => onPickSingleSlot(StudentDocumentType.aadhaarFront),
+                  onDelete: frontDoc != null ? () => onDeleteSlot(frontDoc!) : null,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: _UniformAadhaarCardSlot(
+                  label: 'BACK SIDE',
+                  document: backDoc,
+                  onTap: () => backDoc != null
+                      ? onPreview(backDoc!)
+                      : onPickSingleSlot(StudentDocumentType.aadhaarBack),
+                  onUpload: () => onPickSingleSlot(StudentDocumentType.aadhaarBack),
+                  onDelete: backDoc != null ? () => onDeleteSlot(backDoc!) : null,
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: onAddOrReplace,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(color: colors.primary.withValues(alpha: 0.3)),
+              ),
+              onPressed: onPickAadhaar,
               icon: Icon(
-                hasDocuments ? Icons.add_photo_alternate_outlined : Icons.upload_rounded,
-                size: 18,
+                hasAny ? Icons.photo_library_outlined : Icons.file_upload_outlined,
+                size: 17,
               ),
               label: Text(
-                hasDocuments ? 'Add or replace image' : 'Upload Aadhaar images',
+                hasAny ? 'Select / Update 2 Images (Gallery)' : 'Upload Aadhaar (Max 2 Photos)',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
               ),
             ),
           ),
@@ -536,155 +796,190 @@ class _AadhaarVaultSection extends StatelessWidget {
   }
 }
 
-// Retained for existing document preview layouts that may be restored later.
-// ignore: unused_element
-class _AadhaarSlotCard extends StatelessWidget {
+class _UniformAadhaarCardSlot extends StatelessWidget {
   final String label;
   final StudentDocument? document;
   final VoidCallback onTap;
-  // ignore: unused_element_parameter
-  final VoidCallback? onPreview;
-  // ignore: unused_element_parameter
+  final VoidCallback onUpload;
   final VoidCallback? onDelete;
 
-  // ignore: unused_element_parameter
-  const _AadhaarSlotCard({
+  const _UniformAadhaarCardSlot({
     required this.label,
     required this.document,
     required this.onTap,
-    required this.onPreview,
-    required this.onDelete,
+    required this.onUpload,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isUploaded = document != null;
 
     return Container(
-      height: 96,
+      height: 105,
       decoration: BoxDecoration(
         color: isUploaded
-            ? colors.surface
-            : colors.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(14),
+            ? (isDark ? colors.surface : Colors.white)
+            : (isDark ? colors.surfaceContainer : Colors.white),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isUploaded
               ? colors.primary.withValues(alpha: 0.4)
-              : colors.outlineVariant,
+              : colors.outlineVariant.withValues(alpha: 0.6),
+          width: isUploaded ? 1.5 : 1,
         ),
+        boxShadow: isUploaded
+            ? [
+                BoxShadow(
+                  color: colors.primary.withValues(alpha: 0.08),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
       child: isUploaded
-          ? InkWell(
-              onTap: onPreview,
-              borderRadius: BorderRadius.circular(14),
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          size: 16,
-                          color: Color(0xFF4CAF50),
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            label,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
+          ? Stack(
+              children: [
+                Positioned.fill(
+                  child: InkWell(
+                    onTap: onTap,
+                    borderRadius: BorderRadius.circular(16),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: document!.isImage && File(document!.path).existsSync()
+                          ? Image.file(
+                              File(document!.path),
+                              fit: BoxFit.cover,
+                            )
+                          : Center(
+                              child: Icon(
+                                Icons.picture_as_pdf_rounded,
+                                color: colors.primary,
+                                size: 32,
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        PopupMenuButton<String>(
-                          padding: EdgeInsets.zero,
-                          iconSize: 18,
-                          onSelected: (val) {
-                            if (val == 'preview') onPreview?.call();
-                            if (val == 'replace') onTap();
-                            if (val == 'delete') onDelete?.call();
-                          },
-                          itemBuilder: (_) => [
-                            PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
-                            PopupMenuItem(value: 'replace', child: Text(context.tr('Replace'))),
-                            PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
+                    ),
+                  ),
+                ),
+                // Gradient overlay
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.45),
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.55),
                           ],
                         ),
-                      ],
-                    ),
-                    const Spacer(),
-                    if (document!.isImage && File(document!.path).existsSync())
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Image.file(
-                          File(document!.path),
-                          height: 34,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      Row(
-                        children: [
-                          Icon(
-                            document!.isImage
-                                ? Icons.image_outlined
-                                : Icons.picture_as_pdf_outlined,
-                            size: 16,
-                            color: colors.primary,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              document!.name,
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: colors.onSurfaceVariant,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
                       ),
-                  ],
+                    ),
+                  ),
                 ),
-              ),
+                // Top Tag
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+                // Top Right Menu
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: PopupMenuButton<String>(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    padding: EdgeInsets.zero,
+                    onSelected: (val) {
+                      if (val == 'preview') onTap();
+                      if (val == 'replace') onUpload();
+                      if (val == 'delete') onDelete?.call();
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
+                      PopupMenuItem(value: 'replace', child: Text(context.tr('Replace'))),
+                      PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
+                    ],
+                  ),
+                ),
+                // Bottom Tap to view hint
+                Positioned(
+                  bottom: 8,
+                  left: 8,
+                  right: 8,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.remove_red_eye_outlined, size: 12, color: Colors.white70),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Tap to view',
+                        style: TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             )
           : InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(14),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: colors.primaryContainer.withValues(alpha: 0.6),
-                      shape: BoxShape.circle,
+              onTap: onUpload,
+              borderRadius: BorderRadius.circular(16),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.add_a_photo_rounded,
+                        size: 20,
+                        color: colors.primary,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.add_a_photo_outlined,
-                      size: 18,
-                      color: colors.primary,
+                    const SizedBox(height: 6),
+                    Text(
+                      '+ $label',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: colors.primary,
+                        letterSpacing: 0.3,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '+ $label',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: colors.primary,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
     );
@@ -694,32 +989,41 @@ class _AadhaarSlotCard extends StatelessWidget {
 class _EmptyVault extends StatelessWidget {
   const _EmptyVault();
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Center(
-          child: Column(
-            children: [
-              Icon(
-                Icons.cloud_upload_outlined,
-                size: 32,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(
+              Icons.cloud_upload_outlined,
+              size: 32,
+              color: colors.onSurfaceVariant.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'No additional documents',
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: colors.onSurface),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              'Add College ID, Passport Photo or PDF files',
+              style: TextStyle(
+                fontSize: 11,
+                color: colors.onSurfaceVariant,
               ),
-              const SizedBox(height: 6),
-              const Text(
-                'No other documents uploaded',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
-              ),
-              Text(
-                'Add College ID, photos or PDFs',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _DocumentTile extends StatelessWidget {
@@ -731,42 +1035,61 @@ class _DocumentTile extends StatelessWidget {
     required this.onReplace,
     required this.onDelete,
   });
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: isDark ? colors.primaryContainer : const Color(0xFFF0EFFF),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Icon(
-          document.isImage
-              ? Icons.image_outlined
-              : Icons.picture_as_pdf_outlined,
-          color: isDark ? colors.onPrimaryContainer : const Color(0xFF514BC0),
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isDark ? colors.surfaceContainerLow : const Color(0xFFF9FAFD),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
-      title: Text(document.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        'Uploaded ${document.uploadedAt}',
-        style: const TextStyle(fontSize: 10),
-      ),
-      trailing: PopupMenuButton<String>(
-        onSelected: (value) => value == 'preview'
-            ? onPreview()
-            : value == 'replace'
-            ? onReplace()
-            : onDelete(),
-        itemBuilder: (_) => [
-          PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
-          PopupMenuItem(value: 'replace', child: Text(context.tr('Replace'))),
-          PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
-        ],
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: colors.primary.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            document.isImage
+                ? Icons.image_outlined
+                : Icons.picture_as_pdf_outlined,
+            color: colors.primary,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          document.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        ),
+        subtitle: Text(
+          'Uploaded ${document.uploadedAt}',
+          style: TextStyle(fontSize: 10.5, color: colors.onSurfaceVariant),
+        ),
+        trailing: PopupMenuButton<String>(
+          iconSize: 20,
+          onSelected: (value) => value == 'preview'
+              ? onPreview()
+              : value == 'replace'
+              ? onReplace()
+              : onDelete(),
+          itemBuilder: (_) => [
+            PopupMenuItem(value: 'preview', child: Text(context.tr('Preview'))),
+            PopupMenuItem(value: 'replace', child: Text(context.tr('Replace'))),
+            PopupMenuItem(value: 'delete', child: Text(context.tr('Delete'))),
+          ],
+        ),
       ),
     );
   }
