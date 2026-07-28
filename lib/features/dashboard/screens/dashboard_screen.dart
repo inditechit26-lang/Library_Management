@@ -39,7 +39,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             DashboardSummaryCards(
               key: ValueKey(_refreshKey),
-              studentCount: 128,
               onManageSeats: widget.onOpenSeats,
               onViewFees: widget.onOpenFees,
             ),
@@ -60,4 +59,3 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         builder: (_) => const AdmissionScreen(),
       );
 }
-

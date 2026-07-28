@@ -1,6 +1,6 @@
 class AppConstants {
-  static const libraryName = 'The Study Room';
-  static const ownerName = 'Om Chandrawanshi';
-  static const upiId = 'thestudyroom@upi';
-  static const defaultFee = 1800.0;
+  static const libraryName = '';
+  static const ownerName = '';
+  static const upiId = '';
+  static const defaultFee = 0.0;
 }

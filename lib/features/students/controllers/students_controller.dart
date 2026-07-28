@@ -1,116 +1,170 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../models/student.dart';
+import '../models/student_model.dart';
+import '../providers/students_provider.dart' as firestore_students;
 
 class StudentsController extends Notifier<List<Student>> {
+  final Map<int, StudentModel> _modelsByLegacyId = {};
+
   @override
-  List<Student> build() => const [
-    Student(
-      id: 1,
-      name: 'Rahul Sharma',
-      phone: '+91 98765 43210',
-      seat: 'A1',
-      seatId: 'seat-1',
-      joined: '18 Jan 2026',
-      expiry: '18 Aug 2026',
-      fee: 1800,
-      payment: PaymentStatus.paid,
-      membership: MembershipType.fullTime,
-      initials: 'RS',
-    ),
-    Student(
-      id: 2,
-      name: 'Priya Verma',
-      phone: '+91 98231 45670',
-      seat: 'A2',
-      seatId: 'seat-2',
-      joined: '05 Mar 2026',
-      expiry: '05 Aug 2026',
-      fee: 1200,
-      payment: PaymentStatus.pending,
-      membership: MembershipType.halfTime,
-      initials: 'PV',
-    ),
-    Student(
-      id: 3,
-      name: 'Arjun Mehta',
-      phone: '+91 99876 12045',
-      seat: 'B1',
-      seatId: 'seat-11',
-      joined: '22 Feb 2026',
-      expiry: '22 Jul 2026',
-      fee: 2000,
-      payment: PaymentStatus.expired,
-      membership: MembershipType.fullTime,
-      initials: 'AM',
-    ),
-    Student(
-      id: 4,
-      name: 'Sneha Kapoor',
-      phone: '+91 97654 32108',
-      seat: 'B3',
-      seatId: 'seat-13',
-      joined: '11 Apr 2026',
-      expiry: '11 Sep 2026',
-      fee: 1800,
-      payment: PaymentStatus.paid,
-      membership: MembershipType.fullTime,
-      initials: 'SK',
-    ),
-    Student(
-      id: 5,
-      name: 'Kunal Singh',
-      phone: '+91 98901 23876',
-      seat: 'C2',
-      seatId: 'seat-22',
-      joined: '27 Mar 2026',
-      expiry: '27 Jul 2026',
-      fee: 1100,
-      payment: PaymentStatus.pending,
-      membership: MembershipType.halfTime,
-      initials: 'KS',
-    ),
-    Student(
-      id: 6,
-      name: 'Neha Joshi',
-      phone: '+91 93012 45678',
-      seat: 'D1',
-      seatId: 'seat-31',
-      joined: '14 May 2026',
-      expiry: '14 Oct 2026',
-      fee: 2200,
-      payment: PaymentStatus.paid,
-      membership: MembershipType.fullTime,
-      initials: 'NJ',
-    ),
-  ];
-  void renew(Student value, String expiry, {double? fee, PaymentMode? paymentMode}) => state = [
-    for (final s in state)
-      if (s.id == value.id)
-        s.copyWith(
-          expiry: expiry,
-          fee: fee,
-          payment: PaymentStatus.paid,
-          paymentMode: paymentMode ?? s.paymentMode,
-          previousExpiry: s.expiry,
-          hasRenewedPlan: true,
-        )
-      else
-        s,
-  ];
-  void remove(Student value) =>
-      state = state.where((s) => s.id != value.id).toList();
-  void markPaid(Student value) => state = [
-    for (final student in state)
-      if (student.id == value.id)
-        student.copyWith(payment: PaymentStatus.paid)
-      else
-        student,
-  ];
-  void add(Student value) => state = [...state, value];
-  void update(Student value) => state = [
-    for (final student in state)
-      if (student.id == value.id) value else student,
-  ];
+  List<Student> build() {
+    final models = ref.watch(firestore_students.studentsProvider);
+    _modelsByLegacyId
+      ..clear()
+      ..addEntries(models.map((model) => MapEntry(_legacyId(model.id), model)));
+    return models.map(_toLegacyStudent).toList();
+  }
+
+  int _legacyId(String id) {
+    var hash = 17;
+    for (final codeUnit in id.codeUnits) {
+      hash = 0x1fffffff & (hash * 37 + codeUnit);
+    }
+    return hash;
+  }
+
+  Student _toLegacyStudent(StudentModel model) {
+    final now = DateTime.now();
+    final expired = model.validUntil.isBefore(now) ||
+        model.status.toLowerCase() == 'expired' ||
+        model.status.toLowerCase() == 'inactive';
+    final nameParts = model.name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .take(2);
+    return Student(
+      id: _legacyId(model.id),
+      name: model.name,
+      phone: model.phone,
+      seat: model.assignedSeat ?? 'Flexible',
+      seatId: model.assignedSeat,
+      joined: DateFormat('dd MMM yyyy').format(model.joiningDate),
+      expiry: DateFormat('dd MMM yyyy').format(model.validUntil),
+      fee: model.monthlyFee,
+      payment: expired ? PaymentStatus.expired : PaymentStatus.paid,
+      membership: model.shift.toLowerCase().contains('full')
+          ? MembershipType.fullTime
+          : MembershipType.halfTime,
+      initials: nameParts.map((part) => part[0].toUpperCase()).join(),
+      photoPath: model.photoUrl,
+    );
+  }
+
+  void renew(
+    Student value,
+    String expiry, {
+    double? fee,
+    PaymentMode? paymentMode,
+  }) {
+    final model = _modelsByLegacyId[value.id];
+    final libraryId = ref.read(currentLibraryIdProvider);
+    final parsedExpiry = DateFormat('dd MMM yyyy').tryParse(expiry);
+    if (model == null || libraryId == null || parsedExpiry == null) return;
+    unawaited(
+      ref
+          .read(firestore_students.studentsRepositoryProvider)
+          .updateStudent(
+            libraryId,
+            model.copyWith(
+              validUntil: parsedExpiry,
+              monthlyFee: fee ?? model.monthlyFee,
+              status: 'Active',
+              updatedAt: DateTime.now(),
+            ),
+          ),
+    );
+  }
+
+  void remove(Student value) {
+    final model = _modelsByLegacyId[value.id];
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (model == null || libraryId == null) return;
+    unawaited(
+      ref
+          .read(firestore_students.studentsRepositoryProvider)
+          .softDeleteStudent(libraryId, model.id),
+    );
+  }
+
+  void markPaid(Student value) {
+    final model = _modelsByLegacyId[value.id];
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (model == null || libraryId == null) return;
+    unawaited(
+      ref
+          .read(firestore_students.studentsRepositoryProvider)
+          .updateStudent(
+            libraryId,
+            model.copyWith(status: 'Active', updatedAt: DateTime.now()),
+          ),
+    );
+  }
+
+  void add(Student value) {
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (libraryId == null) return;
+    final now = DateTime.now();
+    final joiningDate = DateFormat('dd MMM yyyy').tryParse(value.joined) ?? now;
+    final validUntil =
+        DateFormat('dd MMM yyyy').tryParse(value.expiry) ?? now;
+    final model = StudentModel(
+      id: now.microsecondsSinceEpoch.toString(),
+      name: value.name,
+      email: '',
+      phone: value.phone,
+      gender: '',
+      assignedSeat: value.seatId ?? value.seat,
+      shift: value.membership == MembershipType.fullTime
+          ? 'Full Day'
+          : value.seat,
+      planName: value.membership == MembershipType.fullTime
+          ? 'Full Time'
+          : 'Half Time',
+      monthlyFee: value.fee,
+      joiningDate: joiningDate,
+      validUntil: validUntil,
+      status: value.payment == PaymentStatus.expired ? 'Expired' : 'Active',
+      photoUrl: value.photoPath,
+      createdAt: now,
+      updatedAt: now,
+    );
+    unawaited(
+      ref
+          .read(firestore_students.studentsRepositoryProvider)
+          .createStudent(libraryId, model),
+    );
+  }
+
+  void update(Student value) {
+    final model = _modelsByLegacyId[value.id];
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (model == null || libraryId == null) return;
+    final expiry =
+        DateFormat('dd MMM yyyy').tryParse(value.expiry) ?? model.validUntil;
+    unawaited(
+      ref
+          .read(firestore_students.studentsRepositoryProvider)
+          .updateStudent(
+            libraryId,
+            model.copyWith(
+              name: value.name,
+              phone: value.phone,
+              assignedSeat: value.seatId ?? value.seat,
+              monthlyFee: value.fee,
+              validUntil: expiry,
+              status:
+                  value.payment == PaymentStatus.expired ? 'Expired' : 'Active',
+              photoUrl: value.photoPath,
+              updatedAt: DateTime.now(),
+            ),
+          ),
+    );
+  }
 }
 
 final studentsProvider = NotifierProvider<StudentsController, List<Student>>(

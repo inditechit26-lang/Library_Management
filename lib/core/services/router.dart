@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/students/screens/student_profile_screen.dart';
 import '../../features/seats/screens/seat_profile_screen.dart';
@@ -16,13 +19,54 @@ import '../../features/settings/screens/whatsapp_templates_screen.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../widgets/app_shell.dart';
 
-final routerProvider = Provider<GoRouter>(
-  (ref) => GoRouter(
-    initialLocation: '/login',
+class GoRouterRefreshStream extends ChangeNotifier {
+  late final StreamSubscription<dynamic> _subscription;
+
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final authRepo = ref.watch(authRepositoryProvider);
+
+  return GoRouter(
+    initialLocation: '/app',
+    refreshListenable: GoRouterRefreshStream(authRepo.authStateChanges),
+    redirect: (context, state) {
+      final user = authRepo.currentUser;
+      final loggingIn = state.matchedLocation == '/login';
+
+      if (user == null && !loggingIn) {
+        return '/login';
+      }
+      if (user != null && loggingIn) {
+        return '/app';
+      }
+      return null;
+    },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/app', builder: (context, state) => const AppShell()),
-      GoRoute(path: '/reports', builder: (context, state) => const ReportsScreen()),
+      GoRoute(
+        path: '/app',
+        builder: (context, state) => Consumer(
+          builder: (context, ref, _) {
+            final userId = ref.watch(authStateProvider).value?.uid;
+            return AppShell(key: ValueKey(userId));
+          },
+        ),
+      ),
+      GoRoute(
+        path: '/reports',
+        builder: (context, state) => const ReportsScreen(),
+      ),
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationScreen(),
@@ -34,7 +78,7 @@ final routerProvider = Provider<GoRouter>(
       GoRoute(
         path: '/students/:id',
         builder: (context, state) => StudentProfileScreen(
-          studentId: int.parse(state.pathParameters['id']!),
+          studentId: int.tryParse(state.pathParameters['id'] ?? '0') ?? 0,
         ),
       ),
       GoRoute(
@@ -76,6 +120,5 @@ final routerProvider = Provider<GoRouter>(
             ChangeSeatScreen(currentSeat: state.pathParameters['number']!),
       ),
     ],
-  ),
-);
-
+  );
+});

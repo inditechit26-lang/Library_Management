@@ -41,17 +41,17 @@ class _WhatsappTemplatesScreenState
       _controller.text = template;
     }
 
-    // Generate live sample preview using dummy student values & owner library name
+    // Preview placeholder substitution without presenting it as real library data.
     final samplePreview = WhatsAppTemplateNotifier.formatMessage(
       template: _controller.text.isEmpty ? template : _controller.text,
       libraryName: ownerProfile.libraryName.isNotEmpty
           ? ownerProfile.libraryName
-          : 'StudyDesk Library',
-      studentName: 'Rahul Sharma',
-      seatNumber: 'A-12',
-      planName: 'Full Day (Full Time)',
-      amount: '1200',
-      expiryDate: '30 Oct 2026',
+          : '[Library name]',
+      studentName: '[Student name]',
+      seatNumber: '[Seat number]',
+      planName: '[Plan name]',
+      amount: '[Amount]',
+      expiryDate: '[Expiry date]',
     );
 
     return Scaffold(

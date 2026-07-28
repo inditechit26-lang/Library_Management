@@ -7,13 +7,9 @@ class PaymentSettings {
   final String payeeName;
 
   const PaymentSettings({
-    this.activeUpiId = 'thestudyroom@upi',
-    this.upiIds = const [
-      'thestudyroom@upi',
-      '9527782347@ybl',
-      'studydesk@okicici',
-    ],
-    this.payeeName = 'The Study Room',
+    this.activeUpiId = '',
+    this.upiIds = const [],
+    this.payeeName = '',
   });
 
   PaymentSettings copyWith({

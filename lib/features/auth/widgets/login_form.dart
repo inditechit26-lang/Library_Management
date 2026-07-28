@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../controllers/auth_controller.dart';
-import '../../settings/controllers/owner_profile_controller.dart';
+import '../../../core/utils/error_handler.dart';
+import '../providers/auth_provider.dart';
 import 'google_logo.dart';
 
 class LoginForm extends ConsumerStatefulWidget {
@@ -15,10 +15,9 @@ class LoginForm extends ConsumerStatefulWidget {
 
 class _LoginFormState extends ConsumerState<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _controller = const AuthController();
 
-  final _emailController = TextEditingController(text: 'owner@thestudyroom.in');
-  final _passwordController = TextEditingController(text: 'studydesk123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   bool _hidden = true;
   bool _remember = true;
@@ -35,27 +34,56 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   void _handleSignIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(milliseconds: 700));
-      if (mounted) {
-        ref.read(ownerProfileProvider.notifier).updateProfile(
-              email: _emailController.text.trim(),
+      try {
+        await ref.read(authControllerProvider.notifier).signInWithEmail(
+              _emailController.text,
+              _passwordController.text,
             );
-        setState(() => _isLoading = false);
-        context.go('/app');
+        final state = ref.read(authControllerProvider);
+        if (state.hasError && mounted) {
+          ErrorHandler.showErrorSnackBar(context, state.error);
+        } else if (mounted) {
+          context.go('/app');
+        }
+      } catch (e) {
+        if (mounted) ErrorHandler.showErrorSnackBar(context, e);
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
 
   void _handleGoogleSignIn() async {
     setState(() => _isGoogleLoading = true);
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (mounted) {
-      ref.read(ownerProfileProvider.notifier).updateProfile(
-            name: 'Google User',
-            email: 'user@gmail.com',
-          );
-      setState(() => _isGoogleLoading = false);
-      context.go('/app');
+    try {
+      await ref.read(authControllerProvider.notifier).signInWithGoogle();
+      final state = ref.read(authControllerProvider);
+      if (state.hasError && mounted) {
+        ErrorHandler.showErrorSnackBar(context, state.error);
+      } else if (mounted) {
+        context.go('/app');
+      }
+    } catch (e) {
+      if (mounted) ErrorHandler.showErrorSnackBar(context, e);
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
+    }
+  }
+
+  void _handleForgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ErrorHandler.showErrorSnackBar(context, 'Please enter a valid email address first');
+      return;
+    }
+
+    try {
+      await ref.read(authControllerProvider.notifier).sendPasswordReset(email);
+      if (mounted) {
+        ErrorHandler.showSuccessSnackBar(context, 'Password reset email sent to $email');
+      }
+    } catch (e) {
+      if (mounted) ErrorHandler.showErrorSnackBar(context, e);
     }
   }
 
@@ -65,7 +93,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
 
     final fieldBg = isDark ? const Color(0xFF1A1F30) : const Color(0xFFF8FAFC);
     final fieldBorder = isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0);
-    final primaryAccent = const Color(0xFF6366F1);
+    const primaryAccent = Color(0xFF6366F1);
 
     return Form(
       key: _formKey,
@@ -84,7 +112,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           const SizedBox(height: 8),
           TextFormField(
             controller: _emailController,
-            validator: _controller.validateEmail,
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Please enter your email';
+              if (!v.contains('@')) return 'Enter a valid email address';
+              return null;
+            },
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -113,7 +145,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: primaryAccent, width: 1.8),
+                borderSide: const BorderSide(color: primaryAccent, width: 1.8),
               ),
             ),
           ),
@@ -132,21 +164,13 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password reset instructions sent to your email'),
-                      backgroundColor: Color(0xFF6366F1),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                },
+                onPressed: _handleForgotPassword,
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: Text(
+                child: const Text(
                   'Forgot password?',
                   style: TextStyle(
                     fontSize: 12,
@@ -161,7 +185,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           TextFormField(
             controller: _passwordController,
             obscureText: _hidden,
-            validator: _controller.validatePassword,
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Please enter password';
+              if (v.length < 6) return 'Password must be at least 6 characters';
+              return null;
+            },
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -190,7 +218,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: primaryAccent, width: 1.8),
+                borderSide: const BorderSide(color: primaryAccent, width: 1.8),
               ),
               suffixIcon: IconButton(
                 onPressed: () => setState(() => _hidden = !_hidden),
@@ -272,9 +300,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                         color: Colors.white,
                       ),
                     )
-                  : Row(
+                  : const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
                           'Sign In',
                           style: TextStyle(

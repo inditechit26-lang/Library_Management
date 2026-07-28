@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/utils/error_handler.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../../payments/models/payment_model.dart';
+import '../../receipts/models/receipt_model.dart';
 import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
-import '../../seats/controllers/seats_controller.dart';
+import '../../seats/controllers/seats_controller.dart' as sc;
+import '../../seats/providers/seats_provider.dart';
 import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
-import '../../students/controllers/students_controller.dart';
+import '../../students/controllers/students_controller.dart' hide studentsProvider;
 import '../../students/models/student.dart';
+import '../../students/models/student_model.dart';
+import '../../students/providers/students_provider.dart';
 import '../controllers/admission_controller.dart';
 import '../widgets/document_upload_card.dart';
 import '../widgets/admission_scaffold.dart';
@@ -133,7 +140,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     2 => AdmissionSeatSelector(
       category: admission.category,
       membership: admission.membership,
-      seats: ref.watch(seatsProvider),
+      seats: ref.watch(sc.seatsProvider),
       selected: admission.selectedSeat,
       selectedShift: admission.selectedHalfTimeShift,
       onSelected: admission.chooseSeat,
@@ -266,24 +273,82 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       admission.next();
       return;
     }
-    final students = ref.read(studentsProvider);
-    created = admission.create(
-      id: students.length + 1,
-      name: name.text,
-      phone: phone.text,
-      emergencyContact: emergency.text,
-      notes: notes.text,
-    );
-    ref.read(studentsProvider.notifier).add(created!);
-    if (admission.membership == MembershipType.fullTime &&
-        admission.selectedSeat != null) {
-      final seat = ref
-          .read(seatsProvider)
-          .firstWhere((item) => item.seatLabel == admission.selectedSeat);
-      created = created!.copyWith(seatId: seat.seatId);
-      ref.read(studentsProvider.notifier).update(created!);
-      ref.read(seatsProvider.notifier).assign(seat.seatId, created!.id);
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (libraryId == null || libraryId.isEmpty) {
+      ErrorHandler.showErrorSnackBar(context, 'Library ID missing. Please log in again.');
+      return;
     }
+
+    final studentId = 'std_${DateTime.now().millisecondsSinceEpoch}';
+    final receiptNo = 'REC-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+
+    final studentModel = StudentModel(
+      id: studentId,
+      name: name.text.trim(),
+      email: '',
+      phone: phone.text.trim(),
+      gender: 'Male',
+      assignedSeat: admission.selectedSeat,
+      shift: admission.selectedHalfTimeShift ?? 'Full Day',
+      planName: _membership,
+      monthlyFee: admission.fee,
+      joiningDate: DateTime.now(),
+      validUntil: DateTime.now().add(Duration(days: admission.totalDays > 0 ? admission.totalDays : 30)),
+      status: 'Active',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    final paymentModel = PaymentModel(
+      id: 'pay_${DateTime.now().millisecondsSinceEpoch}',
+      studentId: studentId,
+      studentName: name.text.trim(),
+      amount: admission.fee,
+      netAmount: admission.fee,
+      paymentMode: admission.paymentMode.name,
+      receiptNumber: receiptNo,
+      paymentDate: DateTime.now(),
+    );
+
+    final receiptModel = ReceiptModel(
+      receiptNumber: receiptNo,
+      studentId: studentId,
+      studentName: name.text.trim(),
+      paymentId: paymentModel.id,
+      amount: admission.fee,
+      createdAt: DateTime.now(),
+    );
+
+    ref.read(studentsRepositoryProvider).processAdmissionTransaction(
+      libraryId: libraryId,
+      student: studentModel,
+      seatNumber: admission.selectedSeat,
+      payment: paymentModel,
+      receipt: receiptModel,
+    ).then((_) {
+      if (mounted) {
+        setState(() {
+          admission.completed = true;
+          final initials = name.text.trim().split(' ').map((e) => e.isEmpty ? '' : e[0]).take(2).join();
+          created = Student(
+            id: DateTime.now().millisecondsSinceEpoch % 10000,
+            name: name.text.trim(),
+            phone: phone.text.trim(),
+            seat: _seat,
+            joined: admission.joiningDisplay,
+            expiry: admission.expiryDisplay,
+            fee: admission.fee,
+            payment: PaymentStatus.paid,
+            membership: admission.membership,
+            initials: initials,
+          );
+        });
+      }
+    }).catchError((e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(context, e);
+      }
+    });
   }
 
   Widget _success() {

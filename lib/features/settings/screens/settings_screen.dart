@@ -4,6 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/settings/app_settings.dart';
+import '../../../core/utils/error_handler.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../controllers/owner_profile_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -353,6 +355,13 @@ class SettingsScreen extends ConsumerWidget {
               );
 
               if (shouldLogout == true && context.mounted) {
+                await ref.read(authControllerProvider.notifier).signOut();
+                final authState = ref.read(authControllerProvider);
+                if (!context.mounted) return;
+                if (authState.hasError) {
+                  ErrorHandler.showErrorSnackBar(context, authState.error);
+                  return;
+                }
                 context.go('/login');
               }
             },

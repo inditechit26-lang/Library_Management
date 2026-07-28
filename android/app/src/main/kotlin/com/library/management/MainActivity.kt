@@ -1,4 +1,4 @@
-package com.shelf.shelf_flutter
+package com.library.management
 
 import io.flutter.embedding.android.FlutterActivity
 

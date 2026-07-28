@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
+import '../providers/settings_provider.dart';
 
 class OwnerProfile {
   final String name;
@@ -59,18 +63,21 @@ class OwnerProfile {
 class OwnerProfileNotifier extends Notifier<OwnerProfile> {
   @override
   OwnerProfile build() {
-    return const OwnerProfile(
-      name: 'StudyDesk Owner',
-      email: 'owner@thestudyroom.in',
-      phone: '+91 98765 43210',
-      libraryName: 'StudyDesk Central Library',
-      branchName: 'Main Branch (Connaught Place)',
-      address: 'Plot 42, Knowledge Park, Sector 62, New Delhi',
-      openingTime: '06:00 AM',
-      closingTime: '11:00 PM',
-      totalSeats: 120,
-      subscriptionPlan: 'Library Pro Unlimited',
-      joinDate: '12 Jan 2025',
+    final profile = ref.watch(userProfileProvider).value;
+    final info = ref.watch(libraryInfoProvider).value ?? const {};
+    final config = ref.watch(libraryConfigProvider).value ?? const {};
+    return OwnerProfile(
+      name: (info['ownerName'] as String?) ?? profile?.displayName ?? '',
+      email: (info['email'] as String?) ?? profile?.email ?? '',
+      phone: (info['phone'] as String?) ?? '',
+      libraryName: (info['name'] as String?) ?? '',
+      branchName: (info['branchName'] as String?) ?? '',
+      address: (info['address'] as String?) ?? '',
+      openingTime: (info['openingTime'] as String?) ?? '',
+      closingTime: (info['closingTime'] as String?) ?? '',
+      totalSeats: (config['totalSeats'] as num?)?.toInt() ?? 0,
+      subscriptionPlan: (config['subscriptionPlan'] as String?) ?? '',
+      joinDate: '',
     );
   }
 
@@ -84,15 +91,23 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
     String? openingTime,
     String? closingTime,
   }) {
-    state = state.copyWith(
-      name: name,
-      email: email,
-      phone: phone,
-      libraryName: libraryName,
-      branchName: branchName,
-      address: address,
-      openingTime: openingTime,
-      closingTime: closingTime,
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (libraryId == null || libraryId.isEmpty) return;
+    final updates = <String, dynamic>{
+      if (name != null) 'ownerName': name.trim(),
+      if (email != null) 'email': email.trim(),
+      if (phone != null) 'phone': phone.trim(),
+      if (libraryName != null) 'name': libraryName.trim(),
+      if (branchName != null) 'branchName': branchName.trim(),
+      if (address != null) 'address': address.trim(),
+      if (openingTime != null) 'openingTime': openingTime.trim(),
+      if (closingTime != null) 'closingTime': closingTime.trim(),
+    };
+    if (updates.isEmpty) return;
+    unawaited(
+      ref
+          .read(settingsRepositoryProvider)
+          .updateLibraryInfo(libraryId, updates),
     );
   }
 }

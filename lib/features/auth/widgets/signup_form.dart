@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../controllers/auth_controller.dart';
-import '../../settings/controllers/owner_profile_controller.dart';
+import '../../../core/utils/error_handler.dart';
+import '../providers/auth_provider.dart';
 import 'google_logo.dart';
 
 class SignupForm extends ConsumerStatefulWidget {
@@ -15,7 +15,6 @@ class SignupForm extends ConsumerStatefulWidget {
 
 class _SignupFormState extends ConsumerState<SignupForm> {
   final _formKey = GlobalKey<FormState>();
-  final _controller = const AuthController();
 
   final _ownerController = TextEditingController();
   final _libraryController = TextEditingController();
@@ -44,80 +43,80 @@ class _SignupFormState extends ConsumerState<SignupForm> {
 
   void _handleCreateAccount() async {
     if (!_termsAgreed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the Terms & Privacy Policy'),
-          backgroundColor: Color(0xFFEF4444),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      ErrorHandler.showErrorSnackBar(context, 'Please accept the Terms & Privacy Policy');
       return;
     }
 
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      await Future.delayed(const Duration(milliseconds: 900));
-      if (mounted) {
-        ref.read(ownerProfileProvider.notifier).updateProfile(
-              name: _ownerController.text.trim(),
-              email: _emailController.text.trim(),
-              phone: _phoneController.text.trim(),
-              libraryName: _libraryController.text.trim(),
-              branchName: _libraryType,
+      try {
+        await ref.read(authControllerProvider.notifier).signUpWithEmail(
+              email: _emailController.text,
+              password: _passwordController.text,
+              displayName: _ownerController.text,
+              libraryName: _libraryController.text,
             );
-        setState(() => _isLoading = false);
-        context.go('/app');
+
+        final state = ref.read(authControllerProvider);
+        if (state.hasError && mounted) {
+          ErrorHandler.showErrorSnackBar(context, state.error);
+        } else if (mounted) {
+          ErrorHandler.showSuccessSnackBar(context, 'Account created successfully!');
+          context.go('/app');
+        }
+      } catch (e) {
+        if (mounted) ErrorHandler.showErrorSnackBar(context, e);
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }
 
   void _handleGoogleSignup() async {
     setState(() => _isGoogleLoading = true);
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (mounted) {
-      ref.read(ownerProfileProvider.notifier).updateProfile(
-            name: 'Google User',
-            email: 'user@gmail.com',
-            libraryName: 'My Study Library',
-          );
-      setState(() => _isGoogleLoading = false);
-      context.go('/app');
+    try {
+      await ref.read(authControllerProvider.notifier).signInWithGoogle();
+      final state = ref.read(authControllerProvider);
+      if (state.hasError && mounted) {
+        ErrorHandler.showErrorSnackBar(context, state.error);
+      } else if (mounted) {
+        context.go('/app');
+      }
+    } catch (e) {
+      if (mounted) ErrorHandler.showErrorSnackBar(context, e);
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryAccent = const Color(0xFF6366F1);
+    const primaryAccent = Color(0xFF6366F1);
 
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Owner Name Field
           _buildTextField(
             controller: _ownerController,
             label: 'Owner Name',
             hint: 'e.g. Om Chandrawanshi',
             icon: Icons.person_outline_rounded,
-            validator: (v) => v == null || v.isEmpty ? 'Enter owner name' : null,
+            validator: (v) => v == null || v.trim().isEmpty ? 'Enter owner name' : null,
             isDark: isDark,
           ),
           const SizedBox(height: 16),
-
-          // Library Name Field
           _buildTextField(
             controller: _libraryController,
             label: 'Library Name',
             hint: 'e.g. Apex Study Hall',
             icon: Icons.storefront_outlined,
-            validator: (v) => v == null || v.isEmpty ? 'Enter library name' : null,
+            validator: (v) => v == null || v.trim().isEmpty ? 'Enter library name' : null,
             isDark: isDark,
           ),
           const SizedBox(height: 16),
-
-          // Mobile Number Field
           _buildTextField(
             controller: _phoneController,
             label: 'Mobile Number',
@@ -128,27 +127,31 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             isDark: isDark,
           ),
           const SizedBox(height: 16),
-
-          // Email Address Field
           _buildTextField(
             controller: _emailController,
             label: 'Email Address',
             hint: 'name@example.com',
             icon: Icons.alternate_email_rounded,
             keyboardType: TextInputType.emailAddress,
-            validator: _controller.validateEmail,
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Enter email address';
+              if (!v.contains('@')) return 'Enter valid email address';
+              return null;
+            },
             isDark: isDark,
           ),
           const SizedBox(height: 16),
-
-          // Password Field
           _buildTextField(
             controller: _passwordController,
             label: 'Password',
             hint: '••••••••',
             icon: Icons.lock_outline_rounded,
             obscureText: _obscurePass,
-            validator: _controller.validatePassword,
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Enter password';
+              if (v.length < 6) return 'Password must be at least 6 characters';
+              return null;
+            },
             isDark: isDark,
             suffixIcon: IconButton(
               icon: Icon(
@@ -160,8 +163,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             ),
           ),
           const SizedBox(height: 16),
-
-          // Confirm Password Field
           _buildTextField(
             controller: _confirmPasswordController,
             label: 'Confirm Password',
@@ -170,7 +171,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             obscureText: _obscureConfirm,
             validator: (v) {
               if (v != _passwordController.text) return 'Passwords do not match';
-              return _controller.validatePassword(v);
+              return null;
             },
             isDark: isDark,
             suffixIcon: IconButton(
@@ -183,8 +184,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Library Type Segmented Selector
           Text(
             'Library Type',
             style: TextStyle(
@@ -212,8 +211,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             ),
           ),
           const SizedBox(height: 20),
-
-          // Terms Checkbox
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -240,7 +237,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                         color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                       ),
                     ),
-                    Text(
+                    const Text(
                       'Terms & Privacy Policy',
                       style: TextStyle(
                         fontSize: 12,
@@ -254,8 +251,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             ],
           ),
           const SizedBox(height: 26),
-
-          // Create Account Button with Gradient & Glow
           Container(
             height: 56,
             decoration: BoxDecoration(
@@ -292,20 +287,25 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      'Create Account',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: 0.3,
-                      ),
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Create Account',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward_rounded, size: 19, color: Colors.white),
+                      ],
                     ),
             ),
           ),
           const SizedBox(height: 24),
-
-          // Divider
           Row(
             children: [
               Expanded(
@@ -333,12 +333,17 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             ],
           ),
           const SizedBox(height: 20),
-
-          // Google Signup Button
           OutlinedButton(
             onPressed: _isGoogleLoading ? null : _handleGoogleSignup,
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
+              textStyle: const TextStyle(
+                inherit: true,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
               side: BorderSide(
                 color: isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0),
                 width: 1.2,
@@ -354,19 +359,12 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                     height: 22,
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   )
-                : Row(
+                : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const GoogleLogoWidget(size: 20),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Continue with Google',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF1E293B),
-                        ),
-                      ),
+                      GoogleLogoWidget(size: 20),
+                      SizedBox(width: 12),
+                      Text('Continue with Google'),
                     ],
                   ),
           ),
@@ -376,27 +374,25 @@ class _SignupFormState extends ConsumerState<SignupForm> {
   }
 
   Widget _buildSegmentOption(String label, bool isDark) {
-    final selected = _libraryType == label;
-    final primaryAccent = const Color(0xFF6366F1);
-
+    final isSelected = _libraryType == label;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _libraryType = label),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 9),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: selected
-                ? (isDark ? primaryAccent.withOpacity(0.28) : Colors.white)
+            color: isSelected
+                ? (isDark ? const Color(0xFF2B3248) : Colors.white)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: selected && !isDark
+            boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 4,
                       offset: const Offset(0, 2),
-                    ),
+                    )
                   ]
                 : [],
           ),
@@ -404,11 +400,11 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-              color: selected
-                  ? primaryAccent
-                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+              fontSize: 11,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              color: isSelected
+                  ? (isDark ? Colors.white : const Color(0xFF0F172A))
+                  : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
             ),
           ),
         ),
@@ -422,14 +418,14 @@ class _SignupFormState extends ConsumerState<SignupForm> {
     required String hint,
     required IconData icon,
     required bool isDark,
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
+    TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
+    String? Function(String?)? validator,
     Widget? suffixIcon,
   }) {
     final fieldBg = isDark ? const Color(0xFF1A1F30) : const Color(0xFFF8FAFC);
     final fieldBorder = isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0);
-    final primaryAccent = const Color(0xFF6366F1);
+    const primaryAccent = Color(0xFF6366F1);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,12 +438,12 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          validator: validator,
           keyboardType: keyboardType,
           obscureText: obscureText,
+          validator: validator,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -477,7 +473,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: primaryAccent, width: 1.8),
+              borderSide: const BorderSide(color: primaryAccent, width: 1.8),
             ),
           ),
         ),

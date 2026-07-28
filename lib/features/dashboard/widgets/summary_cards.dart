@@ -1,22 +1,64 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../students/providers/students_provider.dart';
+import '../../seats/models/seat_model.dart';
+import '../../seats/providers/seats_provider.dart';
+import '../../payments/providers/payments_provider.dart';
 
-class DashboardSummaryCards extends StatelessWidget {
-  final int studentCount;
+class DashboardSummaryCards extends ConsumerWidget {
   final VoidCallback onManageSeats, onViewFees;
   const DashboardSummaryCards({
     super.key,
-    required this.studentCount,
     required this.onManageSeats,
     required this.onViewFees,
   });
+
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      _SeatCard(studentCount: studentCount, onManage: onManageSeats),
-      const SizedBox(height: 16),
-      _FeeCard(onViewFees: onViewFees),
-    ],
-  );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final studentsAsync = ref.watch(studentsStreamProvider);
+    final seatsAsync = ref.watch(seatsStreamProvider);
+    final paymentsAsync = ref.watch(paymentsStreamProvider);
+
+    final students = studentsAsync.asData?.value ?? [];
+    final seats = seatsAsync.asData?.value ?? [];
+    final payments = paymentsAsync.asData?.value ?? [];
+
+    final activeStudentCount = students.where((s) => s.status.toLowerCase() == 'active').length;
+    final occupiedSeatsCount = seats.where((s) => s.status == SeatStatus.occupied).length;
+    final totalSeatsCount = seats.length;
+    final availableSeatsCount = (totalSeatsCount - occupiedSeatsCount) > 0 ? (totalSeatsCount - occupiedSeatsCount) : 0;
+    final occupancyPercentage = totalSeatsCount > 0 ? (occupiedSeatsCount / totalSeatsCount) : 0.0;
+
+    final collectedRevenue = payments.fold(0.0, (sum, p) => sum + p.netAmount);
+    final now = DateTime.now();
+    final pendingDues = students
+        .where((s) => s.validUntil.isBefore(now))
+        .fold(0.0, (sum, s) => sum + s.monthlyFee);
+    final dueStudentsCount =
+        students.where((s) => s.validUntil.isBefore(now)).length;
+    final totalBilled = collectedRevenue + pendingDues;
+    final collectionPercentage = totalBilled > 0 ? (collectedRevenue / totalBilled) : 0.0;
+
+    return Column(
+      children: [
+        _SeatCard(
+          studentCount: activeStudentCount,
+          occupiedCount: occupiedSeatsCount,
+          availableCount: availableSeatsCount,
+          occupancyRatio: occupancyPercentage,
+          onManage: onManageSeats,
+        ),
+        const SizedBox(height: 16),
+        _FeeCard(
+          collected: collectedRevenue,
+          pending: pendingDues,
+          dueStudents: dueStudentsCount,
+          collectionRatio: collectionPercentage,
+          onViewFees: onViewFees,
+        ),
+      ],
+    );
+  }
 }
 
 class _Base extends StatelessWidget {
@@ -64,8 +106,19 @@ class _Base extends StatelessWidget {
 
 class _SeatCard extends StatelessWidget {
   final int studentCount;
+  final int occupiedCount;
+  final int availableCount;
+  final double occupancyRatio;
   final VoidCallback onManage;
-  const _SeatCard({required this.studentCount, required this.onManage});
+
+  const _SeatCard({
+    required this.studentCount,
+    required this.occupiedCount,
+    required this.availableCount,
+    required this.occupancyRatio,
+    required this.onManage,
+  });
+
   @override
   Widget build(BuildContext context) => _Base(
     child: Column(
@@ -88,30 +141,30 @@ class _SeatCard extends StatelessWidget {
               ),
             ),
             const _Line(),
-            const Expanded(
+            Expanded(
               child: _Metric(
                 'OCCUPIED',
-                '96',
-                '75% of capacity',
-                Color(0xFFD9535C),
+                '$occupiedCount',
+                '${(occupancyRatio * 100).toStringAsFixed(0)}% of capacity',
+                const Color(0xFFD9535C),
               ),
             ),
             const _Line(),
-            const Expanded(
+            Expanded(
               child: _Metric(
                 'AVAILABLE',
-                '32',
+                '$availableCount',
                 'Ready to assign',
-                Color(0xFF20936B),
+                const Color(0xFF20936B),
               ),
             ),
           ],
         ),
         const SizedBox(height: 20),
-        const _Progress(
-          value: .75,
-          color: Color(0xFFE0646B),
-          background: Color(0xFFFDE8E9),
+        _Progress(
+          value: occupancyRatio.clamp(0.0, 1.0),
+          color: const Color(0xFFE0646B),
+          background: const Color(0xFFFDE8E9),
         ),
       ],
     ),
@@ -119,8 +172,29 @@ class _SeatCard extends StatelessWidget {
 }
 
 class _FeeCard extends StatelessWidget {
+  final double collected;
+  final double pending;
+  final int dueStudents;
+  final double collectionRatio;
   final VoidCallback onViewFees;
-  const _FeeCard({required this.onViewFees});
+
+  const _FeeCard({
+    required this.collected,
+    required this.pending,
+    required this.dueStudents,
+    required this.collectionRatio,
+    required this.onViewFees,
+  });
+
+  String _formatAmount(double amount) {
+    if (amount >= 100000) {
+      return '₹${(amount / 100000).toStringAsFixed(1)}L';
+    } else if (amount >= 1000) {
+      return '₹${(amount / 1000).toStringAsFixed(1)}K';
+    }
+    return '₹${amount.toStringAsFixed(0)}';
+  }
+
   @override
   Widget build(BuildContext context) => _Base(
     child: Column(
@@ -132,32 +206,32 @@ class _FeeCard extends StatelessWidget {
           onTap: onViewFees,
         ),
         const SizedBox(height: 24),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _Metric(
                 'COLLECTED',
-                '₹86.2K',
-                '78% received',
-                Color(0xFF20936B),
+                _formatAmount(collected),
+                '${(collectionRatio * 100).toStringAsFixed(0)}% received',
+                const Color(0xFF20936B),
               ),
             ),
-            _Line(),
+            const _Line(),
             Expanded(
               child: _Metric(
                 'PENDING',
-                '₹23.8K',
-                '12 students due',
-                Color(0xFFD88328),
+                _formatAmount(pending),
+                '$dueStudents students due',
+                const Color(0xFFD88328),
               ),
             ),
           ],
         ),
         const SizedBox(height: 20),
-        const _Progress(
-          value: .78,
-          color: Color(0xFF20936B),
-          background: Color(0xFFE2F4EC),
+        _Progress(
+          value: collectionRatio.clamp(0.0, 1.0),
+          color: const Color(0xFF20936B),
+          background: const Color(0xFFE2F4EC),
         ),
       ],
     ),

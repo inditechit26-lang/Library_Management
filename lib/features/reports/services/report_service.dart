@@ -67,23 +67,20 @@ class ReportService {
       }
       if (s.payment == PaymentStatus.expired) expiredMemberships++;
 
-      // Distribute payment mode mock logic for complete financial reporting
       final fee = s.fee;
       if (s.payment == PaymentStatus.paid) {
         totalCollection += fee;
-        if (s.id % 3 == 0) {
+        if (s.paymentMode == PaymentMode.cash) {
           cashCollection += fee;
-        } else if (s.id % 3 == 1) {
-          upiCollection += fee;
         } else {
-          bankCollection += fee;
+          upiCollection += fee;
         }
 
         history.add(PaymentRecord(
-          receiptNo: 'REC-${s.id + 1000}',
+          receiptNo: '',
           studentName: s.name,
           paymentDate: s.joined,
-          mode: s.id % 3 == 0 ? 'Cash' : (s.id % 3 == 1 ? 'UPI' : 'Bank'),
+          mode: s.paymentMode.label,
           amount: s.fee,
           status: 'Paid',
         ));

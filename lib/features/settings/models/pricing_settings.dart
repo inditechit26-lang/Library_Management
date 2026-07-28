@@ -48,10 +48,7 @@ class PricingSettings {
     required this.halfTimeAc,
     required this.fullTimeNonAc,
     required this.halfTimeNonAc,
-    this.halfTimeShifts = const [
-      'Morning Shift (06:00 AM - 02:00 PM)',
-      'Evening Shift (02:00 PM - 10:00 PM)',
-    ],
+    this.halfTimeShifts = const [],
   });
 
   PlanPricing get fullTime => fullTimeAc;
@@ -91,49 +88,30 @@ class PricingSettings {
 
   static const defaults = PricingSettings(
     fullTimeAc: PlanPricing(
-      monthly: 1800,
-      quarterly: 5200,
-      halfYearly: 10000,
-      annual: 19000,
-      badges: {
-        MembershipPeriod.quarterly: 'Most Popular',
-        MembershipPeriod.annual: 'Best Value',
-      },
+      monthly: 0,
+      quarterly: 0,
+      halfYearly: 0,
+      annual: 0,
     ),
     halfTimeAc: PlanPricing(
-      monthly: 1200,
-      quarterly: 3400,
-      halfYearly: 6500,
-      annual: 12000,
-      badges: {
-        MembershipPeriod.quarterly: 'Most Popular',
-        MembershipPeriod.annual: 'Best Value',
-      },
+      monthly: 0,
+      quarterly: 0,
+      halfYearly: 0,
+      annual: 0,
     ),
     fullTimeNonAc: PlanPricing(
-      monthly: 1400,
-      quarterly: 4000,
-      halfYearly: 7800,
-      annual: 15000,
-      badges: {
-        MembershipPeriod.quarterly: 'Most Popular',
-        MembershipPeriod.annual: 'Best Value',
-      },
+      monthly: 0,
+      quarterly: 0,
+      halfYearly: 0,
+      annual: 0,
     ),
     halfTimeNonAc: PlanPricing(
-      monthly: 900,
-      quarterly: 2600,
-      halfYearly: 5000,
-      annual: 9500,
-      badges: {
-        MembershipPeriod.quarterly: 'Most Popular',
-        MembershipPeriod.annual: 'Best Value',
-      },
+      monthly: 0,
+      quarterly: 0,
+      halfYearly: 0,
+      annual: 0,
     ),
-    halfTimeShifts: [
-      'Morning Shift (06:00 AM - 02:00 PM)',
-      'Evening Shift (02:00 PM - 10:00 PM)',
-    ],
+    halfTimeShifts: [],
   );
 }
 

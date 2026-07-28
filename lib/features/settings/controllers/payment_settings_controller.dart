@@ -15,13 +15,9 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
 
   Future<void> _restore() async {
     final prefs = await SharedPreferences.getInstance();
-    final active = prefs.getString(_activeUpiKey) ?? 'thestudyroom@upi';
-    final list = prefs.getStringList(_upiListKey) ?? [
-      'thestudyroom@upi',
-      '9527782347@ybl',
-      'studydesk@okicici',
-    ];
-    final payee = prefs.getString(_payeeNameKey) ?? 'The Study Room';
+    final active = prefs.getString(_activeUpiKey) ?? '';
+    final list = prefs.getStringList(_upiListKey) ?? [];
+    final payee = prefs.getString(_payeeNameKey) ?? '';
 
     final updatedList = List<String>.from(list);
     if (!updatedList.contains(active) && active.isNotEmpty) {
