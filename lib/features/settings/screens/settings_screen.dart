@@ -315,11 +315,50 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: 12),
         const _PrivacyPolicy(),
 
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: () => context.go('/login'),
-          icon: const Icon(Icons.logout),
-          label: const Text('Log out'),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.redAccent,
+              side: const BorderSide(color: Colors.redAccent),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () async {
+              final shouldLogout = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Log Out'),
+                  content: const Text(
+                    'Are you sure you want to log out of your session?',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Log Out'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (shouldLogout == true && context.mounted) {
+                context.go('/login');
+              }
+            },
+            icon: const Icon(Icons.logout),
+            label: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
         ),
       ],
     );
