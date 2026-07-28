@@ -105,42 +105,6 @@ class _SeatSettingsScreenState extends ConsumerState<SeatSettingsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          SeatSettingsSection(
-            title: 'Import / Export',
-            icon: Icons.import_export_rounded,
-            child: Wrap(
-              spacing: 9,
-              runSpacing: 9,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: _import,
-                  icon: const Icon(Icons.upload_file_outlined),
-                  label: const Text('Import Configuration'),
-                ),
-                FilledButton.icon(
-                  onPressed: _export,
-                  icon: const Icon(Icons.download_outlined),
-                  label: const Text('Export Configuration'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          SeatDangerZone(
-            onReset: () => _danger(
-              'Reset all seat statuses?',
-              'Assignments will be removed and every seat will become available.',
-              ref.read(seatsProvider.notifier).resetStatuses,
-            ),
-            onDelete: () => _danger(
-              'Delete all seats?',
-              'This permanently removes the complete seat configuration.',
-              ref.read(seatsProvider.notifier).deleteAll,
-            ),
-            onGenerate: () => _confirmGenerate(
-              () => ref.read(seatsProvider.notifier).generateNumeric(100),
-            ),
           ),
         ],
       ),
