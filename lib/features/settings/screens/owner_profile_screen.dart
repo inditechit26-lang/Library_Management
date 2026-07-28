@@ -131,10 +131,18 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                         color: Colors.white.withValues(alpha: 0.2),
                         border: Border.all(color: Colors.white, width: 3),
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'SD',
-                          style: TextStyle(
+                          profile.name.trim().isNotEmpty
+                              ? profile.name
+                                  .trim()
+                                  .split(' ')
+                                  .map((e) => e.isNotEmpty ? e[0] : '')
+                                  .take(2)
+                                  .join()
+                                  .toUpperCase()
+                              : 'OP',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 32,
                             fontWeight: FontWeight.w900,

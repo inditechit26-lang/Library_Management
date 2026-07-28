@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../controllers/auth_controller.dart';
+import '../../settings/controllers/owner_profile_controller.dart';
 import 'google_logo.dart';
 
-class SignupForm extends StatefulWidget {
+class SignupForm extends ConsumerStatefulWidget {
   final VoidCallback onLoginTap;
   const SignupForm({super.key, required this.onLoginTap});
 
   @override
-  State<SignupForm> createState() => _SignupFormState();
+  ConsumerState<SignupForm> createState() => _SignupFormState();
 }
 
-class _SignupFormState extends State<SignupForm> {
+class _SignupFormState extends ConsumerState<SignupForm> {
   final _formKey = GlobalKey<FormState>();
   final _controller = const AuthController();
 
@@ -56,6 +58,13 @@ class _SignupFormState extends State<SignupForm> {
       setState(() => _isLoading = true);
       await Future.delayed(const Duration(milliseconds: 900));
       if (mounted) {
+        ref.read(ownerProfileProvider.notifier).updateProfile(
+              name: _ownerController.text.trim(),
+              email: _emailController.text.trim(),
+              phone: _phoneController.text.trim(),
+              libraryName: _libraryController.text.trim(),
+              branchName: _libraryType,
+            );
         setState(() => _isLoading = false);
         context.go('/app');
       }
@@ -66,6 +75,11 @@ class _SignupFormState extends State<SignupForm> {
     setState(() => _isGoogleLoading = true);
     await Future.delayed(const Duration(milliseconds: 700));
     if (mounted) {
+      ref.read(ownerProfileProvider.notifier).updateProfile(
+            name: 'Google User',
+            email: 'user@gmail.com',
+            libraryName: 'My Study Library',
+          );
       setState(() => _isGoogleLoading = false);
       context.go('/app');
     }
