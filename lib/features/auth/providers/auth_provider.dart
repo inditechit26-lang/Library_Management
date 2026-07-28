@@ -56,6 +56,7 @@ class AuthNotifier extends AsyncNotifier<AppUserModel?> {
     required String password,
     required String displayName,
     required String libraryName,
+    required String phone,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
@@ -66,6 +67,7 @@ class AuthNotifier extends AsyncNotifier<AppUserModel?> {
             password: password,
             displayName: displayName,
             libraryName: libraryName,
+            phone: phone,
           ),
     );
     if (!state.hasError) {

@@ -123,7 +123,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
-              hintText: 'name@example.com',
+              hintText: 'Email Address',
               hintStyle: TextStyle(
                 color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               ),
@@ -196,7 +196,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               color: isDark ? Colors.white : const Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
-              hintText: '••••••••',
+              hintText: 'Password',
               hintStyle: TextStyle(
                 color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               ),

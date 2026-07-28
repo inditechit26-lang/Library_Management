@@ -15,6 +15,7 @@ abstract class BaseAuthRepository {
     required String password,
     required String displayName,
     required String libraryName,
+    required String phone,
   });
   Future<AppUserModel?> signInWithGoogle();
   Future<void> sendPasswordResetEmail(String email);
@@ -93,6 +94,7 @@ class AuthRepository implements BaseAuthRepository {
     required String password,
     required String displayName,
     required String libraryName,
+    required String phone,
   }) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -119,13 +121,17 @@ class AuthRepository implements BaseAuthRepository {
 
       // Create User doc & Default Library Config in a batch transaction
       final batch = _firestore.batch();
-      batch.set(_firestore.collection('users').doc(user.uid), newProfile.toFirestore());
+      batch.set(_firestore.collection('users').doc(user.uid), {
+        ...newProfile.toFirestore(),
+        'phone': phone.trim(),
+      });
       batch.set(
         _firestore.collection('libraries').doc(libraryId).collection('info').doc('general'),
         {
           'libraryId': libraryId,
           'name': libraryName.trim(),
           'ownerUid': user.uid,
+          'phone': phone.trim(),
           'createdAt': FieldValue.serverTimestamp(),
         },
       );

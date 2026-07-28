@@ -50,17 +50,29 @@ class _SignupFormState extends ConsumerState<SignupForm> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
+        final name = _ownerController.text.trim();
+        final libName = _libraryController.text.trim();
+        final phone = _phoneController.text.trim();
+        final email = _emailController.text.trim();
+
         await ref.read(authControllerProvider.notifier).signUpWithEmail(
-              email: _emailController.text,
+              email: email,
               password: _passwordController.text,
-              displayName: _ownerController.text,
-              libraryName: _libraryController.text,
+              displayName: name,
+              libraryName: libName,
+              phone: phone,
             );
 
         final state = ref.read(authControllerProvider);
         if (state.hasError && mounted) {
           ErrorHandler.showErrorSnackBar(context, state.error);
         } else if (mounted) {
+          ref.read(ownerProfileProvider.notifier).updateProfile(
+                name: name,
+                email: email,
+                phone: phone,
+                libraryName: libName,
+              );
           ErrorHandler.showSuccessSnackBar(context, 'Account created successfully!');
           context.go('/app');
         }
@@ -80,6 +92,13 @@ class _SignupFormState extends ConsumerState<SignupForm> {
       if (state.hasError && mounted) {
         ErrorHandler.showErrorSnackBar(context, state.error);
       } else if (mounted) {
+        final user = state.value;
+        if (user != null) {
+          ref.read(ownerProfileProvider.notifier).updateProfile(
+                name: user.displayName ?? 'Library Owner',
+                email: user.email ?? '',
+              );
+        }
         context.go('/app');
       }
     } catch (e) {
@@ -102,7 +121,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
           _buildTextField(
             controller: _ownerController,
             label: 'Owner Name',
-            hint: 'e.g. Om Chandrawanshi',
+            hint: 'Owner Name',
             icon: Icons.person_outline_rounded,
             validator: (v) => v == null || v.trim().isEmpty ? 'Enter owner name' : null,
             isDark: isDark,
@@ -111,7 +130,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
           _buildTextField(
             controller: _libraryController,
             label: 'Library Name',
-            hint: 'e.g. Apex Study Hall',
+            hint: 'Library Name',
             icon: Icons.storefront_outlined,
             validator: (v) => v == null || v.trim().isEmpty ? 'Enter library name' : null,
             isDark: isDark,
@@ -120,17 +139,25 @@ class _SignupFormState extends ConsumerState<SignupForm> {
           _buildTextField(
             controller: _phoneController,
             label: 'Mobile Number',
-            hint: '+91 98765 43210',
+            hint: '10 Digit Mobile Number',
             icon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
-            validator: (v) => v == null || v.length < 10 ? 'Enter valid mobile number' : null,
+            maxLength: 10,
+            validator: (v) {
+              final cleaned = (v ?? '').trim();
+              if (cleaned.isEmpty) return 'Enter mobile number';
+              if (cleaned.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(cleaned)) {
+                return 'Enter a valid 10-digit mobile number';
+              }
+              return null;
+            },
             isDark: isDark,
           ),
           const SizedBox(height: 16),
           _buildTextField(
             controller: _emailController,
             label: 'Email Address',
-            hint: 'name@example.com',
+            hint: 'Email Address',
             icon: Icons.alternate_email_rounded,
             keyboardType: TextInputType.emailAddress,
             validator: (v) {
@@ -144,7 +171,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
           _buildTextField(
             controller: _passwordController,
             label: 'Password',
-            hint: '••••••••',
+            hint: 'Password',
             icon: Icons.lock_outline_rounded,
             obscureText: _obscurePass,
             validator: (v) {
@@ -166,7 +193,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
           _buildTextField(
             controller: _confirmPasswordController,
             label: 'Confirm Password',
-            hint: '••••••••',
+            hint: 'Confirm Password',
             icon: Icons.lock_reset_rounded,
             obscureText: _obscureConfirm,
             validator: (v) {
@@ -263,7 +290,7 @@ class _SignupFormState extends ConsumerState<SignupForm> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.38),
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.38),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -287,21 +314,14 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                         color: Colors.white,
                       ),
                     )
-                  : const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Create Account',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 19, color: Colors.white),
-                      ],
+                  : const Text(
+                      'Create Account',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
                     ),
             ),
           ),
@@ -338,12 +358,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              foregroundColor: isDark ? Colors.white : const Color(0xFF1E293B),
-              textStyle: const TextStyle(
-                inherit: true,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
               side: BorderSide(
                 color: isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0),
                 width: 1.2,
@@ -359,12 +373,19 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                     height: 22,
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   )
-                : const Row(
+                : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      GoogleLogoWidget(size: 20),
-                      SizedBox(width: 12),
-                      Text('Continue with Google'),
+                      const GoogleLogoWidget(size: 20),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : const Color(0xFF1E293B),
+                        ),
+                      ),
                     ],
                   ),
           ),
@@ -418,9 +439,10 @@ class _SignupFormState extends ConsumerState<SignupForm> {
     required String hint,
     required IconData icon,
     required bool isDark,
-    TextInputType keyboardType = TextInputType.text,
-    bool obscureText = false,
     String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int? maxLength,
+    bool obscureText = false,
     Widget? suffixIcon,
   }) {
     final fieldBg = isDark ? const Color(0xFF1A1F30) : const Color(0xFFF8FAFC);
@@ -438,18 +460,20 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         TextFormField(
           controller: controller,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
           validator: validator,
+          keyboardType: keyboardType,
+          maxLength: maxLength,
+          obscureText: obscureText,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: isDark ? Colors.white : const Color(0xFF0F172A),
           ),
           decoration: InputDecoration(
+            counterText: '',
             hintText: hint,
             hintStyle: TextStyle(
               color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
