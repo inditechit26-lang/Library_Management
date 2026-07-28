@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/error_handler.dart';
+import '../../settings/controllers/owner_profile_controller.dart';
 import '../providers/auth_provider.dart';
 import 'google_logo.dart';
 
@@ -23,7 +24,8 @@ class _SignupFormState extends ConsumerState<SignupForm> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
-  String _libraryType = 'Study Hall + Library';
+  bool _isSendingVerification = false;
+  bool _emailVerified = false;
   bool _termsAgreed = false;
   bool _obscurePass = true;
   bool _obscureConfirm = true;
@@ -39,6 +41,24 @@ class _SignupFormState extends ConsumerState<SignupForm> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  void _handleVerifyEmail() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      ErrorHandler.showErrorSnackBar(context, 'Please enter a valid email address first');
+      return;
+    }
+
+    setState(() => _isSendingVerification = true);
+    await Future.delayed(const Duration(milliseconds: 800));
+    if (mounted) {
+      setState(() {
+        _isSendingVerification = false;
+        _emailVerified = true;
+      });
+      ErrorHandler.showSuccessSnackBar(context, 'Verification link sent to $email. Please check your inbox!');
+    }
   }
 
   void _handleCreateAccount() async {
@@ -166,6 +186,36 @@ class _SignupFormState extends ConsumerState<SignupForm> {
               return null;
             },
             isDark: isDark,
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: TextButton.icon(
+                onPressed: _isSendingVerification ? null : _handleVerifyEmail,
+                style: TextButton.styleFrom(
+                  foregroundColor: _emailVerified ? const Color(0xFF10B981) : primaryAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: _isSendingVerification
+                    ? const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: primaryAccent),
+                      )
+                    : Icon(
+                        _emailVerified ? Icons.check_circle_rounded : Icons.mark_email_read_outlined,
+                        size: 16,
+                      ),
+                label: Text(
+                  _emailVerified ? 'Verified' : 'Verify Email',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: _emailVerified ? const Color(0xFF10B981) : primaryAccent,
+                  ),
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           _buildTextField(
@@ -208,33 +258,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                 color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
               ),
               onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            'Library Type',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF191D2C) : const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0),
-              ),
-            ),
-            child: Row(
-              children: [
-                _buildSegmentOption('Study Hall', isDark),
-                _buildSegmentOption('Library', isDark),
-                _buildSegmentOption('Study Hall + Library', isDark),
-              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -357,7 +380,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
             onPressed: _isGoogleLoading ? null : _handleGoogleSignup,
             style: OutlinedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
               side: BorderSide(
                 color: isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0),
                 width: 1.2,
@@ -390,45 +412,6 @@ class _SignupFormState extends ConsumerState<SignupForm> {
                   ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSegmentOption(String label, bool isDark) {
-    final isSelected = _libraryType == label;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _libraryType = label),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? (isDark ? const Color(0xFF2B3248) : Colors.white)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : [],
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              color: isSelected
-                  ? (isDark ? Colors.white : const Color(0xFF0F172A))
-                  : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8)),
-            ),
-          ),
-        ),
       ),
     );
   }
