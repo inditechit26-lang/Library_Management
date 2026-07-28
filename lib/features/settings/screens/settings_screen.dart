@@ -310,8 +310,6 @@ class SettingsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 14),
         const _HelpSupport(),
-        const SizedBox(height: 14),
-        const _Backup(),
         const SizedBox(height: 12),
         const _About(),
         const SizedBox(height: 12),
@@ -661,68 +659,7 @@ class _HelpSupport extends StatelessWidget {
   }
 }
 
-class _Backup extends StatelessWidget {
 
-  const _Backup();
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      borderRadius: BorderRadius.circular(20),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondaryContainer,
-            borderRadius: BorderRadius.circular(13),
-          ),
-          child: Icon(
-            Icons.download_outlined,
-            color: Theme.of(context).colorScheme.onSecondaryContainer,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Backup & restore',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'Keep a safe local copy of all your library data.',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                'Last backup: 15 July 2026, 09:42 AM',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
 class _About extends StatelessWidget {
   const _About();
