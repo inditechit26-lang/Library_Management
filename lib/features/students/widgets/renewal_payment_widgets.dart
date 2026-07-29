@@ -76,10 +76,21 @@ class RenewalPaymentCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(17),
                 border: Border.all(color: const Color(0xFFEEEFF4)),
               ),
-              child: QrImageView(
-                data: paymentSettings.getQrData(amount),
-                size: 152,
-              ),
+              child: paymentSettings.customQrUrl.isNotEmpty
+                  ? Image.network(
+                      paymentSettings.customQrUrl,
+                      width: 152,
+                      height: 152,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => QrImageView(
+                        data: paymentSettings.getQrData(amount),
+                        size: 152,
+                      ),
+                    )
+                  : QrImageView(
+                      data: paymentSettings.getQrData(amount),
+                      size: 152,
+                    ),
             ),
             const SizedBox(height: 7),
             Text(

@@ -5,22 +5,26 @@ class PaymentSettings {
   final String activeUpiId;
   final List<String> upiIds;
   final String payeeName;
+  final String customQrUrl;
 
   const PaymentSettings({
     this.activeUpiId = '',
     this.upiIds = const [],
     this.payeeName = '',
+    this.customQrUrl = '',
   });
 
   PaymentSettings copyWith({
     String? activeUpiId,
     List<String>? upiIds,
     String? payeeName,
+    String? customQrUrl,
   }) {
     return PaymentSettings(
       activeUpiId: activeUpiId ?? this.activeUpiId,
       upiIds: upiIds ?? this.upiIds,
       payeeName: payeeName ?? this.payeeName,
+      customQrUrl: customQrUrl ?? this.customQrUrl,
     );
   }
 
@@ -37,6 +41,7 @@ class PaymentSettings {
     'activeUpiId': activeUpiId,
     'upiIds': upiIds,
     'payeeName': payeeName,
+    'customQrUrl': customQrUrl,
   };
 
   factory PaymentSettings.fromMap(Map<String, dynamic> value) =>
@@ -46,5 +51,6 @@ class PaymentSettings {
             .whereType<String>()
             .toList(),
         payeeName: value['payeeName'] as String? ?? '',
+        customQrUrl: value['customQrUrl'] as String? ?? '',
       );
 }

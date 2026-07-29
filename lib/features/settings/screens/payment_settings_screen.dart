@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../controllers/payment_settings_controller.dart';
 
@@ -8,7 +9,8 @@ class PaymentSettingsScreen extends ConsumerStatefulWidget {
   const PaymentSettingsScreen({super.key});
 
   @override
-  ConsumerState<PaymentSettingsScreen> createState() => _PaymentSettingsScreenState();
+  ConsumerState<PaymentSettingsScreen> createState() =>
+      _PaymentSettingsScreenState();
 }
 
 class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
@@ -66,6 +68,39 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
     }
   }
 
+  Future<void> _uploadQrImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null || !mounted) return;
+
+    try {
+      final extension = file.extension?.toLowerCase() ?? 'png';
+      final contentType = extension == 'jpg' || extension == 'jpeg'
+          ? 'image/jpeg'
+          : 'image/$extension';
+      await ref
+          .read(paymentSettingsProvider.notifier)
+          .uploadCustomQr(
+            bytes: bytes,
+            fileName: file.name,
+            contentType: contentType,
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('UPI QR image uploaded.')));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to upload the UPI QR image.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final paymentSettings = ref.watch(paymentSettingsProvider);
@@ -73,9 +108,7 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Payment Settings'),
-      ),
+      appBar: AppBar(title: const Text('Payment Settings')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: [
@@ -91,9 +124,7 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
               boxShadow: [
                 BoxShadow(
                   color: colors.shadow.withValues(alpha: 0.05),
@@ -108,7 +139,10 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: colors.primary.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
@@ -116,7 +150,11 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.qr_code_2_rounded, size: 16, color: colors.primary),
+                          Icon(
+                            Icons.qr_code_2_rounded,
+                            size: 16,
+                            color: colors.primary,
+                          ),
                           const SizedBox(width: 6),
                           Text(
                             'Active Payment QR Preview',
@@ -145,10 +183,21 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                       ),
                     ],
                   ),
-                  child: QrImageView(
-                    data: paymentSettings.getQrData(),
-                    size: 170,
-                  ),
+                  child: paymentSettings.customQrUrl.isNotEmpty
+                      ? Image.network(
+                          paymentSettings.customQrUrl,
+                          width: 170,
+                          height: 170,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => QrImageView(
+                            data: paymentSettings.getQrData(),
+                            size: 170,
+                          ),
+                        )
+                      : QrImageView(
+                          data: paymentSettings.getQrData(),
+                          size: 170,
+                        ),
                 ),
                 const SizedBox(height: 14),
                 Text(
@@ -179,7 +228,9 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                         );
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Copied ${paymentSettings.activeUpiId} to clipboard'),
+                            content: Text(
+                              'Copied ${paymentSettings.activeUpiId} to clipboard',
+                            ),
                             behavior: SnackBarBehavior.floating,
                             duration: const Duration(seconds: 2),
                           ),
@@ -250,7 +301,10 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                     decoration: InputDecoration(
                       hintText: 'Enter Business / Library Name',
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.check_circle_rounded, color: Colors.green),
+                        icon: const Icon(
+                          Icons.check_circle_rounded,
+                          color: Colors.green,
+                        ),
                         onPressed: _savePayeeName,
                       ),
                     ),
@@ -291,10 +345,7 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
           const SizedBox(height: 4),
           Text(
             'Select which UPI ID is active for QR code generation across the app.',
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
 
@@ -314,14 +365,19 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                 ),
               ),
               child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
                 leading: Radio<String>(
                   value: upiId,
                   groupValue: paymentSettings.activeUpiId,
                   activeColor: colors.primary,
                   onChanged: (val) {
                     if (val != null) {
-                      ref.read(paymentSettingsProvider.notifier).setActiveUpiId(val);
+                      ref
+                          .read(paymentSettingsProvider.notifier)
+                          .setActiveUpiId(val);
                     }
                   },
                 ),
@@ -331,14 +387,19 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                       child: Text(
                         upiId,
                         style: TextStyle(
-                          fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                          fontWeight: isActive
+                              ? FontWeight.w800
+                              : FontWeight.w600,
                           fontSize: 14,
                         ),
                       ),
                     ),
                     if (isActive)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colors.primary,
                           borderRadius: BorderRadius.circular(10),
@@ -374,14 +435,20 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                     ),
                     if (paymentSettings.upiIds.length > 1)
                       IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 18,
+                          color: Colors.redAccent,
+                        ),
                         tooltip: 'Delete',
                         onPressed: () => _confirmDelete(upiId),
                       ),
                   ],
                 ),
                 onTap: () {
-                  ref.read(paymentSettingsProvider.notifier).setActiveUpiId(upiId);
+                  ref
+                      .read(paymentSettingsProvider.notifier)
+                      .setActiveUpiId(upiId);
                 },
               ),
             );
@@ -416,7 +483,9 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                         controller: _newUpiController,
                         decoration: const InputDecoration(
                           hintText: 'e.g. mylibrary@upi',
-                          prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                          prefixIcon: Icon(
+                            Icons.account_balance_wallet_outlined,
+                          ),
                         ),
                         onSubmitted: (_) => _addUpiId(),
                       ),
@@ -425,7 +494,10 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                     ElevatedButton(
                       onPressed: _addUpiId,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -437,6 +509,19 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _uploadQrImage,
+            icon: const Icon(Icons.upload_file_outlined),
+            label: const Text('Upload UPI QR Image'),
+          ),
+          if (paymentSettings.customQrUrl.isNotEmpty)
+            TextButton.icon(
+              onPressed: () =>
+                  ref.read(paymentSettingsProvider.notifier).removeCustomQr(),
+              icon: const Icon(Icons.delete_outline_rounded),
+              label: const Text('Use generated UPI QR instead'),
+            ),
         ],
       ),
     );

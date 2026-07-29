@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../controllers/library_configuration_controller.dart';
 import '../controllers/payment_settings_controller.dart';
@@ -561,6 +563,62 @@ class _PaymentConfiguration extends ConsumerWidget {
             label: const Text('Add New UPI ID'),
           ),
         ),
+        const SizedBox(height: 8),
+        if (settings.customQrUrl.isNotEmpty || settings.activeUpiId.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  settings.customQrUrl.isNotEmpty
+                      ? 'Uploaded UPI QR Preview'
+                      : 'UPI QR Preview',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(10),
+                  child: settings.customQrUrl.isNotEmpty
+                      ? Image.network(
+                          settings.customQrUrl,
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const SizedBox(
+                            width: 160,
+                            height: 160,
+                            child: Icon(Icons.broken_image_outlined),
+                          ),
+                        )
+                      : QrImageView(data: settings.getQrData(), size: 160),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => _uploadQr(context, controller),
+            icon: const Icon(Icons.upload_file_outlined),
+            label: const Text('Upload UPI QR Image'),
+          ),
+        ),
+        if (settings.customQrUrl.isNotEmpty)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: controller.removeCustomQr,
+              icon: const Icon(Icons.delete_outline_rounded),
+              label: const Text('Use generated UPI QR instead'),
+            ),
+          ),
       ],
     );
   }
@@ -603,6 +661,40 @@ class _PaymentConfiguration extends ConsumerWidget {
     await Future<void>.delayed(const Duration(milliseconds: 320));
     textController.dispose();
     if (value != null) await controller.addUpiId(value);
+  }
+
+  Future<void> _uploadQr(
+    BuildContext context,
+    PaymentSettingsController controller,
+  ) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    final file = result?.files.single;
+    final bytes = file?.bytes;
+    if (file == null || bytes == null || !context.mounted) return;
+
+    try {
+      final extension = file.extension?.toLowerCase() ?? 'png';
+      final contentType = extension == 'jpg' || extension == 'jpeg'
+          ? 'image/jpeg'
+          : 'image/$extension';
+      await controller.uploadCustomQr(
+        bytes: bytes,
+        fileName: file.name,
+        contentType: contentType,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('UPI QR image uploaded.')));
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to upload the UPI QR image.')),
+      );
+    }
   }
 }
 

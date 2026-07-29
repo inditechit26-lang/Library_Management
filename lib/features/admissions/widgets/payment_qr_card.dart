@@ -50,6 +50,7 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
     final paymentSettings = ref.watch(paymentSettingsProvider);
     final data = paymentSettings.getQrData(widget.amount);
     final upiId = paymentSettings.activeUpiId;
+    final customQrUrl = paymentSettings.customQrUrl;
     final colors = Theme.of(context).colorScheme;
     final isCash = _currentMode == PaymentMode.cash;
 
@@ -76,7 +77,16 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
                   ),
                 ],
               ),
-              child: QrImageView(data: data, size: 166),
+              child: customQrUrl.isNotEmpty
+                  ? Image.network(
+                      customQrUrl,
+                      width: 166,
+                      height: 166,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) =>
+                          QrImageView(data: data, size: 166),
+                    )
+                  : QrImageView(data: data, size: 166),
             ),
             const SizedBox(height: 12),
             Text(
@@ -100,7 +110,7 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
                 _Action(
                   icon: Icons.fullscreen,
                   label: 'Full Screen QR',
-                  onTap: () => _fullScreen(context, data),
+                  onTap: () => _fullScreen(context, data, customQrUrl),
                 ),
                 _Action(
                   icon: Icons.share_outlined,
@@ -218,15 +228,25 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
     );
   }
 
-  void _fullScreen(BuildContext context, String qrData) => showDialog<void>(
-    context: context,
-    builder: (_) => Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: QrImageView(data: qrData, size: 280),
-      ),
-    ),
-  );
+  void _fullScreen(BuildContext context, String qrData, String customQrUrl) =>
+      showDialog<void>(
+        context: context,
+        builder: (_) => Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: customQrUrl.isNotEmpty
+                ? Image.network(
+                    customQrUrl,
+                    width: 280,
+                    height: 280,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) =>
+                        QrImageView(data: qrData, size: 280),
+                  )
+                : QrImageView(data: qrData, size: 280),
+          ),
+        ),
+      );
 }
 
 class _ModeChip extends StatelessWidget {
