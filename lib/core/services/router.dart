@@ -9,7 +9,6 @@ import '../../features/students/screens/student_profile_screen.dart';
 import '../../features/seats/screens/seat_profile_screen.dart';
 import '../../features/seats/screens/change_seat_screen.dart';
 import '../../features/seats/screens/seat_settings_screen.dart';
-import '../../features/settings/screens/membership_pricing_screen.dart';
 import '../../features/settings/screens/owner_profile_screen.dart';
 import '../../features/notifications/screens/notification_screen.dart';
 import '../../features/notifications/screens/notification_settings_screen.dart';
@@ -106,10 +105,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/seats',
         builder: (context, state) => const SeatSettingsScreen(),
-      ),
-      GoRoute(
-        path: '/settings/pricing',
-        builder: (context, state) => const MembershipPricingScreen(),
       ),
       GoRoute(
         path: '/settings/library-configuration',

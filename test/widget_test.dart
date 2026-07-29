@@ -12,7 +12,8 @@ void main() {
         child: MaterialApp(home: LoginScreen()),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Library Management'), findsOneWidget);
   });
 
