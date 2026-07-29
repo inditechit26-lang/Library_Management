@@ -7,10 +7,12 @@ class StudentSummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fullTimeCount =
-        students.where((s) => s.membership == MembershipType.fullTime).length;
-    final halfTimeCount =
-        students.where((s) => s.membership == MembershipType.halfTime).length;
+    final fullTimeCount = students
+        .where((s) => s.membership == MembershipType.fullTime)
+        .length;
+    final halfTimeCount = students
+        .where((s) => s.membership == MembershipType.halfTime)
+        .length;
 
     return Row(
       children: [

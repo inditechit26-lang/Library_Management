@@ -31,10 +31,7 @@ class SettingsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    colors.primaryContainer,
-                    colors.surface,
-                  ],
+                  colors: [colors.primaryContainer, colors.surface],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -64,7 +61,9 @@ class SettingsScreen extends ConsumerWidget {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFF574DEB).withValues(alpha: 0.35),
+                                  color: const Color(
+                                    0xFF574DEB,
+                                  ).withValues(alpha: 0.35),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -73,7 +72,11 @@ class SettingsScreen extends ConsumerWidget {
                             child: Center(
                               child: Text(
                                 ownerProfile.name.isNotEmpty
-                                    ? ownerProfile.name.split(' ').map((e) => e[0]).take(2).join()
+                                    ? ownerProfile.name
+                                          .split(' ')
+                                          .map((e) => e[0])
+                                          .take(2)
+                                          .join()
                                     : 'SD',
                                 style: const TextStyle(
                                   color: Colors.white,
@@ -125,9 +128,14 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF574DEB).withValues(alpha: 0.15),
+                                    color: const Color(
+                                      0xFF574DEB,
+                                    ).withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Text(
@@ -154,7 +162,10 @@ class SettingsScreen extends ConsumerWidget {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: colors.surfaceContainerHighest,
                                     borderRadius: BorderRadius.circular(12),
@@ -169,7 +180,10 @@ class SettingsScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 const Spacer(),
-                                const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                                const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 14,
+                                ),
                               ],
                             ),
                           ],
@@ -246,67 +260,53 @@ class SettingsScreen extends ConsumerWidget {
                   color: colors.surfaceContainer,
                   borderRadius: BorderRadius.circular(16),
                   child: SwitchListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
-                  secondary: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: colors.primaryContainer,
-                      borderRadius: BorderRadius.circular(11),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    secondary: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Icon(
+                        settings.themeMode == ThemeMode.dark
+                            ? Icons.dark_mode_rounded
+                            : Icons.light_mode_rounded,
+                        size: 19,
+                        color: colors.onPrimaryContainer,
+                      ),
                     ),
-                    child: Icon(
-                      settings.themeMode == ThemeMode.dark
-                          ? Icons.dark_mode_rounded
-                          : Icons.light_mode_rounded,
-                      size: 19,
-                      color: colors.onPrimaryContainer,
+                    title: Text(
+                      tr('Dark mode'),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: colors.onSurface,
+                      ),
                     ),
+                    subtitle: Text(
+                      tr('Use a darker color theme.'),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    value: settings.themeMode == ThemeMode.dark,
+                    onChanged: ref
+                        .read(appSettingsProvider.notifier)
+                        .setDarkMode,
                   ),
-                  title: Text(
-                    tr('Dark mode'),
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: colors.onSurface,
-                    ),
-                  ),
-                  subtitle: Text(
-                    tr('Use a darker color theme.'),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                  value: settings.themeMode == ThemeMode.dark,
-                  onChanged: ref.read(appSettingsProvider.notifier).setDarkMode,
                 ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'Seat Management',
-          description: 'Configure seat labels, generators and data transfer',
-          icon: Icons.airline_seat_recline_normal_rounded,
-          colors: const [Color(0xFF625CDB), Color(0xFF8580ED)],
-          onTap: () => context.push('/settings/seats'),
-        ),
-        const SizedBox(height: 14),
-        _SettingsEntry(
-          title: 'Membership Pricing',
-          description: 'Configure full-time and half-time membership plans',
-          icon: Icons.workspace_premium_outlined,
-          colors: const [Color(0xFFE58B35), Color(0xFFF2B65C)],
-          onTap: () => context.push('/settings/pricing'),
-        ),
-        const SizedBox(height: 14),
-        _SettingsEntry(
-          title: 'Payment Settings',
-          description: 'Manage UPI IDs, QR code payments & payee details',
-          icon: Icons.qr_code_2_rounded,
-          colors: const [Color(0xFF00B14F), Color(0xFF00D462)],
-          onTap: () => context.push('/settings/payment'),
+          title: 'Library Configuration',
+          description: 'Configure plans, seating, sections and documents',
+          icon: Icons.tune_rounded,
+          colors: const [Color(0xFF4F566B), Color(0xFF697187)],
+          onTap: () => context.push('/settings/library-configuration'),
         ),
         const SizedBox(height: 14),
         const _HelpSupport(),
@@ -364,7 +364,10 @@ class SettingsScreen extends ConsumerWidget {
               }
             },
             icon: const Icon(Icons.logout),
-            label: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Log Out',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ),
       ],
@@ -441,22 +444,22 @@ class _HelpSupport extends StatelessWidget {
 
   Future<void> _openWhatsApp(BuildContext context) async {
     const phoneNumber = '919527782347';
-    const message = 'Hello StudyDesk Support, I need assistance with my library management app.';
+    const message =
+        'Hello StudyDesk Support, I need assistance with my library management app.';
     final encodedMsg = Uri.encodeComponent(message);
 
     final urisToTry = [
       Uri.parse('https://wa.me/$phoneNumber?text=$encodedMsg'),
       Uri.parse('whatsapp://send?phone=$phoneNumber&text=$encodedMsg'),
-      Uri.parse('https://api.whatsapp.com/send?phone=$phoneNumber&text=$encodedMsg'),
+      Uri.parse(
+        'https://api.whatsapp.com/send?phone=$phoneNumber&text=$encodedMsg',
+      ),
     ];
 
     bool launched = false;
     for (final uri in urisToTry) {
       try {
-        launched = await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
         if (launched) break;
       } catch (_) {}
     }
@@ -467,7 +470,9 @@ class _HelpSupport extends StatelessWidget {
           content: const Text('Connecting to WhatsApp support...'),
           backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -510,9 +515,15 @@ class _HelpSupport extends StatelessWidget {
                     color: const Color(0xFF25D366).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const FaIcon(FontAwesomeIcons.whatsapp, color: Color(0xFF25D366)),
+                  child: const FaIcon(
+                    FontAwesomeIcons.whatsapp,
+                    color: Color(0xFF25D366),
+                  ),
                 ),
-                title: const Text('WhatsApp Chat', style: TextStyle(fontWeight: FontWeight.w800)),
+                title: const Text(
+                  'WhatsApp Chat',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
                 subtitle: const Text('Tap to start conversation'),
                 trailing: const Icon(Icons.open_in_new_rounded, size: 18),
                 onTap: () {
@@ -537,10 +548,7 @@ class _HelpSupport extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.outline,
-          width: 1.2,
-        ),
+        border: Border.all(color: theme.colorScheme.outline, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -588,7 +596,10 @@ class _HelpSupport extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF25D366).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(8),
@@ -639,7 +650,11 @@ class _HelpSupport extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  FaIcon(FontAwesomeIcons.whatsapp, size: 20, color: Colors.white),
+                  FaIcon(
+                    FontAwesomeIcons.whatsapp,
+                    size: 20,
+                    color: Colors.white,
+                  ),
                   SizedBox(width: 10),
                   Text(
                     'Chat on WhatsApp',
@@ -659,8 +674,6 @@ class _HelpSupport extends StatelessWidget {
   }
 }
 
-
-
 class _About extends StatelessWidget {
   const _About();
   @override
@@ -673,12 +686,17 @@ class _About extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.info_outline,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -724,12 +742,17 @@ class _PrivacyPolicy extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
           children: [
-            Icon(Icons.privacy_tip_outlined, color: Theme.of(context).colorScheme.primary),
+            Icon(
+              Icons.privacy_tip_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -762,4 +785,3 @@ class _PrivacyPolicy extends StatelessWidget {
     ),
   );
 }
-

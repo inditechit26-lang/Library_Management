@@ -6,6 +6,8 @@ import '../../auth/providers/auth_provider.dart';
 import '../models/seat_model.dart' as firestore_model;
 import '../providers/seats_provider.dart' as firestore_seats;
 import '../models/seat.dart';
+import '../../settings/models/library_configuration.dart';
+import '../../students/models/student.dart';
 
 class SeatsController extends Notifier<List<Seat>> {
   @override
@@ -23,13 +25,15 @@ class SeatsController extends Notifier<List<Seat>> {
               firestore_model.SeatStatus.blocked => SeatStatus.blocked,
               firestore_model.SeatStatus.available => SeatStatus.available,
             },
-            studentId:
-                seat.studentId == null ? null : _legacyId(seat.studentId!),
+            studentId: seat.studentId == null
+                ? null
+                : _legacyId(seat.studentId!),
             createdAt: seat.assignedDate ?? now,
             updatedAt: now,
           ),
         )
-        .toList();
+        .toList()
+      ..sort((a, b) => _compareLabels(a.seatLabel, b.seatLabel));
   }
 
   int _legacyId(String id) {
@@ -66,15 +70,11 @@ class SeatsController extends Notifier<List<Seat>> {
     if (seatsRef == null) return;
     final batch = FirebaseFirestore.instance.batch();
     for (final seat in state) {
-      batch.set(
-        seatsRef.doc(seat.seatId),
-        {
-          'seatNumber': seat.seatLabel,
-          'status': seat.status.name,
-          'updatedAt': FieldValue.serverTimestamp(),
-        },
-        SetOptions(merge: true),
-      );
+      batch.set(seatsRef.doc(seat.seatId), {
+        'seatNumber': seat.seatLabel,
+        'status': seat.status.name,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     }
     unawaited(batch.commit());
   }
@@ -176,14 +176,112 @@ class SeatsController extends Notifier<List<Seat>> {
     return true;
   }
 
-  void generateNumeric(int total) =>
-      _replaceLabels(List.generate(total, (index) => '${index + 1}'));
+  void generateNumeric(int total, {int startingNumber = 1}) => _replaceLabels(
+    List.generate(total, (index) => '${startingNumber + index}'),
+  );
 
-  void generateAlphabetic(int rows, int perRow) => _replaceLabels([
+  void generateAlphabetic(
+    int rows,
+    int perRow, {
+    String prefix = 'A',
+    int startingNumber = 1,
+  }) => _replaceLabels([
     for (var row = 0; row < rows; row++)
-      for (var seat = 1; seat <= perRow; seat++)
-        '${String.fromCharCode(65 + row)}$seat',
+      for (var seat = 0; seat < perRow; seat++)
+        '${String.fromCharCode((prefix.isEmpty ? 65 : prefix.codeUnitAt(0)) + row)}${startingNumber + seat}',
   ]);
+
+  Future<void> applyNumbering(SeatNumberingConfiguration numbering) async {
+    final fixed = state
+        .where((seat) => seat.status == SeatStatus.occupied)
+        .toList();
+    final mutable = state
+        .where((seat) => seat.status != SeatStatus.occupied)
+        .toList();
+    final labels = _numberingLabels(
+      numbering,
+      fixed.map((seat) => seat.seatLabel).toSet(),
+    );
+    final now = DateTime.now();
+    final renamed = [
+      for (var index = 0; index < labels.length; index++)
+        Seat(
+          seatId: labels[index],
+          seatLabel: labels[index],
+          status: index < mutable.length
+              ? mutable[index].status
+              : SeatStatus.available,
+          category: index < mutable.length
+              ? mutable[index].category
+              : SeatCategory.ac,
+          createdAt: index < mutable.length ? mutable[index].createdAt : now,
+          updatedAt: now,
+        ),
+    ];
+    state = [...fixed, ...renamed]
+      ..sort((a, b) => _compareLabels(a.seatLabel, b.seatLabel));
+
+    final seatsRef = _seatsRef;
+    if (seatsRef == null) return;
+    final snapshot = await seatsRef.get();
+    final sourceData = {
+      for (final document in snapshot.docs) document.id: document.data(),
+    };
+    final deleteBatch = FirebaseFirestore.instance.batch();
+    for (final seat in mutable) {
+      deleteBatch.delete(seatsRef.doc(seat.seatId));
+    }
+    await deleteBatch.commit();
+
+    final createBatch = FirebaseFirestore.instance.batch();
+    for (var index = 0; index < renamed.length; index++) {
+      final newSeat = renamed[index];
+      final data = Map<String, dynamic>.from(
+        index < mutable.length
+            ? sourceData[mutable[index].seatId] ?? const <String, dynamic>{}
+            : const <String, dynamic>{},
+      );
+      data['seatNumber'] = newSeat.seatLabel;
+      data['status'] = newSeat.status.name;
+      data['updatedAt'] = FieldValue.serverTimestamp();
+      createBatch.set(seatsRef.doc(newSeat.seatId), data);
+    }
+    await createBatch.commit();
+  }
+
+  List<String> _numberingLabels(
+    SeatNumberingConfiguration numbering,
+    Set<String> excluded,
+  ) {
+    final labels = <String>[];
+    if (numbering.style == SeatNumberingStyle.numeric) {
+      for (
+        var number = numbering.startingNumber;
+        number <= numbering.endingNumber;
+        number++
+      ) {
+        final label = '$number';
+        if (!excluded.contains(label)) labels.add(label);
+      }
+      return labels;
+    }
+
+    for (
+      var prefixCode = numbering.startPrefixCode;
+      prefixCode <= numbering.endPrefixCode;
+      prefixCode++
+    ) {
+      for (
+        var number = numbering.startingNumber;
+        number < numbering.startingNumber + numbering.numbersPerPrefix;
+        number++
+      ) {
+        final label = '${String.fromCharCode(prefixCode)}$number';
+        if (!excluded.contains(label)) labels.add(label);
+      }
+    }
+    return labels;
+  }
 
   void resetStatuses() {
     final now = DateTime.now();
@@ -251,6 +349,23 @@ class SeatsController extends Notifier<List<Seat>> {
           seat,
     ];
   }
+}
+
+int _compareLabels(String first, String second) {
+  final pattern = RegExp(r'^([A-Za-z]*)(\d+)$');
+  final firstMatch = pattern.firstMatch(first);
+  final secondMatch = pattern.firstMatch(second);
+  if (firstMatch == null || secondMatch == null) {
+    return first.toLowerCase().compareTo(second.toLowerCase());
+  }
+  final prefixComparison = firstMatch
+      .group(1)!
+      .toLowerCase()
+      .compareTo(secondMatch.group(1)!.toLowerCase());
+  if (prefixComparison != 0) return prefixComparison;
+  return int.parse(
+    firstMatch.group(2)!,
+  ).compareTo(int.parse(secondMatch.group(2)!));
 }
 
 final seatsProvider = NotifierProvider<SeatsController, List<Seat>>(

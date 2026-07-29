@@ -32,4 +32,19 @@ class PaymentSettings {
     }
     return 'upi://pay?pa=$cleanUpi&pn=$cleanName&cu=INR';
   }
+
+  Map<String, dynamic> toMap() => {
+    'activeUpiId': activeUpiId,
+    'upiIds': upiIds,
+    'payeeName': payeeName,
+  };
+
+  factory PaymentSettings.fromMap(Map<String, dynamic> value) =>
+      PaymentSettings(
+        activeUpiId: value['activeUpiId'] as String? ?? '',
+        upiIds: (value['upiIds'] as List<dynamic>? ?? const [])
+            .whereType<String>()
+            .toList(),
+        payeeName: value['payeeName'] as String? ?? '',
+      );
 }

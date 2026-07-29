@@ -11,6 +11,7 @@ import '../widgets/filter_chips.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/student_card.dart';
 import '../widgets/summary_cards.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 
 class StudentsScreen extends ConsumerStatefulWidget {
   const StudentsScreen({super.key});
@@ -28,6 +29,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
 
     final all = ref.watch(studentsProvider);
     final students = StudentFilter.apply(all, query: query, filter: filter);
+    final configuration = ref.watch(libraryConfigurationProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -35,10 +37,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           gradient: const LinearGradient(
-            colors: [
-              Color(0xFF6366F1),
-              Color(0xFF4F46E5),
-            ],
+            colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
           ),
           boxShadow: [
             BoxShadow(
@@ -80,6 +79,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 const SizedBox(height: 14),
                 StudentFilterChips(
                   selected: filter,
+                  fullTimeEnabled: configuration.fullTimeEnabled,
+                  halfTimeEnabled: configuration.halfTimeEnabled,
                   onSelected: (value) => setState(() => filter = value),
                 ),
                 const SizedBox(height: 22),

@@ -29,7 +29,8 @@ class StudentsController extends Notifier<List<Student>> {
 
   Student _toLegacyStudent(StudentModel model) {
     final now = DateTime.now();
-    final expired = model.validUntil.isBefore(now) ||
+    final expired =
+        model.validUntil.isBefore(now) ||
         model.status.toLowerCase() == 'expired' ||
         model.status.toLowerCase() == 'inactive';
     final nameParts = model.name
@@ -52,6 +53,9 @@ class StudentsController extends Notifier<List<Student>> {
           : MembershipType.halfTime,
       initials: nameParts.map((part) => part[0].toUpperCase()).join(),
       photoPath: model.photoUrl,
+      sectionId: model.sectionId,
+      seatType: model.seatType,
+      membershipPeriod: model.membershipPeriod,
     );
   }
 
@@ -110,8 +114,7 @@ class StudentsController extends Notifier<List<Student>> {
     if (libraryId == null) return;
     final now = DateTime.now();
     final joiningDate = DateFormat('dd MMM yyyy').tryParse(value.joined) ?? now;
-    final validUntil =
-        DateFormat('dd MMM yyyy').tryParse(value.expiry) ?? now;
+    final validUntil = DateFormat('dd MMM yyyy').tryParse(value.expiry) ?? now;
     final model = StudentModel(
       id: now.microsecondsSinceEpoch.toString(),
       name: value.name,
@@ -125,6 +128,9 @@ class StudentsController extends Notifier<List<Student>> {
       planName: value.membership == MembershipType.fullTime
           ? 'Full Time'
           : 'Half Time',
+      seatType: value.seatType,
+      sectionId: value.sectionId,
+      membershipPeriod: value.membershipPeriod,
       monthlyFee: value.fee,
       joiningDate: joiningDate,
       validUntil: validUntil,
@@ -157,8 +163,9 @@ class StudentsController extends Notifier<List<Student>> {
               assignedSeat: value.seatId ?? value.seat,
               monthlyFee: value.fee,
               validUntil: expiry,
-              status:
-                  value.payment == PaymentStatus.expired ? 'Expired' : 'Active',
+              status: value.payment == PaymentStatus.expired
+                  ? 'Expired'
+                  : 'Active',
               photoUrl: value.photoPath,
               updatedAt: DateTime.now(),
             ),

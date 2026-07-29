@@ -2,13 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../../settings/models/pricing_settings.dart';
 import '../../students/models/student.dart';
+import '../../settings/models/library_configuration.dart';
 
 class AdmissionController extends ChangeNotifier {
   AdmissionController(this.pricing);
   PricingSettings pricing;
   int step = 0;
   SeatCategory category = SeatCategory.ac;
+  String? selectedSectionId;
   MembershipType membership = MembershipType.fullTime;
+  LibrarySeatType selectedSeatType = LibrarySeatType.fullTimeReserved;
   MembershipPeriod? period;
   String? selectedSeat;
   String? selectedHalfTimeShift;
@@ -20,14 +23,17 @@ class AdmissionController extends ChangeNotifier {
   DateTime? customEnd;
   int? customDays;
   double? customAmount;
+  double customDefaultPrice = 0;
+  double? manualAmount;
 
   double get fee => period == MembershipPeriod.custom
       ? customAmount ?? _calculatedCustomFee
-      : period == null
-      ? 0
-      : pricing
-            .forMembershipAndCategory(membership, category)
-            .priceFor(period!);
+      : manualAmount ??
+            (period == null
+                ? 0
+                : pricing
+                      .forMembershipAndCategory(membership, category)
+                      .priceFor(period!));
 
   DateTime get joiningDate =>
       period == MembershipPeriod.custom ? customStart : DateTime.now();
@@ -49,8 +55,9 @@ class AdmissionController extends ChangeNotifier {
 
   double get _calculatedCustomFee {
     if (customEnd == null || totalDays <= 0) return 0;
-    final monthlyRate =
-        pricing.forMembershipAndCategory(membership, category).monthly;
+    final monthlyRate = pricing
+        .forMembershipAndCategory(membership, category)
+        .monthly;
     return (monthlyRate / 30 * totalDays).roundToDouble();
   }
 
@@ -95,6 +102,16 @@ class AdmissionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void chooseSeatType(LibrarySeatType value) {
+    selectedSeatType = value;
+    chooseMembership(
+      value == LibrarySeatType.fullTimeReserved
+          ? MembershipType.fullTime
+          : MembershipType.halfTime,
+    );
+    if (value == LibrarySeatType.halfTimeOpenSeating) selectedSeat = null;
+  }
+
   void setHalfTimeShift(String shift) {
     selectedHalfTimeShift = shift;
     notifyListeners();
@@ -102,6 +119,16 @@ class AdmissionController extends ChangeNotifier {
 
   void choosePeriod(MembershipPeriod value) {
     period = value;
+    manualAmount = null;
+    if (value == MembershipPeriod.custom && customAmount == null) {
+      customAmount = customDefaultPrice;
+    }
+    paymentConfirmed = false;
+    notifyListeners();
+  }
+
+  void setManualAmount(double? value) {
+    manualAmount = value;
     paymentConfirmed = false;
     notifyListeners();
   }
@@ -114,7 +141,7 @@ class AdmissionController extends ChangeNotifier {
       customAmount = null;
     } else if (customEnd != null) {
       customDays = customEnd!.difference(customStart).inDays;
-      customAmount = _calculatedCustomFee;
+      customAmount ??= _calculatedCustomFee;
     }
     notifyListeners();
   }
@@ -123,7 +150,7 @@ class AdmissionController extends ChangeNotifier {
     if (value.isBefore(customStart)) return;
     customEnd = value;
     customDays = value.difference(customStart).inDays;
-    customAmount = _calculatedCustomFee;
+    customAmount ??= _calculatedCustomFee;
     notifyListeners();
   }
 
@@ -131,7 +158,7 @@ class AdmissionController extends ChangeNotifier {
     customDays = value;
     if (value != null && value > 0) {
       customEnd = customStart.add(Duration(days: value));
-      customAmount = _calculatedCustomFee;
+      customAmount ??= _calculatedCustomFee;
     } else {
       customEnd = null;
       customAmount = null;
@@ -190,11 +217,11 @@ class AdmissionController extends ChangeNotifier {
       phone: phone.trim(),
       emergencyContact: emergencyContact.trim(),
       notes: notes.trim(),
-      seat: membership == MembershipType.fullTime
+      seat: selectedSeatType != LibrarySeatType.halfTimeOpenSeating
           ? selectedSeat ?? ''
           : selectedHalfTimeShift != null
-              ? 'Flexible (${selectedHalfTimeShift!})'
-              : 'Flexible',
+          ? 'Flexible (${selectedHalfTimeShift!})'
+          : 'Flexible',
       joined: joined,
       expiry: expiry,
       fee: fee,

@@ -8,6 +8,7 @@ import '../widgets/monthly_report_sheet.dart';
 import '../widgets/yearly_report_sheet.dart';
 import '../widgets/custom_report_sheet.dart';
 import 'report_preview_screen.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 
 class ReportsScreen extends ConsumerWidget {
   const ReportsScreen({super.key});
@@ -20,7 +21,12 @@ class ReportsScreen extends ConsumerWidget {
     required DateTime startDate,
     required DateTime endDate,
   }) {
-    final students = ref.read(studentsProvider);
+    final configuration = ref.read(libraryConfigurationProvider);
+    final students = ref.read(studentsProvider).where((student) {
+      return student.membership.name == 'halfTime'
+          ? configuration.halfTimeEnabled
+          : configuration.fullTimeEnabled;
+    }).toList();
     final seats = ref.read(seatsProvider);
     final ownerProfile = ref.read(ownerProfileProvider);
 
@@ -32,6 +38,9 @@ class ReportsScreen extends ConsumerWidget {
       allStudents: students,
       allSeats: seats,
       ownerProfile: ownerProfile,
+      sectionNames: {
+        for (final section in configuration.sections) section.id: section.name,
+      },
     );
 
     Navigator.push(
@@ -42,7 +51,11 @@ class ReportsScreen extends ConsumerWidget {
     );
   }
 
-  void _showMonthlySheet(BuildContext context, WidgetRef ref, String creationDate) {
+  void _showMonthlySheet(
+    BuildContext context,
+    WidgetRef ref,
+    String creationDate,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -63,7 +76,11 @@ class ReportsScreen extends ConsumerWidget {
     );
   }
 
-  void _showYearlySheet(BuildContext context, WidgetRef ref, String creationDate) {
+  void _showYearlySheet(
+    BuildContext context,
+    WidgetRef ref,
+    String creationDate,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -84,7 +101,11 @@ class ReportsScreen extends ConsumerWidget {
     );
   }
 
-  void _showCustomSheet(BuildContext context, WidgetRef ref, String creationDate) {
+  void _showCustomSheet(
+    BuildContext context,
+    WidgetRef ref,
+    String creationDate,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -133,7 +154,11 @@ class ReportsScreen extends ConsumerWidget {
               ],
             ),
             child: IconButton(
-              icon: Icon(Icons.arrow_back_rounded, size: 20, color: colors.onSurface),
+              icon: Icon(
+                Icons.arrow_back_rounded,
+                size: 20,
+                color: colors.onSurface,
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -155,7 +180,10 @@ class ReportsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF5145EA).withValues(alpha: 0.15)
@@ -184,7 +212,9 @@ class ReportsScreen extends ConsumerWidget {
                       child: Text(
                         'Create PDF reports of your library data.',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: isDark ? colors.onSurface : const Color(0xFF2C324A),
+                          color: isDark
+                              ? colors.onSurface
+                              : const Color(0xFF2C324A),
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
                         ),
@@ -207,7 +237,8 @@ class ReportsScreen extends ConsumerWidget {
                 accentColor: const Color(0xFF5145EA),
                 title: '📅 Monthly Report',
                 description: 'Generate report for a selected month.',
-                onPressed: () => _showMonthlySheet(context, ref, ownerProfile.joinDate),
+                onPressed: () =>
+                    _showMonthlySheet(context, ref, ownerProfile.joinDate),
               ),
               const SizedBox(height: 20),
 
@@ -223,7 +254,8 @@ class ReportsScreen extends ConsumerWidget {
                 accentColor: const Color(0xFF00B894),
                 title: '📆 Yearly Report',
                 description: 'Generate report for a selected year.',
-                onPressed: () => _showYearlySheet(context, ref, ownerProfile.joinDate),
+                onPressed: () =>
+                    _showYearlySheet(context, ref, ownerProfile.joinDate),
               ),
               const SizedBox(height: 20),
 
@@ -239,7 +271,8 @@ class ReportsScreen extends ConsumerWidget {
                 accentColor: const Color(0xFF6C5CE7),
                 title: '📄 Custom Report',
                 description: 'Generate report for any custom date range.',
-                onPressed: () => _showCustomSheet(context, ref, ownerProfile.joinDate),
+                onPressed: () =>
+                    _showCustomSheet(context, ref, ownerProfile.joinDate),
               ),
               const SizedBox(height: 20),
             ],
@@ -317,11 +350,7 @@ class ReportsScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        icon,
-                        color: Colors.white,
-                        size: 22,
-                      ),
+                      child: Icon(icon, color: Colors.white, size: 22),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -366,7 +395,11 @@ class ReportsScreen extends ConsumerWidget {
                     ),
                     child: ElevatedButton.icon(
                       onPressed: onPressed,
-                      icon: const Icon(Icons.arrow_forward_rounded, size: 17, color: Colors.white),
+                      icon: const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 17,
+                        color: Colors.white,
+                      ),
                       label: const Text(
                         'Generate',
                         style: TextStyle(
@@ -380,7 +413,10 @@ class ReportsScreen extends ConsumerWidget {
                         elevation: 0,
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),

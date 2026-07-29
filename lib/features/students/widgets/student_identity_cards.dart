@@ -208,10 +208,7 @@ class StudentIdCard extends StatelessWidget {
                 ),
                 Text(
                   'Valid until ${student.expiry}',
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: colors.onSurfaceVariant,
-                  ),
+                  style: TextStyle(fontSize: 9, color: colors.onSurfaceVariant),
                 ),
               ],
             ),
@@ -249,7 +246,9 @@ class _Photo extends StatelessWidget {
               student.initials,
               style: TextStyle(
                 fontSize: compact ? 9 : 15,
-                color: isDark ? colors.onPrimaryContainer : const Color(0xFF5145C8),
+                color: isDark
+                    ? colors.onPrimaryContainer
+                    : const Color(0xFF5145C8),
                 fontWeight: FontWeight.w900,
               ),
             )

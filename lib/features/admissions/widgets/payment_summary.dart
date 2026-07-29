@@ -29,15 +29,15 @@ class AdmissionPaymentSummary extends StatelessWidget {
           ),
         ],
       ),
-    child: Column(
-      children: [
-        _Row('Membership Plan', membership),
-        _Row('Monthly Fee', money(fee)),
-        _Row('Joining Date', joining),
-        _Row('Expiry Date', expiry, last: true),
-      ],
-    ),
-  );
+      child: Column(
+        children: [
+          _Row('Membership Plan', membership),
+          _Row('Monthly Fee', money(fee)),
+          _Row('Joining Date', joining),
+          _Row('Expiry Date', expiry, last: true),
+        ],
+      ),
+    );
   }
 }
 

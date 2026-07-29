@@ -13,7 +13,8 @@ extension SeatCategoryX on SeatCategory {
 
 extension PaymentModeX on PaymentMode {
   String get label => this == PaymentMode.cash ? 'Cash' : 'UPI';
-  String get fullLabel => this == PaymentMode.cash ? 'Cash Payment' : 'UPI / Digital Transfer';
+  String get fullLabel =>
+      this == PaymentMode.cash ? 'Cash Payment' : 'UPI / Digital Transfer';
 }
 
 class Student {
@@ -29,6 +30,9 @@ class Student {
   final SeatCategory category;
   final PaymentMode paymentMode;
   final bool hasRenewedPlan;
+  final String? sectionId;
+  final String? seatType;
+  final String? membershipPeriod;
 
   const Student({
     required this.id,
@@ -49,6 +53,9 @@ class Student {
     this.notes = '',
     this.previousExpiry,
     this.hasRenewedPlan = false,
+    this.sectionId,
+    this.seatType,
+    this.membershipPeriod,
   });
 
   Student copyWith({
@@ -67,6 +74,9 @@ class Student {
     PaymentMode? paymentMode,
     String? previousExpiry,
     bool? hasRenewedPlan,
+    String? sectionId,
+    String? seatType,
+    String? membershipPeriod,
   }) => Student(
     id: id,
     name: name ?? this.name,
@@ -85,6 +95,9 @@ class Student {
     paymentMode: paymentMode ?? this.paymentMode,
     previousExpiry: previousExpiry ?? this.previousExpiry,
     hasRenewedPlan: hasRenewedPlan ?? this.hasRenewedPlan,
+    sectionId: sectionId ?? this.sectionId,
+    seatType: seatType ?? this.seatType,
+    membershipPeriod: membershipPeriod ?? this.membershipPeriod,
     initials: name == null
         ? initials
         : name

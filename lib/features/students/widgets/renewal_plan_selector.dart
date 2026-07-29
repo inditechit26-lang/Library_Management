@@ -7,11 +7,19 @@ class RenewalPlanSelector extends StatelessWidget {
   final MembershipPeriod selected;
   final PlanPricing pricing;
   final ValueChanged<MembershipPeriod> onSelected;
+  final Set<MembershipPeriod> enabledPeriods;
   const RenewalPlanSelector({
     super.key,
     required this.selected,
     required this.pricing,
     required this.onSelected,
+    this.enabledPeriods = const {
+      MembershipPeriod.monthly,
+      MembershipPeriod.quarterly,
+      MembershipPeriod.halfYearly,
+      MembershipPeriod.annual,
+      MembershipPeriod.custom,
+    },
   });
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -21,6 +29,7 @@ class RenewalPlanSelector extends StatelessWidget {
         spacing: 10,
         runSpacing: 10,
         children: MembershipPeriod.values
+            .where(enabledPeriods.contains)
             .map(
               (period) => SizedBox(
                 width: period == MembershipPeriod.custom
@@ -60,7 +69,9 @@ class _Plan extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final bg = selected
-        ? (isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF3F2FF))
+        ? (isDark
+              ? colors.primaryContainer.withValues(alpha: 0.35)
+              : const Color(0xFFF3F2FF))
         : colors.surface;
     final borderColor = selected ? colors.primary : colors.outline;
 
@@ -79,10 +90,7 @@ class _Plan extends StatelessWidget {
             padding: const EdgeInsets.all(13),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(17),
-              border: Border.all(
-                color: borderColor,
-                width: selected ? 1.5 : 1,
-              ),
+              border: Border.all(color: borderColor, width: selected ? 1.5 : 1),
             ),
             child: Row(
               children: [
@@ -119,11 +127,7 @@ class _Plan extends StatelessWidget {
                   ),
                 ),
                 if (selected)
-                  Icon(
-                    Icons.check_circle,
-                    color: colors.primary,
-                    size: 18,
-                  ),
+                  Icon(Icons.check_circle, color: colors.primary, size: 18),
               ],
             ),
           ),
@@ -191,19 +195,19 @@ class RenewalCustomFields extends StatelessWidget {
               ),
             ),
           ),
-        const SizedBox(height: 11),
-        TextField(
-          controller: amount,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Amount',
-            prefixText: '₹  ',
+          const SizedBox(height: 11),
+          TextField(
+            controller: amount,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Amount',
+              prefixText: '₹  ',
+            ),
+            onChanged: onAmount,
           ),
-          onChanged: onAmount,
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
   }
 
   Future<void> _pick(BuildContext context) async {

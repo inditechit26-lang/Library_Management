@@ -138,28 +138,26 @@ class AdmissionNavigation extends StatelessWidget {
           color: colors.surface,
           border: Border(top: BorderSide(color: colors.outline)),
         ),
-      child: Row(
-        children: [
-          if (step > 0)
+        child: Row(
+          children: [
+            if (step > 0)
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onBack,
+                  child: const Text('Back'),
+                ),
+              ),
+            if (step > 0) const SizedBox(width: 10),
             Expanded(
-              child: OutlinedButton(
-                onPressed: onBack,
-                child: const Text('Back'),
+              flex: 2,
+              child: FilledButton(
+                onPressed: canContinue ? onNext : null,
+                child: Text(step == 4 ? 'Confirm Admission' : 'Continue'),
               ),
             ),
-          if (step > 0) const SizedBox(width: 10),
-          Expanded(
-            flex: 2,
-            child: FilledButton(
-              onPressed: canContinue ? onNext : null,
-              child: Text(step == 4 ? 'Confirm Admission' : 'Continue'),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 }
-
-

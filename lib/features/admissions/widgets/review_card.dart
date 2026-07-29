@@ -31,18 +31,18 @@ class AdmissionReviewCard extends StatelessWidget {
           ),
         ],
       ),
-    child: Column(
-      children: [
-        _Row('Student', student),
-        _Row('Membership', membership),
-        _Row('Seat', seat),
-        _Row('Fee', money(fee)),
-        _Row('Joining Date', joining),
-        _Row('Expiry Date', expiry),
-        _Row('Payment Status', payment, last: true),
-      ],
-    ),
-  );
+      child: Column(
+        children: [
+          _Row('Student', student),
+          _Row('Membership', membership),
+          _Row('Seat', seat),
+          _Row('Fee', money(fee)),
+          _Row('Joining Date', joining),
+          _Row('Expiry Date', expiry),
+          _Row('Payment Status', payment, last: true),
+        ],
+      ),
+    );
   }
 }
 

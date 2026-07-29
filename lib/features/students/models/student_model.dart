@@ -9,6 +9,9 @@ class StudentModel {
   final String? assignedSeat;
   final String shift;
   final String planName;
+  final String? membershipPeriod;
+  final String? seatType;
+  final String? sectionId;
   final double monthlyFee;
   final DateTime joiningDate;
   final DateTime validUntil;
@@ -30,6 +33,9 @@ class StudentModel {
     this.assignedSeat,
     required this.shift,
     required this.planName,
+    this.membershipPeriod,
+    this.seatType,
+    this.sectionId,
     required this.monthlyFee,
     required this.joiningDate,
     required this.validUntil,
@@ -54,9 +60,15 @@ class StudentModel {
       assignedSeat: data['assignedSeat'],
       shift: data['shift'] ?? 'Full Day',
       planName: data['planName'] ?? 'Monthly Standard',
+      membershipPeriod: data['membershipPeriod'],
+      seatType: data['seatType'],
+      sectionId: data['sectionId'],
       monthlyFee: (data['monthlyFee'] as num?)?.toDouble() ?? 0.0,
-      joiningDate: (data['joiningDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      validUntil: (data['validUntil'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(days: 30)),
+      joiningDate:
+          (data['joiningDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      validUntil:
+          (data['validUntil'] as Timestamp?)?.toDate() ??
+          DateTime.now().add(const Duration(days: 30)),
       status: data['status'] ?? 'Active',
       photoUrl: data['photoUrl'],
       aadhaarFrontUrl: data['aadhaarFrontUrl'],
@@ -77,6 +89,9 @@ class StudentModel {
       'assignedSeat': assignedSeat,
       'shift': shift,
       'planName': planName,
+      'membershipPeriod': membershipPeriod,
+      'seatType': seatType,
+      'sectionId': sectionId,
       'monthlyFee': monthlyFee,
       'joiningDate': Timestamp.fromDate(joiningDate),
       'validUntil': Timestamp.fromDate(validUntil),
@@ -100,6 +115,9 @@ class StudentModel {
     String? assignedSeat,
     String? shift,
     String? planName,
+    String? membershipPeriod,
+    String? seatType,
+    String? sectionId,
     double? monthlyFee,
     DateTime? joiningDate,
     DateTime? validUntil,
@@ -121,6 +139,9 @@ class StudentModel {
       assignedSeat: assignedSeat ?? this.assignedSeat,
       shift: shift ?? this.shift,
       planName: planName ?? this.planName,
+      membershipPeriod: membershipPeriod ?? this.membershipPeriod,
+      seatType: seatType ?? this.seatType,
+      sectionId: sectionId ?? this.sectionId,
       monthlyFee: monthlyFee ?? this.monthlyFee,
       joiningDate: joiningDate ?? this.joiningDate,
       validUntil: validUntil ?? this.validUntil,

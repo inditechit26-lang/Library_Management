@@ -6,7 +6,14 @@ import '../models/student.dart';
 
 class StudentInformationCard extends StatelessWidget {
   final Student student;
-  const StudentInformationCard({super.key, required this.student});
+  final String? sectionName;
+  final String? membershipPlanName;
+  const StudentInformationCard({
+    super.key,
+    required this.student,
+    this.sectionName,
+    this.membershipPlanName,
+  });
   @override
   Widget build(BuildContext context) => _Section(
     title: context.tr('Personal Information'),
@@ -21,15 +28,14 @@ class StudentInformationCard extends StatelessWidget {
         'Membership Type',
         '${student.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time'} (${student.category.shortLabel})',
       ),
-      _Row('Hall Section', student.category.label),
+      _Row('Hall Section', sectionName ?? student.category.label),
+      if (membershipPlanName != null)
+        _Row('Membership Plan', membershipPlanName!),
       if (student.membership == MembershipType.fullTime) ...[
         _Row('Seat Number', student.seat),
       ] else ...[
         const _Row('Seat Number', 'Flexible Seating'),
-        _Row(
-          'Shift Time',
-          student.halfTimeShiftTime ?? 'Flexible Shift',
-        ),
+        _Row('Shift Time', student.halfTimeShiftTime ?? 'Flexible Shift'),
       ],
       _Row('Notes', student.notes.isEmpty ? '—' : student.notes),
     ],
@@ -39,17 +45,25 @@ class StudentInformationCard extends StatelessWidget {
 class PaymentInformationCard extends StatelessWidget {
   final Student student;
   final VoidCallback onPaymentHistory;
+  final double? basePlanPrice;
+  final double? sectionAdditionalPrice;
   const PaymentInformationCard({
     super.key,
     required this.student,
     required this.onPaymentHistory,
+    this.basePlanPrice,
+    this.sectionAdditionalPrice,
   });
   @override
   Widget build(BuildContext context) => _Section(
     title: context.tr('Payment Information'),
     icon: Icons.account_balance_wallet_outlined,
     children: [
-      _Row('Monthly Fee', money(student.fee)),
+      if (basePlanPrice != null)
+        _Row('Configured Price', money(basePlanPrice!)),
+      if (sectionAdditionalPrice != null && sectionAdditionalPrice! > 0)
+        _Row('Section Additional Price', money(sectionAdditionalPrice!)),
+      _Row('Final Membership Price', money(student.fee)),
       const _Row('Last Payment', '05 Jul 2026'),
       _Row('Current Expiry', student.expiry),
       _Row('Next Renewal', student.expiry),
@@ -65,7 +79,10 @@ class PaymentInformationCard extends StatelessWidget {
         ),
         subtitle: Text(
           'Review monthly payments and their status.',
-          style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            fontSize: 11,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: TextButton.icon(
           onPressed: onPaymentHistory,

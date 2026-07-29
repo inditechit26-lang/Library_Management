@@ -29,7 +29,9 @@ class DocumentService {
         : PickedStudentDocument(file.name, file.path, true);
   }
 
-  Future<List<PickedStudentDocument>> multiFromGallery({int maxImages = 2}) async {
+  Future<List<PickedStudentDocument>> multiFromGallery({
+    int maxImages = 2,
+  }) async {
     final files = await _images.pickMultiImage(imageQuality: 88);
     if (files.isEmpty) return [];
     return files

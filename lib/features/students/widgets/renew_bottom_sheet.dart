@@ -4,8 +4,8 @@ import 'package:intl/intl.dart';
 import '../../../core/utils/formatters.dart';
 import '../../admissions/widgets/custom_plan_card.dart';
 import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
-import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 import '../controllers/students_controller.dart';
 import '../models/student.dart';
 import 'renewal_plan_selector.dart';
@@ -25,6 +25,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
   DateTime? customExpiry;
   int? customDays;
   double? customFee;
+  double? manualFee;
   double slide = 0;
   bool done = false;
   late final DateTime currentExpiry;
@@ -36,11 +37,12 @@ class _State extends ConsumerState<RenewBottomSheet> {
     customStart = currentExpiry;
   }
 
-  PlanPricing get pricing =>
-      ref.read(pricingProvider).forMembership(widget.student.membership);
+  PlanPricing get pricing => ref
+      .read(libraryConfigurationProvider)
+      .pricingForSection(widget.student.sectionId);
   double get amount => period == MembershipPeriod.custom
       ? customFee ?? -1
-      : pricing.priceFor(period);
+      : manualFee ?? pricing.priceFor(period);
   DateTime get expiryDate => period == MembershipPeriod.custom
       ? customExpiry ?? customStart
       : DateTime(
@@ -66,9 +68,16 @@ class _State extends ConsumerState<RenewBottomSheet> {
   );
 
   Widget _payment() {
-    final livePricing = ref
-        .watch(pricingProvider)
-        .forMembership(widget.student.membership);
+    final configuration = ref.watch(libraryConfigurationProvider);
+    final enabledPeriods = configuration.membershipPeriodsForSection(
+      widget.student.sectionId,
+    );
+    if (!enabledPeriods.contains(period)) {
+      period = enabledPeriods.first;
+    }
+    final livePricing = configuration.pricingForSection(
+      widget.student.sectionId,
+    );
     return Column(
       key: const ValueKey(false),
       children: [
@@ -98,11 +107,38 @@ class _State extends ConsumerState<RenewBottomSheet> {
                 RenewalPlanSelector(
                   selected: period,
                   pricing: livePricing,
+                  enabledPeriods: enabledPeriods,
                   onSelected: (value) => setState(() {
                     period = value;
+                    manualFee = null;
+                    if (value == MembershipPeriod.custom && customFee == null) {
+                      customFee = configuration.priceFor(
+                        MembershipPeriod.custom,
+                        sectionId: widget.student.sectionId,
+                      );
+                    }
                     slide = 0;
                   }),
                 ),
+                if (period != MembershipPeriod.custom) ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    key: ValueKey(
+                      '${widget.student.sectionId}-${period.name}-${livePricing.priceFor(period)}',
+                    ),
+                    initialValue: livePricing.priceFor(period).toString(),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      labelText: 'Membership Price',
+                      prefixText: '₹ ',
+                    ),
+                    onChanged: (value) => setState(
+                      () => manualFee = double.tryParse(value.trim()),
+                    ),
+                  ),
+                ],
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 240),
                   child: period == MembershipPeriod.custom
@@ -177,7 +213,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
     customDays = value;
     if (value != null && value > 0) {
       customExpiry = customStart.add(Duration(days: value));
-      customFee = (pricing.monthly / 30 * value).roundToDouble();
+      customFee ??= (pricing.monthly / 30 * value).roundToDouble();
     } else {
       customExpiry = null;
       customFee = null;
@@ -188,7 +224,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
   void _calculateCustomValues() {
     if (customExpiry == null) return;
     customDays = customExpiry!.difference(customStart).inDays;
-    customFee = (pricing.monthly / 30 * customDays!).roundToDouble();
+    customFee ??= (pricing.monthly / 30 * customDays!).roundToDouble();
   }
 
   void _complete() {

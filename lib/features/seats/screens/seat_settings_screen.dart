@@ -8,6 +8,8 @@ import '../services/seat_configuration_service.dart';
 import '../widgets/seat_admin_list.dart';
 import '../widgets/seat_generator_panel.dart';
 import '../widgets/seat_settings_sections.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
+import '../../settings/models/library_configuration.dart';
 
 class SeatSettingsScreen extends ConsumerStatefulWidget {
   const SeatSettingsScreen({super.key});
@@ -22,6 +24,7 @@ class _SeatSettingsScreenState extends ConsumerState<SeatSettingsScreen> {
   Widget build(BuildContext context) {
     final seats = ref.watch(seatsProvider),
         students = ref.watch(studentsProvider);
+    final configuration = ref.watch(libraryConfigurationProvider);
     final visible = seats
         .where(
           (seat) => '${seat.seatLabel} ${_student(seat, students)?.name ?? ''}'
@@ -71,13 +74,32 @@ class _SeatSettingsScreenState extends ConsumerState<SeatSettingsScreen> {
             title: 'Seat Generator',
             icon: Icons.auto_awesome_outlined,
             child: SeatGeneratorPanel(
+              key: ValueKey(configuration.seatNumbering.style),
+              initialMode: switch (configuration.seatNumbering.style) {
+                SeatNumberingStyle.numeric => SeatGeneratorMode.numeric,
+                SeatNumberingStyle.alphabetic => SeatGeneratorMode.alphabetic,
+              },
               onNumeric: (total) => _confirmGenerate(
-                () => ref.read(seatsProvider.notifier).generateNumeric(total),
+                () => ref
+                    .read(seatsProvider.notifier)
+                    .generateNumeric(
+                      total,
+                      startingNumber:
+                          configuration.seatNumbering.startingNumber,
+                    ),
               ),
               onAlphabetic: (rows, perRow) => _confirmGenerate(
                 () => ref
                     .read(seatsProvider.notifier)
-                    .generateAlphabetic(rows.clamp(1, 26), perRow),
+                    .generateAlphabetic(
+                      configuration.seatNumbering.endPrefixCode -
+                          configuration.seatNumbering.startPrefixCode +
+                          1,
+                      configuration.seatNumbering.numbersPerPrefix,
+                      prefix: configuration.seatNumbering.prefix,
+                      startingNumber:
+                          configuration.seatNumbering.startingNumber,
+                    ),
               ),
               onCustom: _addSeat,
             ),
@@ -104,7 +126,6 @@ class _SeatSettingsScreenState extends ConsumerState<SeatSettingsScreen> {
                 ),
               ],
             ),
-          ),
           ),
         ],
       ),
@@ -158,7 +179,11 @@ class _SeatSettingsScreenState extends ConsumerState<SeatSettingsScreen> {
   }
 
   Future<void> _addSeat() async {
-    final label = await _labelDialog('Add new seat');
+    final configuration = ref.read(libraryConfigurationProvider);
+    final suggestedLabel = configuration.nextSeatLabel(
+      ref.read(seatsProvider).map((seat) => seat.seatLabel),
+    );
+    final label = await _labelDialog('Add new seat', suggestedLabel);
     if (label != null) ref.read(seatsProvider.notifier).add(label);
   }
 

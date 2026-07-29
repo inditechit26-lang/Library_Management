@@ -8,21 +8,27 @@ class PaymentHistorySheet extends StatelessWidget {
 
   const PaymentHistorySheet({super.key, required this.student});
 
-  static void open(BuildContext context, Student student) => showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    showDragHandle: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => PaymentHistorySheet(student: student),
-  );
+  static void open(BuildContext context, Student student) =>
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => PaymentHistorySheet(student: student),
+      );
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final records = _recordsFor(student);
-    final paidRecords = records.where((record) => record.status == PaymentStatus.paid);
-    final totalPaid = paidRecords.fold<double>(0, (total, record) => total + record.amount);
+    final paidRecords = records.where(
+      (record) => record.status == PaymentStatus.paid,
+    );
+    final totalPaid = paidRecords.fold<double>(
+      0,
+      (total, record) => total + record.amount,
+    );
 
     return Container(
       height: MediaQuery.sizeOf(context).height * .82,
@@ -43,16 +49,31 @@ class PaymentHistorySheet extends StatelessWidget {
                     color: colors.primaryContainer,
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(Icons.account_balance_wallet_rounded, color: colors.primary),
+                  child: Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: colors.primary,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Payment history', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const Text(
+                        'Payment history',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(student.name, style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant)),
+                      Text(
+                        student.name,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -71,18 +92,39 @@ class PaymentHistorySheet extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [colors.primary, colors.primary.withValues(alpha: .78)],
+                  colors: [
+                    colors.primary,
+                    colors.primary.withValues(alpha: .78),
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('TOTAL PAID', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: .8)),
+                  const Text(
+                    'TOTAL PAID',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: .8,
+                    ),
+                  ),
                   const SizedBox(height: 5),
-                  Text(money(totalPaid), style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
+                  Text(
+                    money(totalPaid),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('${paidRecords.length} successful monthly payments', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                  Text(
+                    '${paidRecords.length} successful monthly payments',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
                 ],
               ),
             ),
@@ -93,7 +135,8 @@ class PaymentHistorySheet extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
               itemCount: records.length,
               separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (_, index) => _PaymentHistoryTile(record: records[index]),
+              itemBuilder: (_, index) =>
+                  _PaymentHistoryTile(record: records[index]),
             ),
           ),
         ],
@@ -110,23 +153,26 @@ class PaymentHistorySheet extends StatelessWidget {
     final lastMonth = DateTime(expiry.year, expiry.month, expiry.day);
 
     while (!month.isAfter(lastMonth)) {
-      final isCurrent = month.year == lastMonth.year && month.month == lastMonth.month;
+      final isCurrent =
+          month.year == lastMonth.year && month.month == lastMonth.month;
       final status = isCurrent ? student.payment : PaymentStatus.paid;
-      records.add(_PaymentRecord(
-        date: DateTime(
-          month.year,
-          month.month,
-          month.day,
-          10 + (student.id + month.month) % 8,
-          (student.id * 7 + month.month * 11) % 60,
+      records.add(
+        _PaymentRecord(
+          date: DateTime(
+            month.year,
+            month.month,
+            month.day,
+            10 + (student.id + month.month) % 8,
+            (student.id * 7 + month.month * 11) % 60,
+          ),
+          amount: student.fee,
+          status: status,
+          mode: student.paymentMode,
+          reference: student.paymentMode == PaymentMode.cash
+              ? 'Cash collection'
+              : 'UPI ref. ${1000 + student.id * 37 + month.month}',
         ),
-        amount: student.fee,
-        status: status,
-        mode: student.paymentMode,
-        reference: student.paymentMode == PaymentMode.cash
-            ? 'Cash collection'
-            : 'UPI ref. ${1000 + student.id * 37 + month.month}',
-      ));
+      );
       month = DateTime(month.year, month.month + 1, month.day);
     }
     return records.reversed.toList();
@@ -200,11 +246,21 @@ class _PaymentHistoryTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(DateFormat('MMMM yyyy').format(record.date), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                Text(
+                  DateFormat('MMMM yyyy').format(record.date),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 const SizedBox(height: 3),
                 Text(
                   DateFormat('dd MMM yyyy, h:mm a').format(record.date),
-                  style: TextStyle(fontSize: 10, height: 1.4, color: colors.onSurfaceVariant),
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1.4,
+                    color: colors.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -220,7 +276,10 @@ class _PaymentHistoryTile extends StatelessWidget {
                         '${record.mode.fullLabel} · ${record.reference}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
@@ -231,9 +290,19 @@ class _PaymentHistoryTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(money(record.amount), style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(
+                money(record.amount),
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 4),
-              Text(statusLabel, style: TextStyle(fontSize: 10, color: statusColor, fontWeight: FontWeight.w700)),
+              Text(
+                statusLabel,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: statusColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ],
