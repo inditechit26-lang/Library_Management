@@ -31,12 +31,14 @@ class DocumentVault extends ConsumerWidget {
     final effectiveBack = aadhaarBack;
     final hasAadhaar = effectiveFront != null || effectiveBack != null;
 
-    final otherDocs = docs.where(
-      (d) =>
-          d.type != StudentDocumentType.aadhaarFront &&
-          d.type != StudentDocumentType.aadhaarBack &&
-          d.type != StudentDocumentType.aadhaar,
-    ).toList();
+    final otherDocs = docs
+        .where(
+          (d) =>
+              d.type != StudentDocumentType.aadhaarFront &&
+              d.type != StudentDocumentType.aadhaarBack &&
+              d.type != StudentDocumentType.aadhaar,
+        )
+        .toList();
 
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -113,7 +115,10 @@ class DocumentVault extends ConsumerWidget {
                   onTap: () => _pick(context, ref, null, docs),
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -150,8 +155,10 @@ class DocumentVault extends ConsumerWidget {
               _AadhaarTile(
                 frontDoc: effectiveFront,
                 backDoc: effectiveBack,
-                onPreview: () => _previewAadhaar(context, effectiveFront, effectiveBack),
-                onDownload: () => _downloadAadhaar(context, effectiveFront, effectiveBack),
+                onPreview: () =>
+                    _previewAadhaar(context, effectiveFront, effectiveBack),
+                onDownload: () =>
+                    _downloadAadhaar(context, effectiveFront, effectiveBack),
                 onReupload: () => _pickAadhaar(
                   context,
                   ref,
@@ -159,7 +166,9 @@ class DocumentVault extends ConsumerWidget {
                   backDoc: effectiveBack,
                 ),
                 onDelete: () => _confirmRemoveAadhaar(context, () {
-                  final notifier = ref.read(studentDocumentsProvider(studentId).notifier);
+                  final notifier = ref.read(
+                    studentDocumentsProvider(studentId).notifier,
+                  );
                   for (final doc in [
                     aadhaarFront,
                     aadhaarBack,
@@ -187,7 +196,10 @@ class DocumentVault extends ConsumerWidget {
     );
   }
 
-  Future<void> _downloadDocument(BuildContext context, StudentDocument doc) async {
+  Future<void> _downloadDocument(
+    BuildContext context,
+    StudentDocument doc,
+  ) async {
     final file = File(doc.path);
     if (!file.existsSync()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -313,7 +325,11 @@ class DocumentVault extends ConsumerWidget {
                       color: colors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.badge_rounded, color: colors.primary, size: 20),
+                    child: Icon(
+                      Icons.badge_rounded,
+                      color: colors.primary,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -341,9 +357,14 @@ class DocumentVault extends ConsumerWidget {
               ),
               const SizedBox(height: 18),
               ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 tileColor: colors.primaryContainer.withValues(alpha: 0.4),
-                leading: Icon(Icons.photo_library_rounded, color: colors.primary),
+                leading: Icon(
+                  Icons.photo_library_rounded,
+                  color: colors.primary,
+                ),
                 title: const Text(
                   'Gallery (Select up to 2 images)',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
@@ -356,7 +377,9 @@ class DocumentVault extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: const Text(
                   'Take Photo with Camera',
@@ -389,19 +412,25 @@ class DocumentVault extends ConsumerWidget {
         type: StudentDocumentType.aadhaarFront,
         isImage: true,
       );
-      frontDoc == null ? notifier.add(docFront) : notifier.replace(frontDoc.id, docFront);
+      frontDoc == null
+          ? notifier.add(docFront)
+          : notifier.replace(frontDoc.id, docFront);
 
       if (pickedList.length > 1) {
         final backPicked = pickedList[1];
         final docBack = StudentDocument(
-          id: backDoc?.id ?? (DateTime.now().microsecondsSinceEpoch + 1).toString(),
+          id:
+              backDoc?.id ??
+              (DateTime.now().microsecondsSinceEpoch + 1).toString(),
           name: 'Aadhaar Card (Page 2)',
           path: backPicked.path,
           uploadedAt: nowStr,
           type: StudentDocumentType.aadhaarBack,
           isImage: true,
         );
-        backDoc == null ? notifier.add(docBack) : notifier.replace(backDoc.id, docBack);
+        backDoc == null
+            ? notifier.add(docBack)
+            : notifier.replace(backDoc.id, docBack);
       }
     } else if (choice == 'camera') {
       final picked = await service.fromCamera();
@@ -412,7 +441,9 @@ class DocumentVault extends ConsumerWidget {
         name: 'Aadhaar Card',
         path: picked.path,
         uploadedAt: '18 Jul 2026',
-        type: frontDoc == null ? StudentDocumentType.aadhaarFront : StudentDocumentType.aadhaarBack,
+        type: frontDoc == null
+            ? StudentDocumentType.aadhaarFront
+            : StudentDocumentType.aadhaarBack,
         isImage: true,
       );
       frontDoc == null ? notifier.add(doc) : notifier.replace(frontDoc.id, doc);
@@ -434,7 +465,9 @@ class DocumentVault extends ConsumerWidget {
         child: Wrap(
           children: [
             ListTile(
-              title: Text('${context.tr('Add')} ${displayName ?? _typeName(type)}'),
+              title: Text(
+                '${context.tr('Add')} ${displayName ?? _typeName(type)}',
+              ),
               subtitle: Text(helperText ?? context.tr('Choose a source')),
             ),
             ListTile(
@@ -498,7 +531,9 @@ class DocumentVault extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
               foregroundColor: Theme.of(context).colorScheme.onError,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Remove'),
@@ -528,9 +563,9 @@ class DocumentVault extends ConsumerWidget {
             children: [
               Text(
                 'Document type',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
               for (final type in [
@@ -540,7 +575,9 @@ class DocumentVault extends ConsumerWidget {
                 StudentDocumentType.other,
               ])
                 ListTile(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   leading: Icon(
                     type == StudentDocumentType.aadhaar
                         ? Icons.badge_outlined
@@ -601,7 +638,10 @@ class DocumentVault extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     doc.name,
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -667,16 +707,15 @@ class _AadhaarTile extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final count = (frontDoc != null ? 1 : 0) + (backDoc != null ? 1 : 0);
-    final uploadedAt = frontDoc?.uploadedAt ?? backDoc?.uploadedAt ?? '18 Jul 2026';
+    final uploadedAt =
+        frontDoc?.uploadedAt ?? backDoc?.uploadedAt ?? '18 Jul 2026';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: isDark ? colors.surfaceContainerLow : const Color(0xFFF9FAFD),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: ListTile(
         onTap: onPreview,
@@ -689,11 +728,7 @@ class _AadhaarTile extends StatelessWidget {
             color: colors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
-            Icons.badge_rounded,
-            color: colors.primary,
-            size: 20,
-          ),
+          child: Icon(Icons.badge_rounded, color: colors.primary, size: 20),
         ),
         title: Row(
           children: [
@@ -766,9 +801,16 @@ class _AadhaarTile extends StatelessWidget {
               value: 'delete',
               child: Row(
                 children: [
-                  const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                  const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: Colors.redAccent,
+                  ),
                   const SizedBox(width: 10),
-                  Text(context.tr('Delete'), style: const TextStyle(color: Colors.redAccent)),
+                  Text(
+                    context.tr('Delete'),
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
                 ],
               ),
             ),
@@ -784,10 +826,12 @@ class _MultiDocumentPreviewDialog extends StatefulWidget {
   const _MultiDocumentPreviewDialog({required this.documents});
 
   @override
-  State<_MultiDocumentPreviewDialog> createState() => _MultiDocumentPreviewDialogState();
+  State<_MultiDocumentPreviewDialog> createState() =>
+      _MultiDocumentPreviewDialogState();
 }
 
-class _MultiDocumentPreviewDialogState extends State<_MultiDocumentPreviewDialog> {
+class _MultiDocumentPreviewDialogState
+    extends State<_MultiDocumentPreviewDialog> {
   int _currentPage = 0;
   late final PageController _controller;
 
@@ -824,12 +868,18 @@ class _MultiDocumentPreviewDialogState extends State<_MultiDocumentPreviewDialog
                     children: [
                       const Text(
                         'Aadhaar Card',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
                       ),
                       if (docs.length > 1)
                         Text(
                           'Page ${_currentPage + 1} of ${docs.length}',
-                          style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colors.onSurfaceVariant,
+                          ),
                         ),
                     ],
                   ),
@@ -921,15 +971,16 @@ class _EmptyVault extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'No documents uploaded',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: colors.onSurface),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: colors.onSurface,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
               'Tap "+ Add" to upload Aadhaar Card, College ID or files',
-              style: TextStyle(
-                fontSize: 11,
-                color: colors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 11, color: colors.onSurfaceVariant),
             ),
           ],
         ),
@@ -959,9 +1010,7 @@ class _DocumentTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? colors.surfaceContainerLow : const Color(0xFFF9FAFD),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: ListTile(
         onTap: onPreview,
@@ -1035,9 +1084,16 @@ class _DocumentTile extends StatelessWidget {
               value: 'delete',
               child: Row(
                 children: [
-                  const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                  const Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: Colors.redAccent,
+                  ),
                   const SizedBox(width: 10),
-                  Text(context.tr('Delete'), style: const TextStyle(color: Colors.redAccent)),
+                  Text(
+                    context.tr('Delete'),
+                    style: const TextStyle(color: Colors.redAccent),
+                  ),
                 ],
               ),
             ),

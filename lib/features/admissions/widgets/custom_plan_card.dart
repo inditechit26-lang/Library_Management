@@ -64,52 +64,52 @@ class _State extends State<CustomPlanCard> {
         border: Border.all(color: colors.outline),
         borderRadius: BorderRadius.circular(22),
       ),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _DateField(
-                label: 'Start Date',
-                value: widget.start,
-                onTap: () => _pickStart(context),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _DateField(
+                  label: 'Start Date',
+                  value: widget.start,
+                  onTap: () => _pickStart(context),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _DateField(
-                label: 'End Date',
-                value: widget.end,
-                onTap: () => _pickEnd(context),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _DateField(
+                  label: 'End Date',
+                  value: widget.end,
+                  onTap: () => _pickEnd(context),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: days,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Number of Days',
+              helperText: 'Calculated from dates · Editable',
+              prefixIcon: Icon(Icons.timelapse_outlined),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: days,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Number of Days',
-            helperText: 'Calculated from dates · Editable',
-            prefixIcon: Icon(Icons.timelapse_outlined),
+            onChanged: (value) => widget.onDays(int.tryParse(value)),
           ),
-          onChanged: (value) => widget.onDays(int.tryParse(value)),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          controller: amount,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Fee Amount',
-            helperText: 'Calculated from duration · Editable',
-            prefixText: '₹  ',
+          const SizedBox(height: 12),
+          TextField(
+            controller: amount,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Fee Amount',
+              helperText: 'Calculated from duration · Editable',
+              prefixText: '₹  ',
+            ),
+            onChanged: (value) => widget.onAmount(double.tryParse(value)),
           ),
-          onChanged: (value) => widget.onAmount(double.tryParse(value)),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
   }
 
   Future<void> _pickStart(BuildContext context) async {
@@ -158,23 +158,22 @@ class _DateField extends StatelessWidget {
           border: Border.all(color: colors.outline),
           borderRadius: BorderRadius.circular(16),
         ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 8, color: Color(0xFF8E93A4)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value == null ? '—' : DateFormat('d MMM yyyy').format(value!),
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-          ),
-        ],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 8, color: Color(0xFF8E93A4)),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value == null ? '—' : DateFormat('d MMM yyyy').format(value!),
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
   }
 }
-

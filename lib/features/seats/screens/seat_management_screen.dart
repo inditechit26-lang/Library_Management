@@ -10,6 +10,7 @@ import '../widgets/seat_filter_bar.dart';
 import '../widgets/seat_map.dart';
 import '../widgets/seat_status_legend.dart';
 import '../widgets/seat_summary_cards.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 
 class SeatManagementScreen extends ConsumerStatefulWidget {
   const SeatManagementScreen({super.key});
@@ -34,6 +35,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
   Widget build(BuildContext context) {
     final all = ref.watch(seatsProvider);
     final students = ref.watch(studentsProvider);
+    final configuration = ref.watch(libraryConfigurationProvider);
     final visible = all.where((s) => _matches(s, students)).toList();
     return ListView(
       padding: EdgeInsets.fromLTRB(
@@ -98,6 +100,17 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+            ),
+            const SizedBox(width: 6),
+            IconButton.filledTonal(
+              tooltip: 'Add Seat',
+              onPressed: () {
+                final label = configuration.nextSeatLabel(
+                  all.map((seat) => seat.seatLabel),
+                );
+                ref.read(seatsProvider.notifier).add(label);
+              },
+              icon: const Icon(Icons.add_rounded, size: 20),
             ),
           ],
         ),

@@ -28,10 +28,13 @@ class StudentsRepository implements BaseStudentsRepository {
   final FirebaseFirestore _firestore;
 
   StudentsRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference _studentsRef(String libraryId) {
-    return _firestore.collection('libraries').doc(libraryId).collection('students');
+    return _firestore
+        .collection('libraries')
+        .doc(libraryId)
+        .collection('students');
   }
 
   @override
@@ -40,12 +43,18 @@ class StudentsRepository implements BaseStudentsRepository {
         .where('isDeleted', isEqualTo: false)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => StudentModel.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => StudentModel.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   @override
-  Future<List<StudentModel>> getStudents(String libraryId, {int limit = 50}) async {
+  Future<List<StudentModel>> getStudents(
+    String libraryId, {
+    int limit = 50,
+  }) async {
     try {
       final snapshot = await _studentsRef(libraryId)
           .where('isDeleted', isEqualTo: false)
@@ -53,14 +62,19 @@ class StudentsRepository implements BaseStudentsRepository {
           .limit(limit)
           .get();
 
-      return snapshot.docs.map((doc) => StudentModel.fromFirestore(doc)).toList();
+      return snapshot.docs
+          .map((doc) => StudentModel.fromFirestore(doc))
+          .toList();
     } catch (e, stack) {
       throw ErrorHandler.handle(e, stack);
     }
   }
 
   @override
-  Future<StudentModel?> getStudentById(String libraryId, String studentId) async {
+  Future<StudentModel?> getStudentById(
+    String libraryId,
+    String studentId,
+  ) async {
     try {
       final doc = await _studentsRef(libraryId).doc(studentId).get();
       if (!doc.exists) return null;
@@ -82,7 +96,9 @@ class StudentsRepository implements BaseStudentsRepository {
   @override
   Future<void> updateStudent(String libraryId, StudentModel student) async {
     try {
-      await _studentsRef(libraryId).doc(student.id).update(student.toFirestore());
+      await _studentsRef(
+        libraryId,
+      ).doc(student.id).update(student.toFirestore());
     } catch (e, stack) {
       throw ErrorHandler.handle(e, stack);
     }
@@ -173,7 +189,9 @@ class StudentsRepository implements BaseStudentsRepository {
         transaction.set(paymentDocRef, payment.toFirestore());
 
         // 4. Create Receipt record
-        final receiptDocRef = libRef.collection('receipts').doc(receipt.receiptNumber);
+        final receiptDocRef = libRef
+            .collection('receipts')
+            .doc(receipt.receiptNumber);
         transaction.set(receiptDocRef, receipt.toFirestore());
 
         // 5. Create Membership History record
@@ -196,7 +214,8 @@ class StudentsRepository implements BaseStudentsRepository {
           ActivityLogModel(
             id: activityRef.id,
             title: 'New Student Admission',
-            description: '${student.name} admitted with Plan ${student.planName}.',
+            description:
+                '${student.name} admitted with Plan ${student.planName}.',
             type: 'student_added',
             timestamp: DateTime.now(),
           ).toFirestore(),

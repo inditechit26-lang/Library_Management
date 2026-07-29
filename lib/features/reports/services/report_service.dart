@@ -26,7 +26,8 @@ class ReportService {
     final t = DateTime(target.year, target.month, target.day);
     final s = DateTime(start.year, start.month, start.day);
     final e = DateTime(end.year, end.month, end.day, 23, 59, 59);
-    return (t.isAfter(s) || t.isAtSameMomentAs(s)) && (t.isBefore(e) || t.isAtSameMomentAs(e));
+    return (t.isAfter(s) || t.isAtSameMomentAs(s)) &&
+        (t.isBefore(e) || t.isAtSameMomentAs(e));
   }
 
   /// Generate ReportData for Monthly, Yearly or Custom ranges
@@ -38,6 +39,7 @@ class ReportService {
     required List<Student> allStudents,
     required List<Seat> allSeats,
     required OwnerProfile ownerProfile,
+    Map<String, String> sectionNames = const {},
   }) {
     final now = DateTime.now();
 
@@ -58,6 +60,7 @@ class ReportService {
     double pendingFees = 0.0;
 
     final List<PaymentRecord> history = [];
+    final revenueBySection = <String, double>{};
 
     for (var s in periodStudents) {
       if (s.hasRenewedPlan) {
@@ -70,27 +73,40 @@ class ReportService {
       final fee = s.fee;
       if (s.payment == PaymentStatus.paid) {
         totalCollection += fee;
+        final sectionName =
+            sectionNames[s.sectionId] ?? s.sectionId ?? 'Unassigned';
+        revenueBySection.update(
+          sectionName,
+          (value) => value + fee,
+          ifAbsent: () => fee,
+        );
         if (s.paymentMode == PaymentMode.cash) {
           cashCollection += fee;
         } else {
           upiCollection += fee;
         }
 
-        history.add(PaymentRecord(
-          receiptNo: '',
-          studentName: s.name,
-          paymentDate: s.joined,
-          mode: s.paymentMode.label,
-          amount: s.fee,
-          status: 'Paid',
-        ));
+        history.add(
+          PaymentRecord(
+            receiptNo: '',
+            studentName: s.name,
+            paymentDate: s.joined,
+            mode: s.paymentMode.label,
+            amount: s.fee,
+            status: 'Paid',
+          ),
+        );
       } else {
         pendingFees += fee;
       }
     }
 
-    final occupiedSeats = allSeats.where((s) => s.status == SeatStatus.occupied).length;
-    final availableSeats = allSeats.where((s) => s.status == SeatStatus.available).length;
+    final occupiedSeats = allSeats
+        .where((s) => s.status == SeatStatus.occupied)
+        .length;
+    final availableSeats = allSeats
+        .where((s) => s.status == SeatStatus.available)
+        .length;
 
     return ReportData(
       reportType: reportType,
@@ -111,6 +127,8 @@ class ReportService {
       totalRevenue: totalCollection,
       studentList: periodStudents,
       paymentHistory: history,
+      revenueBySection: revenueBySection,
+      sectionNames: sectionNames,
     );
   }
 }

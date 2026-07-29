@@ -62,7 +62,9 @@ class _StudentIdScreenState extends State<StudentIdScreen> {
                           'Verified digital identity',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -153,58 +155,58 @@ class _Actions extends StatelessWidget {
           ),
         ],
       ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _Action(
-                icon: Icons.download_outlined,
-                label: 'Download PDF',
-                onTap: working ? null : onDownload,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _Action(
+                  icon: Icons.download_outlined,
+                  label: 'Download PDF',
+                  onTap: working ? null : onDownload,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _Action(
-                icon: Icons.print_outlined,
-                label: 'Print',
-                onTap: working ? null : onPrint,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _Action(
+                  icon: Icons.print_outlined,
+                  label: 'Print',
+                  onTap: working ? null : onPrint,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _Action(
-                icon: Icons.ios_share_outlined,
-                label: 'Share PDF',
-                onTap: working ? null : onShare,
+              const SizedBox(width: 8),
+              Expanded(
+                child: _Action(
+                  icon: Icons.ios_share_outlined,
+                  label: 'Share PDF',
+                  onTap: working ? null : onShare,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 9),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: working ? null : onRegenerate,
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Regenerate'),
+            ],
+          ),
+          const SizedBox(height: 9),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: working ? null : onRegenerate,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Regenerate'),
+                ),
               ),
-            ),
-            const SizedBox(width: 9),
-            Expanded(
-              child: FilledButton(
-                onPressed: onClose,
-                child: const Text('Close'),
+              const SizedBox(width: 9),
+              Expanded(
+                child: FilledButton(
+                  onPressed: onClose,
+                  child: const Text('Close'),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

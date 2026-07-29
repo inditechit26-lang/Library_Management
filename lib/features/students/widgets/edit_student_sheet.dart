@@ -133,7 +133,9 @@ class _State extends ConsumerState<EditStudentSheet> {
                       child: photoPath == null
                           ? Text(
                               widget.student.initials,
-                              style: const TextStyle(fontWeight: FontWeight.w800),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                              ),
                             )
                           : null,
                     ),
@@ -170,7 +172,9 @@ class _State extends ConsumerState<EditStudentSheet> {
               TextFormField(
                 controller: emergency,
                 keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: 'Emergency Contact'),
+                decoration: const InputDecoration(
+                  labelText: 'Emergency Contact',
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -259,7 +263,10 @@ class _State extends ConsumerState<EditStudentSheet> {
                             );
                           }),
                           ActionChip(
-                            avatar: const Icon(Icons.more_time_rounded, size: 16),
+                            avatar: const Icon(
+                              Icons.more_time_rounded,
+                              size: 16,
+                            ),
                             label: const Text('Custom Time'),
                             onPressed: _pickCustomTimeRange,
                           ),
@@ -306,8 +313,8 @@ class _State extends ConsumerState<EditStudentSheet> {
     final finalSeat = membership == MembershipType.fullTime
         ? seat.text.trim()
         : selectedShift != null
-            ? 'Flexible ($selectedShift)'
-            : 'Flexible';
+        ? 'Flexible ($selectedShift)'
+        : 'Flexible';
     widget.onSave(
       widget.student.copyWith(
         name: name.text.trim(),

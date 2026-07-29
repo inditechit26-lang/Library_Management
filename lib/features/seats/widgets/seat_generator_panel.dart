@@ -6,21 +6,29 @@ class SeatGeneratorPanel extends StatefulWidget {
   final void Function(int total) onNumeric;
   final void Function(int rows, int seatsPerRow) onAlphabetic;
   final VoidCallback onCustom;
+  final SeatGeneratorMode initialMode;
   const SeatGeneratorPanel({
     super.key,
     required this.onNumeric,
     required this.onAlphabetic,
     required this.onCustom,
+    this.initialMode = SeatGeneratorMode.numeric,
   });
   @override
   State<SeatGeneratorPanel> createState() => _SeatGeneratorPanelState();
 }
 
 class _SeatGeneratorPanelState extends State<SeatGeneratorPanel> {
-  SeatGeneratorMode mode = SeatGeneratorMode.numeric;
+  late SeatGeneratorMode mode;
   final total = TextEditingController(text: '100');
   final rows = TextEditingController(text: '4');
   final perRow = TextEditingController(text: '25');
+  @override
+  void initState() {
+    super.initState();
+    mode = widget.initialMode;
+  }
+
   @override
   void dispose() {
     total.dispose();

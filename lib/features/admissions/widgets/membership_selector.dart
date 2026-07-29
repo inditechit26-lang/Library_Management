@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/utils/formatters.dart';
 import '../../students/models/student.dart';
+import '../../settings/models/library_configuration.dart';
 
 class MembershipSelector extends StatelessWidget {
   final SeatCategory selectedCategory;
@@ -11,6 +12,12 @@ class MembershipSelector extends StatelessWidget {
   final ValueChanged<SeatCategory>? onCategoryChanged;
   final ValueChanged<MembershipType> onChanged;
   final ValueChanged<String>? onShiftChanged;
+  final bool fullTimeEnabled;
+  final bool halfTimeEnabled;
+  final bool showCategorySelector;
+  final Set<LibrarySeatType> enabledSeatTypes;
+  final LibrarySeatType selectedSeatType;
+  final ValueChanged<LibrarySeatType> onSeatTypeChanged;
 
   const MembershipSelector({
     super.key,
@@ -23,39 +30,77 @@ class MembershipSelector extends StatelessWidget {
     this.onCategoryChanged,
     required this.onChanged,
     this.onShiftChanged,
+    this.fullTimeEnabled = true,
+    this.halfTimeEnabled = true,
+    this.showCategorySelector = true,
+    required this.enabledSeatTypes,
+    required this.selectedSeatType,
+    required this.onSeatTypeChanged,
   });
 
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      _CategorySectionBar(
-        selected: selectedCategory,
-        onChanged: onCategoryChanged,
-      ),
-      const SizedBox(height: 16),
-      _PlanCard(
-        title: 'FULL TIME',
-        subtitle: 'Reserved Seat',
-        fee: money(fullTimeMonthly),
-        icon: Icons.workspace_premium_outlined,
-        benefits: const [
-          'Reserved Seat',
-          'Unlimited Access',
-          'Priority Seating',
-        ],
-        selected: selected == MembershipType.fullTime,
-        onTap: () => onChanged(MembershipType.fullTime),
-      ),
-      const SizedBox(height: 14),
-      _PlanCard(
-        title: 'HALF TIME',
-        subtitle: 'Flexible Seating',
-        fee: money(halfTimeMonthly),
-        icon: Icons.schedule_outlined,
-        benefits: const ['Affordable', 'Flexible Seating', 'Shared Seats'],
-        selected: selected == MembershipType.halfTime,
-        onTap: () => onChanged(MembershipType.halfTime),
-      ),
+      if (showCategorySelector) ...[
+        _CategorySectionBar(
+          selected: selectedCategory,
+          onChanged: onCategoryChanged,
+        ),
+        const SizedBox(height: 16),
+      ],
+      if (enabledSeatTypes.contains(LibrarySeatType.fullTimeReserved))
+        _PlanCard(
+          title: 'FULL-TIME RESERVED',
+          subtitle: 'Reserved Seat',
+          fee: money(fullTimeMonthly),
+          icon: Icons.workspace_premium_outlined,
+          benefits: const [
+            'Reserved Seat',
+            'Unlimited Access',
+            'Priority Seating',
+          ],
+          selected: selectedSeatType == LibrarySeatType.fullTimeReserved,
+          onTap: () {
+            onSeatTypeChanged(LibrarySeatType.fullTimeReserved);
+            onChanged(MembershipType.fullTime);
+          },
+        ),
+      if (enabledSeatTypes.contains(LibrarySeatType.fullTimeReserved) &&
+          enabledSeatTypes.length > 1)
+        const SizedBox(height: 14),
+      if (enabledSeatTypes.contains(LibrarySeatType.halfTimeOpenSeating))
+        _PlanCard(
+          title: 'HALF-TIME OPEN SEATING',
+          subtitle: 'Flexible shared seating',
+          fee: money(halfTimeMonthly),
+          icon: Icons.schedule_outlined,
+          benefits: const ['Affordable', 'Flexible Seating', 'Shared Seats'],
+          selected: selectedSeatType == LibrarySeatType.halfTimeOpenSeating,
+          onTap: () {
+            onSeatTypeChanged(LibrarySeatType.halfTimeOpenSeating);
+            onChanged(MembershipType.halfTime);
+          },
+        ),
+      if (enabledSeatTypes.contains(LibrarySeatType.halfTimeOpenSeating) &&
+          enabledSeatTypes.contains(LibrarySeatType.halfTimeReserved))
+        const SizedBox(height: 14),
+      if (enabledSeatTypes.contains(LibrarySeatType.halfTimeReserved))
+        _PlanCard(
+          title: 'HALF-TIME RESERVED',
+          subtitle: 'Dedicated seat during a shift',
+          fee: money(halfTimeMonthly),
+          icon: Icons.event_seat_outlined,
+          benefits: const [
+            'Reserved Seat',
+            'Fixed Shift',
+            'Predictable Access',
+          ],
+          selected: selectedSeatType == LibrarySeatType.halfTimeReserved,
+          onTap: () {
+            onSeatTypeChanged(LibrarySeatType.halfTimeReserved);
+            onChanged(MembershipType.halfTime);
+          },
+        ),
       if (selected == MembershipType.halfTime && shifts.isNotEmpty) ...[
         const SizedBox(height: 14),
         _HalfTimeShiftSelector(
@@ -72,10 +117,7 @@ class _CategorySectionBar extends StatelessWidget {
   final SeatCategory selected;
   final ValueChanged<SeatCategory>? onChanged;
 
-  const _CategorySectionBar({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _CategorySectionBar({required this.selected, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -161,9 +203,7 @@ class _SectionTab extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected
-                    ? colors.primary
-                    : colors.onSurfaceVariant,
+                color: isSelected ? colors.primary : colors.onSurfaceVariant,
               ),
               const SizedBox(width: 8),
               Text(
@@ -171,9 +211,7 @@ class _SectionTab extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: isSelected
-                      ? colors.primary
-                      : colors.onSurfaceVariant,
+                  color: isSelected ? colors.primary : colors.onSurfaceVariant,
                 ),
               ),
             ],
@@ -293,14 +331,14 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
                   labelStyle: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w700,
-                    color: isSelected ? colors.onPrimary : colors.onSurfaceVariant,
+                    color: isSelected
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(
-                      color: isSelected
-                          ? colors.primary
-                          : colors.outline,
+                      color: isSelected ? colors.primary : colors.outline,
                     ),
                   ),
                   onSelected: (selected) {
@@ -326,7 +364,9 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
                 labelStyle: TextStyle(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
-                  color: _isCustomMode ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurfaceVariant,
+                  color: _isCustomMode
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -351,17 +391,24 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
               onTap: _pickCustomTimeRange,
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Theme.of(context).colorScheme.primary),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.time_to_leave_rounded,
-                        size: 18, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.time_to_leave_rounded,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -377,8 +424,11 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
                         ),
                       ),
                     ),
-                    Icon(Icons.edit_calendar_rounded,
-                        size: 18, color: Theme.of(context).colorScheme.primary),
+                    Icon(
+                      Icons.edit_calendar_rounded,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ],
                 ),
               ),
@@ -413,7 +463,9 @@ class _PlanCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final bg = selected
-        ? (isDark ? colors.primaryContainer.withValues(alpha: 0.35) : const Color(0xFFF5F4FF))
+        ? (isDark
+              ? colors.primaryContainer.withValues(alpha: 0.35)
+              : const Color(0xFFF5F4FF))
         : colors.surface;
 
     return AnimatedScale(
@@ -432,98 +484,98 @@ class _PlanCard extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: selected
-                    ? colors.primary
-                    : colors.outline,
+                color: selected ? colors.primary : colors.outline,
                 width: selected ? 1.5 : 1,
               ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0A20243B),
-                blurRadius: 26,
-                offset: Offset(0, 9),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? const Color(0xFFE7E5FF)
-                      : const Color(0xFFF3F4F8),
-                  borderRadius: BorderRadius.circular(15),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x0A20243B),
+                  blurRadius: 26,
+                  offset: Offset(0, 9),
                 ),
-                child: Icon(icon, color: const Color(0xFF5650C7)),
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? const Color(0xFFE7E5FF)
+                        : const Color(0xFFF3F4F8),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(icon, color: const Color(0xFF5650C7)),
+                ),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: .7,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF858B9D),
+                        ),
+                      ),
+                      const SizedBox(height: 13),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 7,
+                        children: benefits
+                            .map((item) => _Benefit(item))
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: selected
+                          ? const Icon(
+                              Icons.check_circle,
+                              key: ValueKey(true),
+                              color: Color(0xFF5650C7),
+                              size: 22,
+                            )
+                          : const Icon(
+                              Icons.circle_outlined,
+                              key: ValueKey(false),
+                              color: Color(0xFFB7BBC7),
+                              size: 22,
+                            ),
+                    ),
+                    const SizedBox(height: 24),
                     Text(
-                      title,
+                      fee,
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: .7,
                       ),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF858B9D),
-                      ),
-                    ),
-                    const SizedBox(height: 13),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 7,
-                      children: benefits.map((item) => _Benefit(item)).toList(),
                     ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    child: selected
-                        ? const Icon(
-                            Icons.check_circle,
-                            key: ValueKey(true),
-                            color: Color(0xFF5650C7),
-                            size: 22,
-                          )
-                        : const Icon(
-                            Icons.circle_outlined,
-                            key: ValueKey(false),
-                            color: Color(0xFFB7BBC7),
-                            size: 22,
-                          ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    fee,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
 

@@ -4,6 +4,7 @@ import '../../students/providers/students_provider.dart';
 import '../../seats/models/seat_model.dart';
 import '../../seats/providers/seats_provider.dart';
 import '../../payments/providers/payments_provider.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 
 class DashboardSummaryCards extends ConsumerWidget {
   final VoidCallback onManageSeats, onViewFees;
@@ -18,26 +19,47 @@ class DashboardSummaryCards extends ConsumerWidget {
     final studentsAsync = ref.watch(studentsStreamProvider);
     final seatsAsync = ref.watch(seatsStreamProvider);
     final paymentsAsync = ref.watch(paymentsStreamProvider);
+    final configuration = ref.watch(libraryConfigurationProvider);
 
-    final students = studentsAsync.asData?.value ?? [];
+    final students = (studentsAsync.asData?.value ?? []).where((student) {
+      final type = student.seatType;
+      if (type == null) {
+        final halfTime = student.planName.toLowerCase().contains('half');
+        return halfTime
+            ? configuration.halfTimeEnabled
+            : configuration.fullTimeEnabled;
+      }
+      return configuration.seatTypes.any((item) => item.name == type);
+    }).toList();
     final seats = seatsAsync.asData?.value ?? [];
     final payments = paymentsAsync.asData?.value ?? [];
 
-    final activeStudentCount = students.where((s) => s.status.toLowerCase() == 'active').length;
-    final occupiedSeatsCount = seats.where((s) => s.status == SeatStatus.occupied).length;
+    final activeStudentCount = students
+        .where((s) => s.status.toLowerCase() == 'active')
+        .length;
+    final occupiedSeatsCount = seats
+        .where((s) => s.status == SeatStatus.occupied)
+        .length;
     final totalSeatsCount = seats.length;
-    final availableSeatsCount = (totalSeatsCount - occupiedSeatsCount) > 0 ? (totalSeatsCount - occupiedSeatsCount) : 0;
-    final occupancyPercentage = totalSeatsCount > 0 ? (occupiedSeatsCount / totalSeatsCount) : 0.0;
+    final availableSeatsCount = (totalSeatsCount - occupiedSeatsCount) > 0
+        ? (totalSeatsCount - occupiedSeatsCount)
+        : 0;
+    final occupancyPercentage = totalSeatsCount > 0
+        ? (occupiedSeatsCount / totalSeatsCount)
+        : 0.0;
 
     final collectedRevenue = payments.fold(0.0, (sum, p) => sum + p.netAmount);
     final now = DateTime.now();
     final pendingDues = students
         .where((s) => s.validUntil.isBefore(now))
         .fold(0.0, (sum, s) => sum + s.monthlyFee);
-    final dueStudentsCount =
-        students.where((s) => s.validUntil.isBefore(now)).length;
+    final dueStudentsCount = students
+        .where((s) => s.validUntil.isBefore(now))
+        .length;
     final totalBilled = collectedRevenue + pendingDues;
-    final collectionPercentage = totalBilled > 0 ? (collectedRevenue / totalBilled) : 0.0;
+    final collectionPercentage = totalBilled > 0
+        ? (collectedRevenue / totalBilled)
+        : 0.0;
     final activeStudentIds = students
         .where((student) => student.status.toLowerCase() == 'active')
         .map((student) => student.id)
@@ -300,10 +322,7 @@ class _Title extends StatelessWidget {
               decoration: BoxDecoration(
                 color: primary.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: primary.withOpacity(0.2),
-                  width: 1,
-                ),
+                border: Border.all(color: primary.withOpacity(0.2), width: 1),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -318,11 +337,7 @@ class _Title extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 2),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: primary,
-                    size: 15,
-                  ),
+                  Icon(Icons.chevron_right_rounded, color: primary, size: 15),
                 ],
               ),
             ),
@@ -337,10 +352,7 @@ class _AnimatedMetricValue extends StatelessWidget {
   final String rawValue;
   final TextStyle style;
 
-  const _AnimatedMetricValue({
-    required this.rawValue,
-    required this.style,
-  });
+  const _AnimatedMetricValue({required this.rawValue, required this.style});
 
   @override
   Widget build(BuildContext context) {
@@ -367,10 +379,7 @@ class _AnimatedMetricValue extends StatelessWidget {
         final formatted = decimals > 0
             ? currentVal.toStringAsFixed(decimals)
             : currentVal.toInt().toString();
-        return Text(
-          '$prefix$formatted$suffix',
-          style: style,
-        );
+        return Text('$prefix$formatted$suffix', style: style);
       },
     );
   }
@@ -394,10 +403,7 @@ class _Metric extends StatelessWidget {
             Container(
               width: 5,
               height: 5,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 5),
             Expanded(
@@ -434,9 +440,7 @@ class _Metric extends StatelessWidget {
           style: TextStyle(
             fontSize: 10.5,
             fontWeight: FontWeight.w600,
-            color: isDark
-                ? const Color(0xFF868C9E)
-                : const Color(0xFF7E8497),
+            color: isDark ? const Color(0xFF868C9E) : const Color(0xFF7E8497),
           ),
         ),
       ],
@@ -458,9 +462,11 @@ class _Line extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0)).withOpacity(0.15),
+            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0))
+                .withOpacity(0.15),
             isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0),
-            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0)).withOpacity(0.15),
+            (isDark ? const Color(0xFF353C4D) : const Color(0xFFE8EAF0))
+                .withOpacity(0.15),
           ],
         ),
       ),
@@ -502,10 +508,7 @@ class _Progress extends StatelessWidget {
               height: 7,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [
-                    color.withOpacity(0.82),
-                    color,
-                  ],
+                  colors: [color.withOpacity(0.82), color],
                 ),
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: [
@@ -523,4 +526,3 @@ class _Progress extends StatelessWidget {
     );
   }
 }
-

@@ -7,10 +7,10 @@ import '../../payments/models/payment_model.dart';
 import '../../receipts/models/receipt_model.dart';
 import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../../seats/controllers/seats_controller.dart' as sc;
-import '../../seats/providers/seats_provider.dart';
 import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
-import '../../students/controllers/students_controller.dart' hide studentsProvider;
+import '../../settings/controllers/library_configuration_controller.dart';
+import '../../settings/models/library_configuration.dart';
 import '../../students/models/student.dart';
 import '../../students/models/student_model.dart';
 import '../../students/providers/students_provider.dart';
@@ -78,7 +78,34 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    admission.updatePricing(ref.watch(pricingProvider));
+    final configuration = ref.watch(libraryConfigurationProvider);
+    admission.selectedSectionId ??= configuration.enabledSections.isEmpty
+        ? null
+        : configuration.enabledSections.first.id;
+    if (!configuration.seatTypes.contains(admission.selectedSeatType)) {
+      admission.selectedSeatType = configuration.seatTypes.first;
+      admission.membership =
+          admission.selectedSeatType == LibrarySeatType.fullTimeReserved
+          ? MembershipType.fullTime
+          : MembershipType.halfTime;
+    }
+    final planPricing = configuration.pricingForSection(
+      admission.selectedSectionId,
+    );
+    final shifts = ref.watch(pricingProvider).halfTimeShifts;
+    admission.customDefaultPrice = configuration.priceFor(
+      MembershipPeriod.custom,
+      sectionId: admission.selectedSectionId,
+    );
+    admission.updatePricing(
+      PricingSettings(
+        fullTimeAc: planPricing,
+        halfTimeAc: planPricing,
+        fullTimeNonAc: planPricing,
+        halfTimeNonAc: planPricing,
+        halfTimeShifts: shifts,
+      ),
+    );
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * .94,
       child: admission.completed && created != null ? _success() : _workflow(),
@@ -130,10 +157,17 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
           notes: notes,
         ),
         const SizedBox(height: 14),
-        DocumentUploadCard(
-          uploaded: admission.documents,
-          onToggle: admission.toggleDocument,
-        ),
+        if (ref
+            .watch(libraryConfigurationProvider)
+            .requiredDocuments
+            .isNotEmpty)
+          DocumentUploadCard(
+            uploaded: admission.documents,
+            requirements: ref
+                .watch(libraryConfigurationProvider)
+                .requiredDocuments,
+            onToggle: admission.toggleDocument,
+          ),
       ],
     ),
     1 => _membershipStep(),
@@ -145,6 +179,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       selectedShift: admission.selectedHalfTimeShift,
       onSelected: admission.chooseSeat,
       studentName: name.text.trim(),
+      requiresSeat:
+          admission.selectedSeatType != LibrarySeatType.halfTimeOpenSeating,
     ),
     3 => Column(
       children: [
@@ -176,12 +212,73 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   };
 
   Widget _membershipStep() {
+    final configuration = ref.watch(libraryConfigurationProvider);
+    if (!configuration.fullTimeEnabled &&
+        admission.membership == MembershipType.fullTime) {
+      admission.membership = MembershipType.halfTime;
+    } else if (!configuration.halfTimeEnabled &&
+        admission.membership == MembershipType.halfTime) {
+      admission.membership = MembershipType.fullTime;
+    }
+    final enabledSections = configuration.enabledSections;
+    admission.selectedSectionId ??= enabledSections.isEmpty
+        ? null
+        : enabledSections.first.id;
+    final enabledPeriods = configuration.membershipPeriodsForSection(
+      admission.selectedSectionId,
+    );
+    if (admission.period != null &&
+        !enabledPeriods.contains(admission.period)) {
+      admission.choosePeriod(enabledPeriods.first);
+    }
     final pricing = admission.pricing;
     final categoryPricing = (MembershipType type) =>
-        pricing.forMembershipAndCategory(type, admission.category);
+        configuration.pricingForSection(admission.selectedSectionId);
 
     final content = Column(
       children: [
+        if (enabledSections.isNotEmpty) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Library Section',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: enabledSections
+                  .map(
+                    (section) => ChoiceChip(
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: section.color,
+                      ),
+                      label: Text(section.name),
+                      selected: admission.selectedSectionId == section.id,
+                      onSelected: (_) {
+                        admission.selectedSectionId = section.id;
+                        admission.setManualAmount(null);
+                        final sectionPeriods = configuration
+                            .membershipPeriodsForSection(section.id);
+                        if (admission.period != null &&
+                            !sectionPeriods.contains(admission.period)) {
+                          admission.choosePeriod(sectionPeriods.first);
+                        }
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         MembershipSelector(
           selectedCategory: admission.category,
           selected: admission.membership,
@@ -192,13 +289,37 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
           onCategoryChanged: admission.chooseCategory,
           onChanged: admission.chooseMembership,
           onShiftChanged: admission.setHalfTimeShift,
+          fullTimeEnabled: configuration.fullTimeEnabled,
+          halfTimeEnabled: configuration.halfTimeEnabled,
+          showCategorySelector: false,
+          enabledSeatTypes: configuration.seatTypes,
+          selectedSeatType: admission.selectedSeatType,
+          onSeatTypeChanged: admission.chooseSeatType,
         ),
         const SizedBox(height: 22),
         PricingSelector(
           selected: admission.period,
           pricing: categoryPricing(admission.membership),
+          enabledPeriods: enabledPeriods,
           onChanged: admission.choosePeriod,
         ),
+        if (admission.period != null &&
+            admission.period != MembershipPeriod.custom) ...[
+          const SizedBox(height: 14),
+          TextFormField(
+            key: ValueKey(
+              '${admission.selectedSectionId}-${admission.period?.name}',
+            ),
+            initialValue: admission.fee.toStringAsFixed(2),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Membership Price',
+              prefixText: '₹ ',
+            ),
+            onChanged: (value) =>
+                admission.setManualAmount(double.tryParse(value.trim())),
+          ),
+        ],
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 260),
           child: admission.period == MembershipPeriod.custom
@@ -249,20 +370,21 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   }
 
   bool get _canContinue => switch (admission.step) {
+    0 => true,
     1 => admission.pricingValid,
     2 =>
-      admission.membership == MembershipType.halfTime ||
+      admission.selectedSeatType == LibrarySeatType.halfTimeOpenSeating ||
           admission.selectedSeat != null,
     _ => true,
   };
-  String get _membership => admission.membership == MembershipType.fullTime
-      ? 'Full Time (${admission.category.shortLabel})'
-      : 'Half Time (${admission.category.shortLabel})';
-  String get _seat => admission.membership == MembershipType.fullTime
+  String get _membership =>
+      '${admission.selectedSeatType.label} (${admission.category.shortLabel})';
+  String get _seat =>
+      admission.selectedSeatType != LibrarySeatType.halfTimeOpenSeating
       ? admission.selectedSeat ?? ''
       : admission.selectedHalfTimeShift != null
-          ? 'Flexible (${admission.selectedHalfTimeShift})'
-          : 'Flexible Seating';
+      ? 'Flexible (${admission.selectedHalfTimeShift})'
+      : 'Flexible Seating';
 
   void _next() {
     if (admission.step == 0 && !(formKey.currentState?.validate() ?? false)) {
@@ -275,12 +397,16 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     }
     final libraryId = ref.read(currentLibraryIdProvider);
     if (libraryId == null || libraryId.isEmpty) {
-      ErrorHandler.showErrorSnackBar(context, 'Library ID missing. Please log in again.');
+      ErrorHandler.showErrorSnackBar(
+        context,
+        'Library ID missing. Please log in again.',
+      );
       return;
     }
 
     final studentId = 'std_${DateTime.now().millisecondsSinceEpoch}';
-    final receiptNo = 'REC-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
+    final receiptNo =
+        'REC-${DateTime.now().millisecondsSinceEpoch.toString().substring(5)}';
 
     final studentModel = StudentModel(
       id: studentId,
@@ -291,9 +417,14 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       assignedSeat: admission.selectedSeat,
       shift: admission.selectedHalfTimeShift ?? 'Full Day',
       planName: _membership,
+      membershipPeriod: admission.period?.name,
+      seatType: admission.selectedSeatType.name,
+      sectionId: admission.selectedSectionId,
       monthlyFee: admission.fee,
       joiningDate: DateTime.now(),
-      validUntil: DateTime.now().add(Duration(days: admission.totalDays > 0 ? admission.totalDays : 30)),
+      validUntil: DateTime.now().add(
+        Duration(days: admission.totalDays > 0 ? admission.totalDays : 30),
+      ),
       status: 'Active',
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -319,36 +450,48 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       createdAt: DateTime.now(),
     );
 
-    ref.read(studentsRepositoryProvider).processAdmissionTransaction(
-      libraryId: libraryId,
-      student: studentModel,
-      seatNumber: admission.selectedSeat,
-      payment: paymentModel,
-      receipt: receiptModel,
-    ).then((_) {
-      if (mounted) {
-        setState(() {
-          admission.completed = true;
-          final initials = name.text.trim().split(' ').map((e) => e.isEmpty ? '' : e[0]).take(2).join();
-          created = Student(
-            id: DateTime.now().millisecondsSinceEpoch % 10000,
-            name: name.text.trim(),
-            phone: phone.text.trim(),
-            seat: _seat,
-            joined: admission.joiningDisplay,
-            expiry: admission.expiryDisplay,
-            fee: admission.fee,
-            payment: PaymentStatus.paid,
-            membership: admission.membership,
-            initials: initials,
-          );
+    ref
+        .read(studentsRepositoryProvider)
+        .processAdmissionTransaction(
+          libraryId: libraryId,
+          student: studentModel,
+          seatNumber: admission.selectedSeat,
+          payment: paymentModel,
+          receipt: receiptModel,
+        )
+        .then((_) {
+          if (mounted) {
+            setState(() {
+              admission.completed = true;
+              final initials = name.text
+                  .trim()
+                  .split(' ')
+                  .map((e) => e.isEmpty ? '' : e[0])
+                  .take(2)
+                  .join();
+              created = Student(
+                id: DateTime.now().millisecondsSinceEpoch % 10000,
+                name: name.text.trim(),
+                phone: phone.text.trim(),
+                seat: _seat,
+                joined: admission.joiningDisplay,
+                expiry: admission.expiryDisplay,
+                fee: admission.fee,
+                payment: PaymentStatus.paid,
+                membership: admission.membership,
+                seatType: admission.selectedSeatType.name,
+                sectionId: admission.selectedSectionId,
+                membershipPeriod: admission.period?.name,
+                initials: initials,
+              );
+            });
+          }
+        })
+        .catchError((e) {
+          if (mounted) {
+            ErrorHandler.showErrorSnackBar(context, e);
+          }
         });
-      }
-    }).catchError((e) {
-      if (mounted) {
-        ErrorHandler.showErrorSnackBar(context, e);
-      }
-    });
   }
 
   Widget _success() {

@@ -18,10 +18,7 @@ final studentsStreamProvider = StreamProvider<List<StudentModel>>((ref) {
 
 final studentsProvider = Provider<List<StudentModel>>((ref) {
   final asyncVal = ref.watch(studentsStreamProvider);
-  return asyncVal.maybeWhen(
-    data: (list) => list,
-    orElse: () => [],
-  );
+  return asyncVal.maybeWhen(data: (list) => list, orElse: () => []);
 });
 
 final activeStudentsCountProvider = Provider<int>((ref) {

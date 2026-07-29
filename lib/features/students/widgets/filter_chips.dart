@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 class StudentFilterChips extends StatelessWidget {
   final String selected;
   final ValueChanged<String> onSelected;
+  final bool fullTimeEnabled;
+  final bool halfTimeEnabled;
   const StudentFilterChips({
     super.key,
     required this.selected,
     required this.onSelected,
+    this.fullTimeEnabled = true,
+    this.halfTimeEnabled = true,
   });
   static const values = [
     'All',
@@ -25,6 +29,11 @@ class StudentFilterChips extends StatelessWidget {
     child: ListView(
       scrollDirection: Axis.horizontal,
       children: values
+          .where(
+            (value) =>
+                (value != 'Full Time' || fullTimeEnabled) &&
+                (value != 'Half Time' || halfTimeEnabled),
+          )
           .map(
             (value) => Padding(
               padding: const EdgeInsets.only(right: 8),

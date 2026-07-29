@@ -44,6 +44,8 @@ class ReportData {
   // Lists
   final List<Student> studentList;
   final List<PaymentRecord> paymentHistory;
+  final Map<String, double> revenueBySection;
+  final Map<String, String> sectionNames;
 
   const ReportData({
     required this.reportType,
@@ -64,5 +66,7 @@ class ReportData {
     required this.totalRevenue,
     required this.studentList,
     required this.paymentHistory,
+    this.revenueBySection = const {},
+    this.sectionNames = const {},
   });
 }

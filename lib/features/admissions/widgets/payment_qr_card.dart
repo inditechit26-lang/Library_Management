@@ -95,9 +95,7 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
                 _Action(
                   icon: Icons.copy_outlined,
                   label: 'Copy UPI',
-                  onTap: () => Clipboard.setData(
-                    ClipboardData(text: upiId),
-                  ),
+                  onTap: () => Clipboard.setData(ClipboardData(text: upiId)),
                 ),
                 _Action(
                   icon: Icons.fullscreen,

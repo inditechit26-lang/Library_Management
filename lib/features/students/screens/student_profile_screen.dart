@@ -13,6 +13,9 @@ import '../widgets/profile_information.dart';
 import '../widgets/renew_bottom_sheet.dart';
 import '../widgets/student_identity_cards.dart';
 import 'student_id_screen.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
+import '../../settings/models/pricing_settings.dart';
+import '../../settings/models/library_configuration.dart';
 
 class StudentProfileScreen extends ConsumerWidget {
   final int studentId;
@@ -30,6 +33,15 @@ class StudentProfileScreen extends ConsumerWidget {
       (item) => item.id == studentId,
       orElse: () => students.first,
     );
+    final configuration = ref.watch(libraryConfigurationProvider);
+    LibrarySection? section;
+    for (final item in configuration.sections) {
+      if (item.id == student.sectionId) section = item;
+    }
+    MembershipPeriod? period;
+    for (final item in MembershipPeriod.values) {
+      if (item.name == student.membershipPeriod) period = item;
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('Student Profile'),
@@ -68,14 +80,27 @@ class StudentProfileScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                StudentInformationCard(student: student),
+                StudentInformationCard(
+                  student: student,
+                  sectionName: section?.name,
+                  membershipPlanName: period?.label,
+                ),
                 const SizedBox(height: 14),
                 PaymentInformationCard(
                   student: student,
-                  onPaymentHistory: () => PaymentHistorySheet.open(context, student),
+                  onPaymentHistory: () =>
+                      PaymentHistorySheet.open(context, student),
+                  basePlanPrice: period == null
+                      ? null
+                      : configuration.priceFor(
+                          period,
+                          sectionId: student.sectionId,
+                        ),
                 ),
-                const SizedBox(height: 14),
-                DocumentVault(studentId: student.id),
+                if (configuration.requiredDocuments.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  DocumentVault(studentId: student.id),
+                ],
               ]),
             ),
           ),
@@ -165,7 +190,9 @@ class StudentProfileScreen extends ConsumerWidget {
           content: Text('WhatsApp reminder ready for ${student.name}'),
           backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }

@@ -52,7 +52,10 @@ class PdfGenerator {
                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                 children: [
                   pw.Container(
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const pw.EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: pw.BoxDecoration(
                       color: lightBg,
                       borderRadius: pw.BorderRadius.circular(6),
@@ -94,12 +97,20 @@ class PdfGenerator {
               children: [
                 pw.Text(
                   'PERIOD REPORT',
-                  style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: greyColor),
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                    color: greyColor,
+                  ),
                 ),
                 pw.SizedBox(height: 4),
                 pw.Text(
                   report.selectedPeriod,
-                  style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold, color: darkColor),
+                  style: pw.TextStyle(
+                    fontSize: 18,
+                    fontWeight: pw.FontWeight.bold,
+                    color: darkColor,
+                  ),
                 ),
                 pw.SizedBox(height: 8),
                 pw.Text(
@@ -120,14 +131,62 @@ class PdfGenerator {
             crossAxisSpacing: 8,
             mainAxisSpacing: 8,
             children: [
-              _buildMetricCard('Total Students', '${report.totalStudents}', darkColor, lightBg, borderColor),
-              _buildMetricCard('New Admissions', '${report.newAdmissions}', darkColor, lightBg, borderColor),
-              _buildMetricCard('Renewals', '${report.renewals}', darkColor, lightBg, borderColor),
-              _buildMetricCard('Expired', '${report.expiredMemberships}', darkColor, lightBg, borderColor),
-              _buildMetricCard('Occupied Seats', '${report.occupiedSeats}', darkColor, lightBg, borderColor),
-              _buildMetricCard('Available Seats', '${report.availableSeats}', darkColor, lightBg, borderColor),
-              _buildMetricCard('Total Collection', 'Rs. ${report.totalCollection.toStringAsFixed(0)}', darkColor, lightBg, borderColor),
-              _buildMetricCard('Pending Fees', 'Rs. ${report.pendingFees.toStringAsFixed(0)}', darkColor, lightBg, borderColor),
+              _buildMetricCard(
+                'Total Students',
+                '${report.totalStudents}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'New Admissions',
+                '${report.newAdmissions}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'Renewals',
+                '${report.renewals}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'Expired',
+                '${report.expiredMemberships}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'Occupied Seats',
+                '${report.occupiedSeats}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'Available Seats',
+                '${report.availableSeats}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'Total Collection',
+                'Rs. ${report.totalCollection.toStringAsFixed(0)}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
+              _buildMetricCard(
+                'Pending Fees',
+                'Rs. ${report.pendingFees.toStringAsFixed(0)}',
+                darkColor,
+                lightBg,
+                borderColor,
+              ),
             ],
           ),
           pw.SizedBox(height: 20),
@@ -136,25 +195,59 @@ class PdfGenerator {
           _buildSectionHeader('2. Payment Summary'),
           pw.SizedBox(height: 10),
           pw.TableHelper.fromTextArray(
-            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 10),
+            headerStyle: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
+              fontSize: 10,
+            ),
             headerDecoration: pw.BoxDecoration(color: primaryColor),
-            rowDecoration: pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: borderColor))),
+            rowDecoration: pw.BoxDecoration(
+              border: pw.Border(bottom: pw.BorderSide(color: borderColor)),
+            ),
             cellStyle: const pw.TextStyle(fontSize: 10),
-            cellPadding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            cellPadding: const pw.EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 6,
+            ),
             headers: ['Payment Mode', 'Collection Amount'],
             data: [
               ['Cash', 'Rs. ${report.cashPayment.toStringAsFixed(2)}'],
               ['UPI / Online', 'Rs. ${report.upiPayment.toStringAsFixed(2)}'],
               ['Bank Transfer', 'Rs. ${report.bankPayment.toStringAsFixed(2)}'],
-              ['Total Revenue', 'Rs. ${report.totalRevenue.toStringAsFixed(2)}'],
+              [
+                'Total Revenue',
+                'Rs. ${report.totalRevenue.toStringAsFixed(2)}',
+              ],
             ],
           ),
           pw.SizedBox(height: 24),
 
-          // Section 3: Student List
-          _buildSectionHeader('3. Student List'),
+          if (report.revenueBySection.isNotEmpty) ...[
+            _buildSectionHeader('3. Revenue by Section'),
+            pw.SizedBox(height: 10),
+            pw.TableHelper.fromTextArray(
+              headers: ['Section', 'Revenue'],
+              data: report.revenueBySection.entries
+                  .map(
+                    (entry) => [
+                      entry.key,
+                      'Rs. ${entry.value.toStringAsFixed(2)}',
+                    ],
+                  )
+                  .toList(),
+            ),
+            pw.SizedBox(height: 24),
+          ],
+
+          // Section 4: Student List
+          _buildSectionHeader('4. Student List'),
           pw.SizedBox(height: 10),
-          _buildStudentTable(report.studentList, primaryColor, borderColor),
+          _buildStudentTable(
+            report.studentList,
+            primaryColor,
+            borderColor,
+            report.sectionNames,
+          ),
           pw.SizedBox(height: 24),
 
           // Section 4: Payment History
@@ -169,7 +262,11 @@ class PdfGenerator {
             padding: const pw.EdgeInsets.all(12),
             child: pw.Text(
               '*** End of Report - Generated by Library Management System ***',
-              style: pw.TextStyle(fontSize: 9, color: greyColor, fontStyle: pw.FontStyle.italic),
+              style: pw.TextStyle(
+                fontSize: 9,
+                color: greyColor,
+                fontStyle: pw.FontStyle.italic,
+              ),
             ),
           ),
         ],
@@ -182,11 +279,21 @@ class PdfGenerator {
   static pw.Widget _buildSectionHeader(String title) {
     return pw.Text(
       title,
-      style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold, color: PdfColor.fromHex('#1E293B')),
+      style: pw.TextStyle(
+        fontSize: 13,
+        fontWeight: pw.FontWeight.bold,
+        color: PdfColor.fromHex('#1E293B'),
+      ),
     );
   }
 
-  static pw.Widget _buildMetricCard(String title, String value, PdfColor textCol, PdfColor bgCol, PdfColor borderCol) {
+  static pw.Widget _buildMetricCard(
+    String title,
+    String value,
+    PdfColor textCol,
+    PdfColor bgCol,
+    PdfColor borderCol,
+  ) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
@@ -198,60 +305,117 @@ class PdfGenerator {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         mainAxisAlignment: pw.MainAxisAlignment.center,
         children: [
-          pw.Text(title, style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+          pw.Text(
+            title,
+            style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+          ),
           pw.SizedBox(height: 2),
-          pw.Text(value, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: textCol)),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
+              color: textCol,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  static pw.Widget _buildStudentTable(List studentList, PdfColor headerBg, PdfColor borderCol) {
+  static pw.Widget _buildStudentTable(
+    List studentList,
+    PdfColor headerBg,
+    PdfColor borderCol,
+    Map<String, String> sectionNames,
+  ) {
     if (studentList.isEmpty) {
       return pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 8),
-        child: pw.Text('No student records for this period.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+        child: pw.Text(
+          'No student records for this period.',
+          style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+        ),
       );
     }
     return pw.TableHelper.fromTextArray(
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+      headerStyle: pw.TextStyle(
+        fontWeight: pw.FontWeight.bold,
+        color: PdfColors.white,
+        fontSize: 9,
+      ),
       headerDecoration: pw.BoxDecoration(color: headerBg),
-      rowDecoration: pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: borderCol))),
+      rowDecoration: pw.BoxDecoration(
+        border: pw.Border(bottom: pw.BorderSide(color: borderCol)),
+      ),
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-      headers: ['Name', 'Seat', 'Plan', 'Joining Date', 'Expiry Date', 'Status'],
-      data: studentList.map((s) => [
-        s.name,
-        s.seat.isNotEmpty ? s.seat : 'N/A',
-        s.membership == MembershipType.fullTime ? 'Full Time' : 'Half Time',
-        s.joined,
-        s.expiry,
-        s.payment.toString().split('.').last.toUpperCase(),
-      ]).toList(),
+      headers: [
+        'Name',
+        'Section',
+        'Seat',
+        'Plan',
+        'Joining Date',
+        'Expiry Date',
+        'Status',
+      ],
+      data: studentList
+          .map(
+            (s) => [
+              s.name,
+              sectionNames[s.sectionId] ?? s.sectionId ?? 'Unassigned',
+              s.seat.isNotEmpty ? s.seat : 'N/A',
+              s.membershipPeriod ??
+                  (s.membership == MembershipType.fullTime
+                      ? 'Full Time'
+                      : 'Half Time'),
+              s.joined,
+              s.expiry,
+              s.payment.toString().split('.').last.toUpperCase(),
+            ],
+          )
+          .toList(),
     );
   }
 
-  static pw.Widget _buildPaymentTable(List history, PdfColor headerBg, PdfColor borderCol) {
+  static pw.Widget _buildPaymentTable(
+    List history,
+    PdfColor headerBg,
+    PdfColor borderCol,
+  ) {
     if (history.isEmpty) {
       return pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 8),
-        child: pw.Text('No payment records recorded for this period.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600)),
+        child: pw.Text(
+          'No payment records recorded for this period.',
+          style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+        ),
       );
     }
     return pw.TableHelper.fromTextArray(
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white, fontSize: 9),
+      headerStyle: pw.TextStyle(
+        fontWeight: pw.FontWeight.bold,
+        color: PdfColors.white,
+        fontSize: 9,
+      ),
       headerDecoration: pw.BoxDecoration(color: headerBg),
-      rowDecoration: pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: borderCol))),
+      rowDecoration: pw.BoxDecoration(
+        border: pw.Border(bottom: pw.BorderSide(color: borderCol)),
+      ),
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       headers: ['Receipt No', 'Student Name', 'Date', 'Amount', 'Mode'],
-      data: history.map((p) => [
-        p.receiptNo,
-        p.studentName,
-        p.paymentDate,
-        'Rs. ${p.amount.toStringAsFixed(2)}',
-        p.mode,
-      ]).toList(),
+      data: history
+          .map(
+            (p) => [
+              p.receiptNo,
+              p.studentName,
+              p.paymentDate,
+              'Rs. ${p.amount.toStringAsFixed(2)}',
+              p.mode,
+            ],
+          )
+          .toList(),
     );
   }
 
@@ -259,12 +423,16 @@ class PdfGenerator {
     return pw.Container(
       margin: const pw.EdgeInsets.only(top: 10),
       padding: const pw.EdgeInsets.only(top: 6),
-      decoration: const pw.BoxDecoration(border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300))),
+      decoration: const pw.BoxDecoration(
+        border: pw.Border(top: pw.BorderSide(color: PdfColors.grey300)),
+      ),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(
-            report.ownerProfile.libraryName.isNotEmpty ? report.ownerProfile.libraryName : 'Library Management System',
+            report.ownerProfile.libraryName.isNotEmpty
+                ? report.ownerProfile.libraryName
+                : 'Library Management System',
             style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
           ),
           pw.Text(

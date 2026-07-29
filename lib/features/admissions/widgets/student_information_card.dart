@@ -25,7 +25,11 @@ class StudentInformationCard extends StatelessWidget {
           border: Border.all(color: colors.outline),
           borderRadius: BorderRadius.circular(22),
           boxShadow: const [
-            BoxShadow(color: Color(0x0A20243B), blurRadius: 28, offset: Offset(0, 9)),
+            BoxShadow(
+              color: Color(0x0A20243B),
+              blurRadius: 28,
+              offset: Offset(0, 9),
+            ),
           ],
         ),
         child: Column(

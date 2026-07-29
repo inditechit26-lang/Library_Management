@@ -200,31 +200,38 @@ class _MembershipPricingScreenState
           const SizedBox(height: 20),
 
           // Tab Contents
-          SizedBox(
-            height: 820,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _PlanEditorGroup(
-                  category: _selectedCategory,
-                  membership: MembershipType.fullTime,
-                  pricing: pricing.forMembershipAndCategory(
-                    MembershipType.fullTime,
-                    _selectedCategory,
-                  ),
-                  shifts: pricing.halfTimeShifts,
+          AnimatedBuilder(
+            animation: _tabController,
+            builder: (context, _) {
+              final isHalfTime = _tabController.index == 1;
+              return SizedBox(
+                height: isHalfTime ? 1080 : 720,
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    _PlanEditorGroup(
+                      category: _selectedCategory,
+                      membership: MembershipType.fullTime,
+                      pricing: pricing.forMembershipAndCategory(
+                        MembershipType.fullTime,
+                        _selectedCategory,
+                      ),
+                      shifts: pricing.halfTimeShifts,
+                    ),
+                    _PlanEditorGroup(
+                      category: _selectedCategory,
+                      membership: MembershipType.halfTime,
+                      pricing: pricing.forMembershipAndCategory(
+                        MembershipType.halfTime,
+                        _selectedCategory,
+                      ),
+                      shifts: pricing.halfTimeShifts,
+                    ),
+                  ],
                 ),
-                _PlanEditorGroup(
-                  category: _selectedCategory,
-                  membership: MembershipType.halfTime,
-                  pricing: pricing.forMembershipAndCategory(
-                    MembershipType.halfTime,
-                    _selectedCategory,
-                  ),
-                  shifts: pricing.halfTimeShifts,
-                ),
-              ],
-            ),
+              );
+            },
           ),
         ],
       ),
@@ -324,7 +331,7 @@ class _PlanEditorGroup extends ConsumerWidget {
       (MembershipPeriod.annual, Icons.workspace_premium_rounded),
     ];
 
-    return ListView(
+    return Column(
       children: [
         for (final item in periods) ...[
           _PricingCard(

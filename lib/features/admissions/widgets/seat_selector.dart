@@ -10,6 +10,7 @@ class AdmissionSeatSelector extends StatelessWidget {
   final String? selectedShift;
   final ValueChanged<String> onSelected;
   final String studentName;
+  final bool requiresSeat;
 
   const AdmissionSeatSelector({
     super.key,
@@ -20,6 +21,7 @@ class AdmissionSeatSelector extends StatelessWidget {
     this.selectedShift,
     required this.onSelected,
     required this.studentName,
+    this.requiresSeat = true,
   });
 
   @override
@@ -28,7 +30,7 @@ class AdmissionSeatSelector extends StatelessWidget {
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    if (membership == MembershipType.halfTime) {
+    if (!requiresSeat) {
       return Container(
         padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
@@ -52,12 +54,12 @@ class AdmissionSeatSelector extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight:
-                    selectedShift != null ? FontWeight.w700 : FontWeight.w500,
-                color:
-                    selectedShift != null
-                        ? colors.primary
-                        : colors.onSurfaceVariant,
+                fontWeight: selectedShift != null
+                    ? FontWeight.w700
+                    : FontWeight.w500,
+                color: selectedShift != null
+                    ? colors.primary
+                    : colors.onSurfaceVariant,
               ),
             ),
           ],
@@ -65,8 +67,7 @@ class AdmissionSeatSelector extends StatelessWidget {
       );
     }
 
-    final categorySeats =
-        seats.where((s) => s.category == category).toList();
+    final categorySeats = seats.where((s) => s.category == category).toList();
     final displaySeats = categorySeats.isNotEmpty ? categorySeats : seats;
 
     return Container(
@@ -108,8 +109,10 @@ class AdmissionSeatSelector extends StatelessWidget {
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: colors.primaryContainer.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(20),

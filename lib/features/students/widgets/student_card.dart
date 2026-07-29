@@ -49,15 +49,17 @@ class _StudentCardState extends State<StudentCard> {
               color: hovered
                   ? theme.colorScheme.primary.withOpacity(0.4)
                   : isDark
-                      ? const Color(0xFF262C40)
-                      : const Color(0xFFE2E8F0),
+                  ? const Color(0xFF262C40)
+                  : const Color(0xFFE2E8F0),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
                 color: isDark
                     ? Colors.black.withOpacity(0.3)
-                    : const Color(0xFF1E2238).withOpacity(hovered ? 0.08 : 0.04),
+                    : const Color(
+                        0xFF1E2238,
+                      ).withOpacity(hovered ? 0.08 : 0.04),
                 blurRadius: hovered ? 28 : 20,
                 offset: Offset(0, hovered ? 10 : 7),
               ),
@@ -148,7 +150,10 @@ class _Avatar extends StatelessWidget {
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: statusColor.withOpacity(0.6), width: 1.8),
+              border: Border.all(
+                color: statusColor.withOpacity(0.6),
+                width: 1.8,
+              ),
             ),
             child: CircleAvatar(
               backgroundColor: isDark
@@ -182,13 +187,12 @@ class _Avatar extends StatelessWidget {
               color: isDark ? const Color(0xFF181C2B) : Colors.white,
               shape: BoxShape.circle,
               border: Border.all(
-                color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF262C40)
+                    : const Color(0xFFE2E8F0),
               ),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 6,
-                ),
+                BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6),
               ],
             ),
             child: Icon(
@@ -294,7 +298,9 @@ class _Details extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 9.5,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
             ),

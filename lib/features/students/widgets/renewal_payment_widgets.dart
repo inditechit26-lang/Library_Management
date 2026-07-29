@@ -84,10 +84,7 @@ class RenewalPaymentCard extends ConsumerWidget {
             const SizedBox(height: 7),
             Text(
               paymentSettings.activeUpiId,
-              style: TextStyle(
-                fontSize: 10,
-                color: colors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant),
             ),
           ] else ...[
             Container(
@@ -96,7 +93,9 @@ class RenewalPaymentCard extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: colors.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: colors.primary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 children: [
@@ -106,7 +105,11 @@ class RenewalPaymentCard extends ConsumerWidget {
                       color: colors.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.payments_rounded, size: 36, color: colors.primary),
+                    child: Icon(
+                      Icons.payments_rounded,
+                      size: 36,
+                      color: colors.primary,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(
