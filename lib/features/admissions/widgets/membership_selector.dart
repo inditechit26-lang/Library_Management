@@ -248,24 +248,14 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
   }
 
   Future<void> _pickCustomTimeRange() async {
-    final start = await showTimePicker(
+    final result = await showDialog<String>(
       context: context,
-      initialTime: const TimeOfDay(hour: 9, minute: 0),
-      helpText: 'Select Half-Time Shift Start Time',
+      builder: (context) => const WheelTimeRangePickerDialog(),
     );
-    if (start == null || !mounted) return;
-
-    final end = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: (start.hour + 6) % 24, minute: start.minute),
-      helpText: 'Select Half-Time Shift End Time',
-    );
-    if (end == null || !mounted) return;
-
-    final formatted =
-        'Custom (${start.format(context)} - ${end.format(context)})';
-    _customTimeController.text = formatted;
-    widget.onShiftChanged?.call(formatted);
+    if (result != null && mounted) {
+      _customTimeController.text = result;
+      widget.onShiftChanged?.call(result);
+    }
   }
 
   @override
@@ -436,6 +426,310 @@ class _HalfTimeShiftSelectorState extends State<_HalfTimeShiftSelector> {
           ],
         ],
       ),
+    );
+  }
+}
+
+class WheelTimeRangePickerDialog extends StatefulWidget {
+  const WheelTimeRangePickerDialog({super.key});
+
+  @override
+  State<WheelTimeRangePickerDialog> createState() =>
+      _WheelTimeRangePickerDialogState();
+}
+
+class _WheelTimeRangePickerDialogState
+    extends State<WheelTimeRangePickerDialog> {
+  int _startHour = 6;
+  int _startMinute = 0;
+  String _startPeriod = 'AM';
+
+  int _endHour = 2;
+  int _endMinute = 0;
+  String _endPeriod = 'PM';
+
+  late final FixedExtentScrollController _startHourCtrl;
+  late final FixedExtentScrollController _startMinCtrl;
+  late final FixedExtentScrollController _startPeriodCtrl;
+  late final FixedExtentScrollController _endHourCtrl;
+  late final FixedExtentScrollController _endMinCtrl;
+  late final FixedExtentScrollController _endPeriodCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _startHourCtrl = FixedExtentScrollController(initialItem: _startHour - 1);
+    _startMinCtrl = FixedExtentScrollController(initialItem: _startMinute ~/ 5);
+    _startPeriodCtrl = FixedExtentScrollController(initialItem: 0);
+
+    _endHourCtrl = FixedExtentScrollController(initialItem: _endHour - 1);
+    _endMinCtrl = FixedExtentScrollController(initialItem: _endMinute ~/ 5);
+    _endPeriodCtrl = FixedExtentScrollController(initialItem: 1);
+  }
+
+  @override
+  void dispose() {
+    _startHourCtrl.dispose();
+    _startMinCtrl.dispose();
+    _startPeriodCtrl.dispose();
+    _endHourCtrl.dispose();
+    _endMinCtrl.dispose();
+    _endPeriodCtrl.dispose();
+    super.dispose();
+  }
+
+  String _formatTime(int hour, int minute, String period) {
+    final m = minute.toString().padLeft(2, '0');
+    return '$hour:$m $period';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      backgroundColor: isDark ? colors.surface : Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.watch_later_outlined, color: colors.primary),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Half-Time Shift Wheel Picker',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      Text(
+                        'Scroll the wheels to pick start and end time',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: _TimeWheelColumn(
+                    title: 'Start Time',
+                    hourController: _startHourCtrl,
+                    minuteController: _startMinCtrl,
+                    periodController: _startPeriodCtrl,
+                    onHourChanged: (val) => setState(() => _startHour = val + 1),
+                    onMinuteChanged: (val) =>
+                        setState(() => _startMinute = val * 5),
+                    onPeriodChanged: (val) =>
+                        setState(() => _startPeriod = val == 0 ? 'AM' : 'PM'),
+                  ),
+                ),
+                Container(
+                  height: 120,
+                  width: 1,
+                  color: colors.outlineVariant,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                ),
+                Expanded(
+                  child: _TimeWheelColumn(
+                    title: 'End Time',
+                    hourController: _endHourCtrl,
+                    minuteController: _endMinCtrl,
+                    periodController: _endPeriodCtrl,
+                    onHourChanged: (val) => setState(() => _endHour = val + 1),
+                    onMinuteChanged: (val) =>
+                        setState(() => _endMinute = val * 5),
+                    onPeriodChanged: (val) =>
+                        setState(() => _endPeriod = val == 0 ? 'AM' : 'PM'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: colors.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.schedule_rounded, size: 18, color: colors.primary),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Selected Shift: ${_formatTime(_startHour, _startMinute, _startPeriod)} - ${_formatTime(_endHour, _endMinute, _endPeriod)}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: colors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () {
+                    final startStr = _formatTime(_startHour, _startMinute, _startPeriod);
+                    final endStr = _formatTime(_endHour, _endMinute, _endPeriod);
+                    Navigator.pop(context, 'Shift ($startStr - $endStr)');
+                  },
+                  child: const Text('Set Shift'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TimeWheelColumn extends StatelessWidget {
+  final String title;
+  final FixedExtentScrollController hourController;
+  final FixedExtentScrollController minuteController;
+  final FixedExtentScrollController periodController;
+  final ValueChanged<int> onHourChanged;
+  final ValueChanged<int> onMinuteChanged;
+  final ValueChanged<int> onPeriodChanged;
+
+  const _TimeWheelColumn({
+    required this.title,
+    required this.hourController,
+    required this.minuteController,
+    required this.periodController,
+    required this.onHourChanged,
+    required this.onMinuteChanged,
+    required this.onPeriodChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: 36,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ListWheelScrollView.useDelegate(
+                      controller: hourController,
+                      itemExtent: 32,
+                      perspective: 0.005,
+                      diameterRatio: 1.2,
+                      physics: const FixedExtentScrollPhysics(),
+                      onSelectedItemChanged: onHourChanged,
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        childCount: 12,
+                        builder: (context, index) => Center(
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Text(':', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: ListWheelScrollView.useDelegate(
+                      controller: minuteController,
+                      itemExtent: 32,
+                      perspective: 0.005,
+                      diameterRatio: 1.2,
+                      physics: const FixedExtentScrollPhysics(),
+                      onSelectedItemChanged: onMinuteChanged,
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        childCount: 12,
+                        builder: (context, index) => Center(
+                          child: Text(
+                            (index * 5).toString().padLeft(2, '0'),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListWheelScrollView.useDelegate(
+                      controller: periodController,
+                      itemExtent: 32,
+                      perspective: 0.005,
+                      diameterRatio: 1.2,
+                      physics: const FixedExtentScrollPhysics(),
+                      onSelectedItemChanged: onPeriodChanged,
+                      childDelegate: ListWheelChildBuilderDelegate(
+                        childCount: 2,
+                        builder: (context, index) => Center(
+                          child: Text(
+                            index == 0 ? 'AM' : 'PM',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

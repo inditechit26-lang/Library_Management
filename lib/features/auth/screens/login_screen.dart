@@ -257,8 +257,9 @@ class _LoginScreenState extends State<LoginScreen>
                             const SizedBox(height: 28),
 
                             // Bottom Switch Text
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                            Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
                                   _isSignUp
@@ -278,7 +279,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     _isSignUp ? 'Sign In' : 'Create Account',
                                     style: const TextStyle(
                                       fontSize: 13.5,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w800,
                                       color: Color(0xFF6366F1),
                                     ),
                                   ),

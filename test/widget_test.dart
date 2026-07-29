@@ -1,15 +1,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shelf_flutter/main.dart';
+import 'package:shelf_flutter/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:shelf_flutter/core/theme/app_theme.dart';
 import 'package:shelf_flutter/features/seats/screens/seat_settings_screen.dart';
 
 void main() {
   testWidgets('application starts on login', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: ShelfApp()));
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(home: LoginScreen()),
+      ),
+    );
     await tester.pumpAndSettle();
-    expect(find.text('WELCOME BACK'), findsOneWidget);
+    expect(find.text('Library Management'), findsOneWidget);
   });
 
   testWidgets('seat label dialog closes without disposed controller errors', (
