@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/auth/screens/email_verification_screen.dart';
 import '../../features/students/screens/student_profile_screen.dart';
 import '../../features/seats/screens/seat_profile_screen.dart';
 import '../../features/seats/screens/change_seat_screen.dart';
@@ -41,20 +42,40 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/app',
     refreshListenable: GoRouterRefreshStream(authRepo.authStateChanges),
-    redirect: (context, state) {
+    redirect: (context, state) async {
       final user = authRepo.currentUser;
       final loggingIn = state.matchedLocation == '/login';
+      final verifying = state.matchedLocation == '/verify-email';
 
       if (user == null && !loggingIn) {
         return '/login';
       }
-      if (user != null && loggingIn) {
-        return '/app';
+      if (user == null) return null;
+
+      try {
+        final refreshedUser = await authRepo.reloadCurrentUser();
+        if (refreshedUser == null) return '/login';
+        if (!refreshedUser.emailVerified) {
+          return verifying ? null : '/verify-email';
+        }
+      } catch (_) {
+        return verifying ? null : '/verify-email';
       }
+
+      if (loggingIn || verifying) return '/app';
       return null;
     },
     routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => LoginScreen(
+          showSignup: state.uri.queryParameters['mode'] == 'signup',
+        ),
+      ),
+      GoRoute(
+        path: '/verify-email',
+        builder: (context, state) => const EmailVerificationScreen(),
+      ),
       GoRoute(
         path: '/app',
         builder: (context, state) => Consumer(

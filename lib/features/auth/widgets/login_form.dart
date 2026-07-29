@@ -35,15 +35,15 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        await ref.read(authControllerProvider.notifier).signInWithEmail(
-              _emailController.text,
-              _passwordController.text,
-            );
+        await ref
+            .read(authControllerProvider.notifier)
+            .signInWithEmail(_emailController.text, _passwordController.text);
         final state = ref.read(authControllerProvider);
         if (state.hasError && mounted) {
           ErrorHandler.showErrorSnackBar(context, state.error);
         } else if (mounted) {
-          context.go('/app');
+          final user = ref.read(authRepositoryProvider).currentUser;
+          context.go(user?.emailVerified == true ? '/app' : '/verify-email');
         }
       } catch (e) {
         if (mounted) ErrorHandler.showErrorSnackBar(context, e);
@@ -73,14 +73,20 @@ class _LoginFormState extends ConsumerState<LoginForm> {
   void _handleForgotPassword() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      ErrorHandler.showErrorSnackBar(context, 'Please enter a valid email address first');
+      ErrorHandler.showErrorSnackBar(
+        context,
+        'Please enter a valid email address first',
+      );
       return;
     }
 
     try {
       await ref.read(authControllerProvider.notifier).sendPasswordReset(email);
       if (mounted) {
-        ErrorHandler.showSuccessSnackBar(context, 'Password reset email sent to $email');
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Password reset email sent to $email',
+        );
       }
     } catch (e) {
       if (mounted) ErrorHandler.showErrorSnackBar(context, e);
@@ -92,7 +98,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final fieldBg = isDark ? const Color(0xFF1A1F30) : const Color(0xFFF8FAFC);
-    final fieldBorder = isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0);
+    final fieldBorder = isDark
+        ? const Color(0xFF2B3248)
+        : const Color(0xFFE2E8F0);
     const primaryAccent = Color(0xFF6366F1);
 
     return Form(
@@ -113,7 +121,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           TextFormField(
             controller: _emailController,
             validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Please enter your email';
+              if (v == null || v.trim().isEmpty) {
+                return 'Please enter your email';
+              }
               if (!v.contains('@')) return 'Enter a valid email address';
               return null;
             },
@@ -125,16 +135,23 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             decoration: InputDecoration(
               hintText: 'Email Address',
               hintStyle: TextStyle(
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
               ),
               prefixIcon: Icon(
                 Icons.alternate_email_rounded,
                 size: 20,
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
               ),
               filled: true,
               fillColor: fieldBg,
-              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 16,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -160,7 +177,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                  color: isDark
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFF475569),
                 ),
               ),
               TextButton(
@@ -198,16 +217,23 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             decoration: InputDecoration(
               hintText: 'Password',
               hintStyle: TextStyle(
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
               ),
               prefixIcon: Icon(
                 Icons.lock_outline_rounded,
                 size: 20,
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
               ),
               filled: true,
               fillColor: fieldBg,
-              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 16,
+                horizontal: 16,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
                 borderSide: BorderSide.none,
@@ -223,9 +249,13 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               suffixIcon: IconButton(
                 onPressed: () => setState(() => _hidden = !_hidden),
                 icon: Icon(
-                  _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  _hidden
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   size: 20,
-                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                  color: isDark
+                      ? const Color(0xFF64748B)
+                      : const Color(0xFF94A3B8),
                 ),
               ),
             ),
@@ -255,7 +285,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ),
@@ -269,14 +301,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(28),
               gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF6366F1),
-                  Color(0xFF4F46E5),
-                ],
+                colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.38),
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.38),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -313,7 +342,11 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 19, color: Colors.white),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 19,
+                          color: Colors.white,
+                        ),
                       ],
                     ),
             ),
@@ -325,7 +358,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             children: [
               Expanded(
                 child: Divider(
-                  color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                  color: isDark
+                      ? const Color(0xFF262C40)
+                      : const Color(0xFFE2E8F0),
                 ),
               ),
               Padding(
@@ -336,13 +371,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    color: isDark
+                        ? const Color(0xFF64748B)
+                        : const Color(0xFF94A3B8),
                   ),
                 ),
               ),
               Expanded(
                 child: Divider(
-                  color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                  color: isDark
+                      ? const Color(0xFF262C40)
+                      : const Color(0xFFE2E8F0),
                 ),
               ),
             ],
@@ -362,13 +401,17 @@ class _LoginFormState extends ConsumerState<LoginForm> {
                 fontWeight: FontWeight.w700,
               ),
               side: BorderSide(
-                color: isDark ? const Color(0xFF2B3248) : const Color(0xFFE2E8F0),
+                color: isDark
+                    ? const Color(0xFF2B3248)
+                    : const Color(0xFFE2E8F0),
                 width: 1.2,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(26),
               ),
-              backgroundColor: isDark ? const Color(0xFF191D2C) : const Color(0xFFF8FAFC),
+              backgroundColor: isDark
+                  ? const Color(0xFF191D2C)
+                  : const Color(0xFFF8FAFC),
             ),
             child: _isGoogleLoading
                 ? const SizedBox(

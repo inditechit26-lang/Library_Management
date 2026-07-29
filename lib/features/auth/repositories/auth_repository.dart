@@ -19,6 +19,9 @@ abstract class BaseAuthRepository {
   });
   Future<AppUserModel?> signInWithGoogle();
   Future<void> sendPasswordResetEmail(String email);
+  Future<void> sendEmailVerification();
+  Future<User?> reloadCurrentUser();
+  Future<void> markEmailVerified(String uid);
   Future<void> signOut();
 }
 
@@ -31,9 +34,9 @@ class AuthRepository implements BaseAuthRepository {
     FirebaseAuth? firebaseAuth,
     FirebaseFirestore? firestore,
     GoogleSignIn? googleSignIn,
-  })  : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn();
+  }) : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _googleSignIn = googleSignIn ?? GoogleSignIn();
 
   @override
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
@@ -78,7 +81,13 @@ class AuthRepository implements BaseAuthRepository {
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
-        await _firestore.collection('users').doc(user.uid).set(newProfile.toFirestore());
+        await _firestore.collection('users').doc(user.uid).set({
+          ...newProfile.toFirestore(),
+          'emailVerified': user.emailVerified,
+          'verificationCompletedAt': user.emailVerified
+              ? FieldValue.serverTimestamp()
+              : null,
+        });
         return newProfile;
       }
 
@@ -124,9 +133,15 @@ class AuthRepository implements BaseAuthRepository {
       batch.set(_firestore.collection('users').doc(user.uid), {
         ...newProfile.toFirestore(),
         'phone': phone.trim(),
+        'emailVerified': false,
+        'verificationCompletedAt': null,
       });
       batch.set(
-        _firestore.collection('libraries').doc(libraryId).collection('info').doc('general'),
+        _firestore
+            .collection('libraries')
+            .doc(libraryId)
+            .collection('info')
+            .doc('general'),
         {
           'libraryId': libraryId,
           'name': libraryName.trim(),
@@ -136,7 +151,11 @@ class AuthRepository implements BaseAuthRepository {
         },
       );
       batch.set(
-        _firestore.collection('libraries').doc(libraryId).collection('config').doc('settings'),
+        _firestore
+            .collection('libraries')
+            .doc(libraryId)
+            .collection('config')
+            .doc('settings'),
         {
           'totalSeats': 0,
           'autoReceiptNumbering': true,
@@ -158,13 +177,15 @@ class AuthRepository implements BaseAuthRepository {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null; // Cancelled
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final UserCredential userCredential = await _firebaseAuth
+          .signInWithCredential(credential);
       final user = userCredential.user;
       if (user == null) return null;
 
@@ -183,9 +204,19 @@ class AuthRepository implements BaseAuthRepository {
         );
 
         final batch = _firestore.batch();
-        batch.set(_firestore.collection('users').doc(user.uid), profile.toFirestore());
+        batch.set(_firestore.collection('users').doc(user.uid), {
+          ...profile.toFirestore(),
+          'emailVerified': user.emailVerified,
+          'verificationCompletedAt': user.emailVerified
+              ? FieldValue.serverTimestamp()
+              : null,
+        });
         batch.set(
-          _firestore.collection('libraries').doc(libraryId).collection('info').doc('general'),
+          _firestore
+              .collection('libraries')
+              .doc(libraryId)
+              .collection('info')
+              .doc('general'),
           {
             'libraryId': libraryId,
             'name': '${user.displayName ?? "My"}\'s Study Library',
@@ -206,6 +237,42 @@ class AuthRepository implements BaseAuthRepository {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
+    } catch (e, stack) {
+      throw ErrorHandler.handle(e, stack);
+    }
+  }
+
+  @override
+  Future<void> sendEmailVerification() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) throw const AuthException('Your session has expired.');
+      await user.sendEmailVerification();
+    } catch (e, stack) {
+      throw ErrorHandler.handle(e, stack);
+    }
+  }
+
+  @override
+  Future<User?> reloadCurrentUser() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) return null;
+      await user.reload();
+      return _firebaseAuth.currentUser;
+    } catch (e, stack) {
+      throw ErrorHandler.handle(e, stack);
+    }
+  }
+
+  @override
+  Future<void> markEmailVerified(String uid) async {
+    try {
+      await _firestore.collection('users').doc(uid).set({
+        'emailVerified': true,
+        'verificationCompletedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (e, stack) {
       throw ErrorHandler.handle(e, stack);
     }
