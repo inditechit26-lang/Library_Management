@@ -50,6 +50,7 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
   }
 
   Future<void> setActiveUpiId(String upiId) async {
+    if (state.usesCustomQr) return;
     final trimmed = upiId.trim();
     if (trimmed.isEmpty) return;
     state = state.copyWith(activeUpiId: trimmed);
@@ -57,6 +58,7 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
   }
 
   Future<void> addUpiId(String upiId) async {
+    if (state.usesCustomQr) return;
     final trimmed = upiId.trim();
     if (trimmed.isEmpty) return;
     final updatedList = List<String>.from(state.upiIds);
@@ -68,6 +70,7 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
   }
 
   Future<void> removeUpiId(String upiId) async {
+    if (state.usesCustomQr) return;
     final updatedList = List<String>.from(state.upiIds)..remove(upiId);
     String newActive = state.activeUpiId;
     if (newActive == upiId) {

@@ -37,6 +37,8 @@ class PaymentSettings {
     return 'upi://pay?pa=$cleanUpi&pn=$cleanName&cu=INR';
   }
 
+  bool get usesCustomQr => customQrUrl.isNotEmpty;
+
   Map<String, dynamic> toMap() => {
     'activeUpiId': activeUpiId,
     'upiIds': upiIds,

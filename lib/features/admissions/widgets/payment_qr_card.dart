@@ -90,7 +90,7 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
             ),
             const SizedBox(height: 12),
             Text(
-              upiId,
+              customQrUrl.isNotEmpty ? 'Uploaded UPI QR' : upiId,
               style: const TextStyle(fontSize: 11, color: Color(0xFF777D8E)),
             ),
             const SizedBox(height: 4),
@@ -102,22 +102,24 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _Action(
-                  icon: Icons.copy_outlined,
-                  label: 'Copy UPI',
-                  onTap: () => Clipboard.setData(ClipboardData(text: upiId)),
-                ),
+                if (customQrUrl.isEmpty)
+                  _Action(
+                    icon: Icons.copy_outlined,
+                    label: 'Copy UPI',
+                    onTap: () => Clipboard.setData(ClipboardData(text: upiId)),
+                  ),
                 _Action(
                   icon: Icons.fullscreen,
                   label: 'Full Screen QR',
                   onTap: () => _fullScreen(context, data, customQrUrl),
                 ),
-                _Action(
-                  icon: Icons.share_outlined,
-                  label: 'Share QR',
-                  onTap: () =>
-                      SharePlus.instance.share(ShareParams(text: data)),
-                ),
+                if (customQrUrl.isEmpty)
+                  _Action(
+                    icon: Icons.share_outlined,
+                    label: 'Share QR',
+                    onTap: () =>
+                        SharePlus.instance.share(ShareParams(text: data)),
+                  ),
               ],
             ),
           ] else ...[

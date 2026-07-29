@@ -33,6 +33,7 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
   }
 
   void _addUpiId() {
+    if (ref.read(paymentSettingsProvider).usesCustomQr) return;
     final text = _newUpiController.text.trim();
     if (text.isEmpty) return;
     if (!text.contains('@')) {
@@ -104,6 +105,7 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final paymentSettings = ref.watch(paymentSettingsProvider);
+    final usesCustomQr = paymentSettings.usesCustomQr;
     final colors = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -157,7 +159,9 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Active Payment QR Preview',
+                            usesCustomQr
+                                ? 'Uploaded Payment QR Preview'
+                                : 'Active Payment QR Preview',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -208,40 +212,52 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      paymentSettings.activeUpiId,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: colors.onSurfaceVariant,
+                if (usesCustomQr)
+                  Text(
+                    'Uploaded QR is active for payments',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  )
+                else
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        paymentSettings.activeUpiId,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.copy_rounded, size: 16),
-                      tooltip: 'Copy UPI ID',
-                      onPressed: () {
-                        Clipboard.setData(
-                          ClipboardData(text: paymentSettings.activeUpiId),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Copied ${paymentSettings.activeUpiId} to clipboard',
+                      IconButton(
+                        icon: const Icon(Icons.copy_rounded, size: 16),
+                        tooltip: 'Copy UPI ID',
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(text: paymentSettings.activeUpiId),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Copied ${paymentSettings.activeUpiId} to clipboard',
+                              ),
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
                             ),
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 4),
                 Text(
-                  'This QR code will be dynamically generated and shown during Student Admissions & Renewal payments.',
+                  usesCustomQr
+                      ? 'This uploaded QR image will be shown during Student Admissions and Renewal payments.'
+                      : 'This QR code will be dynamically generated and shown during Student Admissions and Renewal payments.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 11,
@@ -344,7 +360,9 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Select which UPI ID is active for QR code generation across the app.',
+            usesCustomQr
+                ? 'UPI ID controls are disabled while an uploaded QR image is active.'
+                : 'Select which UPI ID is active for QR code generation across the app.',
             style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
@@ -373,13 +391,15 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                   value: upiId,
                   groupValue: paymentSettings.activeUpiId,
                   activeColor: colors.primary,
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref
-                          .read(paymentSettingsProvider.notifier)
-                          .setActiveUpiId(val);
-                    }
-                  },
+                  onChanged: usesCustomQr
+                      ? null
+                      : (val) {
+                          if (val != null) {
+                            ref
+                                .read(paymentSettingsProvider.notifier)
+                                .setActiveUpiId(val);
+                          }
+                        },
                 ),
                 title: Row(
                   children: [
@@ -422,16 +442,18 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                     IconButton(
                       icon: const Icon(Icons.copy_rounded, size: 18),
                       tooltip: 'Copy',
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: upiId));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Copied $upiId'),
-                            behavior: SnackBarBehavior.floating,
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
+                      onPressed: usesCustomQr
+                          ? null
+                          : () {
+                              Clipboard.setData(ClipboardData(text: upiId));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Copied $upiId'),
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 1),
+                                ),
+                              );
+                            },
                     ),
                     if (paymentSettings.upiIds.length > 1)
                       IconButton(
@@ -441,15 +463,19 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                           color: Colors.redAccent,
                         ),
                         tooltip: 'Delete',
-                        onPressed: () => _confirmDelete(upiId),
+                        onPressed: usesCustomQr
+                            ? null
+                            : () => _confirmDelete(upiId),
                       ),
                   ],
                 ),
-                onTap: () {
-                  ref
-                      .read(paymentSettingsProvider.notifier)
-                      .setActiveUpiId(upiId);
-                },
+                onTap: usesCustomQr
+                    ? null
+                    : () {
+                        ref
+                            .read(paymentSettingsProvider.notifier)
+                            .setActiveUpiId(upiId);
+                      },
               ),
             );
           }),
@@ -487,12 +513,13 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                             Icons.account_balance_wallet_outlined,
                           ),
                         ),
+                        enabled: !usesCustomQr,
                         onSubmitted: (_) => _addUpiId(),
                       ),
                     ),
                     const SizedBox(width: 10),
                     ElevatedButton(
-                      onPressed: _addUpiId,
+                      onPressed: usesCustomQr ? null : _addUpiId,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,

@@ -505,6 +505,7 @@ class _PaymentConfiguration extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(paymentSettingsProvider);
     final controller = ref.read(paymentSettingsProvider.notifier);
+    final usesCustomQr = settings.usesCustomQr;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -527,44 +528,62 @@ class _PaymentConfiguration extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         if (settings.upiIds.isNotEmpty)
-          RadioGroup<String>(
-            groupValue: settings.activeUpiId,
-            onChanged: (value) {
-              if (value != null) controller.setActiveUpiId(value);
-            },
-            child: Column(
-              children: [
-                for (final upiId in settings.upiIds)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Radio<String>(value: upiId),
-                    title: Text(
-                      upiId,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    trailing: settings.upiIds.length > 1
-                        ? IconButton(
-                            tooltip: 'Delete',
-                            icon: const Icon(Icons.delete_outline_rounded),
-                            onPressed: () => controller.removeUpiId(upiId),
-                          )
-                        : null,
-                    onTap: () => controller.setActiveUpiId(upiId),
-                  ),
-              ],
+          IgnorePointer(
+            ignoring: usesCustomQr,
+            child: Opacity(
+              opacity: usesCustomQr ? 0.5 : 1,
+              child: RadioGroup<String>(
+                groupValue: settings.activeUpiId,
+                onChanged: (value) {
+                  if (value != null) controller.setActiveUpiId(value);
+                },
+                child: Column(
+                  children: [
+                    for (final upiId in settings.upiIds)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Radio<String>(value: upiId),
+                        title: Text(
+                          upiId,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        trailing: settings.upiIds.length > 1
+                            ? IconButton(
+                                tooltip: 'Delete',
+                                icon: const Icon(Icons.delete_outline_rounded),
+                                onPressed: usesCustomQr
+                                    ? null
+                                    : () => controller.removeUpiId(upiId),
+                              )
+                            : null,
+                        onTap: usesCustomQr
+                            ? null
+                            : () => controller.setActiveUpiId(upiId),
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
         Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
-            onPressed: () => _addUpiId(context, controller),
+            onPressed: usesCustomQr
+                ? null
+                : () => _addUpiId(context, controller),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add New UPI ID'),
           ),
         ),
         const SizedBox(height: 8),
-        if (settings.customQrUrl.isNotEmpty || settings.activeUpiId.isNotEmpty)
+        if (usesCustomQr)
+          Text(
+            'An uploaded QR image is active. Remove it to manage UPI IDs.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        if (usesCustomQr) const SizedBox(height: 8),
+        if (usesCustomQr || settings.activeUpiId.isNotEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -575,16 +594,14 @@ class _PaymentConfiguration extends ConsumerWidget {
             child: Column(
               children: [
                 Text(
-                  settings.customQrUrl.isNotEmpty
-                      ? 'Uploaded UPI QR Preview'
-                      : 'UPI QR Preview',
+                  usesCustomQr ? 'Uploaded UPI QR Preview' : 'UPI QR Preview',
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 const SizedBox(height: 12),
                 Container(
                   color: Colors.white,
                   padding: const EdgeInsets.all(10),
-                  child: settings.customQrUrl.isNotEmpty
+                  child: usesCustomQr
                       ? Image.network(
                           settings.customQrUrl,
                           width: 160,

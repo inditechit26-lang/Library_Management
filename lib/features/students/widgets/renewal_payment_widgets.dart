@@ -94,7 +94,9 @@ class RenewalPaymentCard extends ConsumerWidget {
             ),
             const SizedBox(height: 7),
             Text(
-              paymentSettings.activeUpiId,
+              paymentSettings.usesCustomQr
+                  ? 'Uploaded UPI QR'
+                  : paymentSettings.activeUpiId,
               style: TextStyle(fontSize: 10, color: colors.onSurfaceVariant),
             ),
           ] else ...[
