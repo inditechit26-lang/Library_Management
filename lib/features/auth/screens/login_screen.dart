@@ -5,7 +5,8 @@ import '../widgets/login_form.dart';
 import '../widgets/signup_form.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.showSignup = false});
+  final bool showSignup;
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -19,11 +20,12 @@ class _LoginScreenState extends State<LoginScreen>
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
 
-  bool _isSignUp = false;
+  late bool _isSignUp;
 
   @override
   void initState() {
     super.initState();
+    _isSignUp = widget.showSignup;
 
     _bgAnimationController = AnimationController(
       vsync: this,
@@ -40,13 +42,13 @@ class _LoginScreenState extends State<LoginScreen>
       curve: Curves.easeOutCubic,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.06),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _entranceController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _entranceController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _entranceController.forward();
   }
@@ -68,20 +70,12 @@ class _LoginScreenState extends State<LoginScreen>
         ? const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0D0F17),
-              Color(0xFF07080C),
-              Color(0xFF0B0D14),
-            ],
+            colors: [Color(0xFF0D0F17), Color(0xFF07080C), Color(0xFF0B0D14)],
           )
         : const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF8FAFC),
-              Color(0xFFEEF2F6),
-              Color(0xFFF1F5F9),
-            ],
+            colors: [Color(0xFFF8FAFC), Color(0xFFEEF2F6), Color(0xFFF1F5F9)],
           );
 
     return Scaffold(
@@ -110,8 +104,12 @@ class _LoginScreenState extends State<LoginScreen>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFF6366F1).withOpacity(isDark ? 0.28 : 0.16),
-                              const Color(0xFF4F46E5).withOpacity(isDark ? 0.10 : 0.05),
+                              const Color(
+                                0xFF6366F1,
+                              ).withOpacity(isDark ? 0.28 : 0.16),
+                              const Color(
+                                0xFF4F46E5,
+                              ).withOpacity(isDark ? 0.10 : 0.05),
                               Colors.transparent,
                             ],
                           ),
@@ -129,8 +127,12 @@ class _LoginScreenState extends State<LoginScreen>
                           shape: BoxShape.circle,
                           gradient: RadialGradient(
                             colors: [
-                              const Color(0xFF8B5CF6).withOpacity(isDark ? 0.22 : 0.12),
-                              const Color(0xFF7C3AED).withOpacity(isDark ? 0.08 : 0.03),
+                              const Color(
+                                0xFF8B5CF6,
+                              ).withOpacity(isDark ? 0.22 : 0.12),
+                              const Color(
+                                0xFF7C3AED,
+                              ).withOpacity(isDark ? 0.08 : 0.03),
                               Colors.transparent,
                             ],
                           ),
@@ -145,7 +147,10 @@ class _LoginScreenState extends State<LoginScreen>
             SafeArea(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 28,
+                  ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 440),
                     child: FadeTransition(
@@ -156,10 +161,7 @@ class _LoginScreenState extends State<LoginScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // Top Section: Large App Logo, Title & Subtitle Centered
-                            const AppLogo(
-                              size: 76,
-                              borderRadius: 24,
-                            ),
+                            const AppLogo(size: 76, borderRadius: 24),
                             const SizedBox(height: 18),
                             Text(
                               'Library Management',
@@ -206,7 +208,9 @@ class _LoginScreenState extends State<LoginScreen>
                                   BoxShadow(
                                     color: isDark
                                         ? Colors.black.withOpacity(0.55)
-                                        : const Color(0xFF1E293B).withOpacity(0.09),
+                                        : const Color(
+                                            0xFF1E293B,
+                                          ).withOpacity(0.09),
                                     blurRadius: 44,
                                     spreadRadius: 2,
                                     offset: const Offset(0, 18),
@@ -217,12 +221,15 @@ class _LoginScreenState extends State<LoginScreen>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _isSignUp ? 'Create Your Account' : 'Welcome Back',
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 22,
-                                      letterSpacing: -0.6,
-                                    ),
+                                    _isSignUp
+                                        ? 'Create Your Account'
+                                        : 'Welcome Back',
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 22,
+                                          letterSpacing: -0.6,
+                                        ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
@@ -244,11 +251,15 @@ class _LoginScreenState extends State<LoginScreen>
                                     child: _isSignUp
                                         ? SignupForm(
                                             key: const ValueKey('signup'),
-                                            onLoginTap: () => setState(() => _isSignUp = false),
+                                            onLoginTap: () => setState(
+                                              () => _isSignUp = false,
+                                            ),
                                           )
                                         : LoginForm(
                                             key: const ValueKey('login'),
-                                            onSignupTap: () => setState(() => _isSignUp = true),
+                                            onSignupTap: () => setState(
+                                              () => _isSignUp = true,
+                                            ),
                                           ),
                                   ),
                                 ],
@@ -274,7 +285,8 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                 ),
                                 GestureDetector(
-                                  onTap: () => setState(() => _isSignUp = !_isSignUp),
+                                  onTap: () =>
+                                      setState(() => _isSignUp = !_isSignUp),
                                   child: Text(
                                     _isSignUp ? 'Sign In' : 'Create Account',
                                     style: const TextStyle(

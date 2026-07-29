@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -19,20 +18,44 @@ class ErrorHandler {
             error.code,
           );
         case 'not-found':
-          return const DocumentMissingException('The requested record was not found.');
+          return const DocumentMissingException(
+            'The requested record was not found.',
+          );
         case 'unavailable':
         case 'network-request-failed':
-          return const NetworkException('Network unavailable. Operating in offline mode.');
+          return const NetworkException(
+            'Network unavailable. Operating in offline mode.',
+          );
         case 'already-exists':
-          return const ValidationException('A record with this identifier already exists.');
+          return const ValidationException(
+            'A record with this identifier already exists.',
+          );
         case 'user-not-found':
         case 'wrong-password':
         case 'invalid-credential':
           return const AuthException('Invalid email or password.');
         case 'email-already-in-use':
-          return const AuthException('An account with this email already exists.');
+          return const AuthException(
+            'An account with this email already exists.',
+          );
+        case 'too-many-requests':
+          return const AuthException(
+            'Too many requests. Please wait before trying again.',
+          );
+        case 'user-disabled':
+          return const AuthException(
+            'This account has been disabled. Please contact support.',
+          );
+        case 'invalid-user-token':
+        case 'user-token-expired':
+        case 'requires-recent-login':
+          return const AuthException(
+            'Your session has expired. Please sign in again.',
+          );
         case 'quota-exceeded':
-          return const NetworkException('Server quota exceeded. Please try again later.');
+          return const NetworkException(
+            'Server quota exceeded. Please try again later.',
+          );
         case 'canceled':
           return const UnknownException('Operation was cancelled.');
         default:
