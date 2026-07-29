@@ -38,6 +38,15 @@ class DashboardSummaryCards extends ConsumerWidget {
         students.where((s) => s.validUntil.isBefore(now)).length;
     final totalBilled = collectedRevenue + pendingDues;
     final collectionPercentage = totalBilled > 0 ? (collectedRevenue / totalBilled) : 0.0;
+    final activeStudentIds = students
+        .where((student) => student.status.toLowerCase() == 'active')
+        .map((student) => student.id)
+        .toSet();
+    final paidStudentsCount = payments
+        .map((payment) => payment.studentId)
+        .where(activeStudentIds.contains)
+        .toSet()
+        .length;
 
     return Column(
       children: [
@@ -53,6 +62,8 @@ class DashboardSummaryCards extends ConsumerWidget {
           collected: collectedRevenue,
           pending: pendingDues,
           dueStudents: dueStudentsCount,
+          paidStudents: paidStudentsCount,
+          totalStudents: activeStudentCount,
           collectionRatio: collectionPercentage,
           onViewFees: onViewFees,
         ),
@@ -175,6 +186,8 @@ class _FeeCard extends StatelessWidget {
   final double collected;
   final double pending;
   final int dueStudents;
+  final int paidStudents;
+  final int totalStudents;
   final double collectionRatio;
   final VoidCallback onViewFees;
 
@@ -182,6 +195,8 @@ class _FeeCard extends StatelessWidget {
     required this.collected,
     required this.pending,
     required this.dueStudents,
+    required this.paidStudents,
+    required this.totalStudents,
     required this.collectionRatio,
     required this.onViewFees,
   });
@@ -212,7 +227,7 @@ class _FeeCard extends StatelessWidget {
               child: _Metric(
                 'COLLECTED',
                 _formatAmount(collected),
-                '${(collectionRatio * 100).toStringAsFixed(0)}% received',
+                '$paidStudents of $totalStudents students paid',
                 const Color(0xFF20936B),
               ),
             ),
