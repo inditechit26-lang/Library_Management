@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
 import '../models/student_model.dart';
 
@@ -24,7 +25,7 @@ class StudentDataService {
   FirebaseFirestore get _firestore =>
       _overrideFirestore ?? FirebaseFirestore.instance;
 
-  static const List<String> csvHeaders = [
+  static const List<String> excelHeaders = [
     'Student ID',
     'Name',
     'Phone',
@@ -40,17 +41,163 @@ class StudentDataService {
     'Status',
   ];
 
-  /// Generates sample CSV template for import
-  static String generateSampleCsv() {
-    final buffer = StringBuffer();
-    buffer.writeln(csvHeaders.join(','));
-    buffer.writeln(
-      'STU1001,Rahul Sharma,9876543210,rahul@example.com,Male,A-12,Full Day,Monthly Standard,fullTimeReserved,1500,01 Jan 2026,01 Feb 2026,Active',
-    );
-    buffer.writeln(
-      'STU1002,Priya Patel,9812345678,priya@example.com,Female,B-05,Half Day,Monthly Flex,halfTimeFlexible,1000,15 Jan 2026,15 Feb 2026,Active',
-    );
-    return buffer.toString();
+  /// Generates sample Excel (.xlsx) template for import
+  static List<int> generateSampleExcel() {
+    final excel = Excel.createExcel();
+    final sheet = excel['Students'];
+    excel.setDefaultSheet('Students');
+
+    sheet.appendRow(excelHeaders.map((e) => TextCellValue(e)).toList());
+    sheet.appendRow([
+      TextCellValue('STU1001'),
+      TextCellValue('Rahul Sharma'),
+      TextCellValue('9876543210'),
+      TextCellValue('rahul@example.com'),
+      TextCellValue('Male'),
+      TextCellValue('A-12'),
+      TextCellValue('Full Day'),
+      TextCellValue('Monthly Standard'),
+      TextCellValue('fullTimeReserved'),
+      DoubleCellValue(1500),
+      TextCellValue('01 Jan 2026'),
+      TextCellValue('01 Feb 2026'),
+      TextCellValue('Active'),
+    ]);
+    sheet.appendRow([
+      TextCellValue('STU1002'),
+      TextCellValue('Priya Patel'),
+      TextCellValue('9812345678'),
+      TextCellValue('priya@example.com'),
+      TextCellValue('Female'),
+      TextCellValue('B-05'),
+      TextCellValue('Half Day'),
+      TextCellValue('Monthly Flex'),
+      TextCellValue('halfTimeFlexible'),
+      DoubleCellValue(1000),
+      TextCellValue('15 Jan 2026'),
+      TextCellValue('15 Feb 2026'),
+      TextCellValue('Active'),
+    ]);
+    return excel.encode() ?? [];
+  }
+
+  /// Converts student models into clean Excel (.xlsx) bytes
+  List<int> exportToExcel(List<StudentModel> students) {
+    final excel = Excel.createExcel();
+    final sheet = excel['Students'];
+    excel.setDefaultSheet('Students');
+
+    final DateFormat formatter = DateFormat('dd MMM yyyy');
+    sheet.appendRow(excelHeaders.map((e) => TextCellValue(e)).toList());
+
+    for (final s in students) {
+      sheet.appendRow([
+        TextCellValue(s.id),
+        TextCellValue(s.name),
+        TextCellValue(s.phone),
+        TextCellValue(s.email),
+        TextCellValue(s.gender),
+        TextCellValue(s.assignedSeat ?? ''),
+        TextCellValue(s.shift),
+        TextCellValue(s.planName),
+        TextCellValue(s.seatType ?? ''),
+        DoubleCellValue(s.monthlyFee),
+        TextCellValue(formatter.format(s.joiningDate)),
+        TextCellValue(formatter.format(s.validUntil)),
+        TextCellValue(s.status),
+      ]);
+    }
+
+    return excel.encode() ?? [];
+  }
+
+  /// Parses Excel (.xlsx / .xls) byte content into student models
+  ParsedImportResult parseExcel(List<int> bytes) {
+    try {
+      final excel = Excel.decodeBytes(bytes);
+      final validStudents = <StudentModel>[];
+      final errorMessages = <String>[];
+      final now = DateTime.now();
+
+      for (final table in excel.tables.keys) {
+        final rows = excel.tables[table]!.rows;
+        if (rows.isEmpty) continue;
+
+        int startIndex = 0;
+        final firstRowText = rows.first
+            .map((c) => c?.value?.toString() ?? '')
+            .join(' ')
+            .toLowerCase();
+        if (firstRowText.contains('name') || firstRowText.contains('phone')) {
+          startIndex = 1;
+        }
+
+        for (int i = startIndex; i < rows.length; i++) {
+          final rowNum = i + 1;
+          final row = rows[i];
+          final columns = row.map((c) => c?.value?.toString() ?? '').toList();
+
+          if (columns.length < 2) continue;
+
+          final name = columns.length > 1 ? columns[1].trim() : columns[0].trim();
+          final phone = columns.length > 2 ? columns[2].trim() : '';
+
+          if (name.isEmpty) {
+            errorMessages.add('Row $rowNum: Name cannot be empty');
+            continue;
+          }
+
+          final id = (columns.isNotEmpty && columns[0].trim().isNotEmpty)
+              ? columns[0].trim()
+              : 'imp_${now.microsecondsSinceEpoch}_$i';
+
+          final email = columns.length > 3 ? columns[3].trim() : '';
+          final gender = columns.length > 4 ? columns[4].trim() : 'Male';
+          final assignedSeat = (columns.length > 5 && columns[5].trim().isNotEmpty)
+              ? columns[5].trim()
+              : null;
+          final shift = columns.length > 6 ? columns[6].trim() : 'Full Day';
+          final planName = columns.length > 7 ? columns[7].trim() : 'Monthly Standard';
+          final seatType = columns.length > 8 ? columns[8].trim() : null;
+          final monthlyFee = columns.length > 9 ? double.tryParse(columns[9].trim()) ?? 0.0 : 0.0;
+          final joiningDate = columns.length > 10 ? _parseDate(columns[10].trim()) ?? now : now;
+          final validUntil = columns.length > 11 ? _parseDate(columns[11].trim()) ?? now.add(const Duration(days: 30)) : now.add(const Duration(days: 30));
+          final status = columns.length > 12 ? columns[12].trim() : 'Active';
+
+          validStudents.add(
+            StudentModel(
+              id: id,
+              name: name,
+              email: email,
+              phone: phone,
+              gender: gender,
+              assignedSeat: assignedSeat,
+              shift: shift,
+              planName: planName,
+              seatType: seatType,
+              monthlyFee: monthlyFee,
+              joiningDate: joiningDate,
+              validUntil: validUntil,
+              status: status.isEmpty ? 'Active' : status,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+        }
+      }
+
+      return ParsedImportResult(
+        validStudents: validStudents,
+        errorMessages: errorMessages,
+        totalRows: validStudents.length + errorMessages.length,
+      );
+    } catch (e) {
+      return ParsedImportResult(
+        validStudents: [],
+        errorMessages: ['Invalid Excel format: $e'],
+        totalRows: 0,
+      );
+    }
   }
 
   /// Converts student models into clean CSV string
@@ -58,7 +205,7 @@ class StudentDataService {
     final DateFormat formatter = DateFormat('dd MMM yyyy');
     final buffer = StringBuffer();
 
-    buffer.writeln(csvHeaders.join(','));
+    buffer.writeln(excelHeaders.join(','));
 
     for (final s in students) {
       final row = [
@@ -85,7 +232,6 @@ class StudentDataService {
   /// Converts student models into clean formatted JSON string
   String exportToJson(List<StudentModel> students) {
     final list = students.map((s) => s.toFirestore()).toList();
-    // Format timestamp objects to ISO strings for portable JSON
     final formattedList = list.map((map) {
       final copy = Map<String, dynamic>.from(map);
       if (copy['joiningDate'] is Timestamp) {
@@ -123,7 +269,6 @@ class StudentDataService {
     final errorMessages = <String>[];
     final now = DateTime.now();
 
-    // Check if line 0 is a header
     int startIndex = 0;
     final firstLine = lines.first.toLowerCase();
     if (firstLine.contains('name') || firstLine.contains('phone')) {

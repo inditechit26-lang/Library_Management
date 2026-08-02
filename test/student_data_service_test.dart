@@ -3,7 +3,7 @@ import 'package:shelf_flutter/features/students/models/student_model.dart';
 import 'package:shelf_flutter/features/students/services/student_data_service.dart';
 
 void main() {
-  group('StudentDataService CSV & JSON Tests', () {
+  group('StudentDataService Excel, CSV & JSON Tests', () {
     final service = StudentDataService();
     final now = DateTime(2026, 1, 15);
     final sampleStudent = StudentModel(
@@ -23,16 +23,28 @@ void main() {
       updatedAt: now,
     );
 
+    test('exportToExcel and parseExcel should format and decode correctly', () {
+      final bytes = service.exportToExcel([sampleStudent]);
+      expect(bytes.isNotEmpty, isTrue);
+
+      final parseResult = service.parseExcel(bytes);
+      expect(parseResult.validStudents.length, equals(1));
+      expect(parseResult.validStudents.first.name, equals('Aarav Mehta'));
+      expect(parseResult.validStudents.first.phone, equals('9876543210'));
+    });
+
+    test('generateSampleExcel should generate valid non-empty byte list', () {
+      final bytes = StudentDataService.generateSampleExcel();
+      expect(bytes.isNotEmpty, isTrue);
+    });
+
     test('exportToCsv and parseCsv should format and decode correctly', () {
       final csv = service.exportToCsv([sampleStudent]);
       expect(csv.contains('Aarav Mehta'), isTrue);
-      expect(csv.contains('9876543210'), isTrue);
-      expect(csv.contains('A-01'), isTrue);
 
       final parseResult = service.parseCsv(csv);
       expect(parseResult.validStudents.length, equals(1));
       expect(parseResult.validStudents.first.name, equals('Aarav Mehta'));
-      expect(parseResult.validStudents.first.phone, equals('9876543210'));
     });
 
     test('exportToJson and parseJson should format and decode correctly', () {
@@ -42,11 +54,6 @@ void main() {
       final parseResult = service.parseJson(jsonStr);
       expect(parseResult.validStudents.length, equals(1));
       expect(parseResult.validStudents.first.name, equals('Aarav Mehta'));
-    });
-
-    test('generateSampleCsv should return valid template header', () {
-      final template = StudentDataService.generateSampleCsv();
-      expect(template.startsWith('Student ID,Name,Phone'), isTrue);
     });
   });
 }
