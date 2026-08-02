@@ -185,138 +185,6 @@ class _ConfigurationCard extends StatelessWidget {
   }
 }
 
-class _PlanOptionCard extends StatelessWidget {
-  const _PlanOptionCard({
-    required this.period,
-    required this.selected,
-    required this.onToggle,
-    this.child,
-  });
-
-  final MembershipPeriod period;
-  final bool selected;
-  final ValueChanged<bool> onToggle;
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        color: selected
-            ? colors.primaryContainer.withValues(alpha: .22)
-            : colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: selected
-              ? colors.primary.withValues(alpha: .55)
-              : colors.outlineVariant.withValues(alpha: .78),
-          width: selected ? 1.25 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.shadow.withValues(alpha: selected ? .09 : .035),
-            blurRadius: selected ? 18 : 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () => onToggle(!selected),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-                child: Row(
-                  children: [
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 220),
-                      width: 42,
-                      height: 42,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? colors.primary
-                            : colors.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(13),
-                        boxShadow: selected
-                            ? [
-                                BoxShadow(
-                                  color: colors.primary.withValues(alpha: .2),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Icon(
-                        _planIcon(period),
-                        size: 20,
-                        color: selected
-                            ? colors.onPrimary
-                            : colors.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        period.label == 'Annual' ? 'Yearly' : period.label,
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -.1,
-                        ),
-                      ),
-                    ),
-                    Transform.scale(
-                      scale: .94,
-                      child: Checkbox(
-                        value: selected,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        side: BorderSide(
-                          color: selected ? colors.primary : colors.outline,
-                          width: 1.5,
-                        ),
-                        onChanged: (value) => onToggle(value ?? false),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (child != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
-                decoration: BoxDecoration(
-                  color: colors.surface.withValues(alpha: .78),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colors.outlineVariant.withValues(alpha: .7),
-                  ),
-                ),
-                child: child,
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 class _SeatTypeChips extends ConsumerWidget {
   const _SeatTypeChips({required this.configuration});
   final LibraryConfiguration configuration;
@@ -715,415 +583,217 @@ class _PaymentConfiguration extends ConsumerWidget {
   }
 }
 
-class _SectionsEditor extends ConsumerWidget {
+class _SectionsEditor extends ConsumerStatefulWidget {
   const _SectionsEditor({required this.configuration});
   final LibraryConfiguration configuration;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Column(
-    children: [
-      ReorderableListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        buildDefaultDragHandles: false,
-        itemCount: configuration.sections.length,
-        onReorder: (oldIndex, newIndex) async {
-          final sections = [...configuration.sections];
-          if (newIndex > oldIndex) newIndex--;
-          final moved = sections.removeAt(oldIndex);
-          sections.insert(newIndex, moved);
-          await ref
-              .read(libraryConfigurationProvider.notifier)
-              .save(configuration.copyWith(sections: sections));
-        },
-        itemBuilder: (context, index) {
-          final section = configuration.sections[index];
-          return _SectionRow(
-            key: ValueKey(section.id),
-            section: section,
-            configuration: configuration,
-            index: index,
-            onEdit: () => _editSection(context, ref, section),
-            onDelete: () => _deleteSection(context, ref, section),
-            onChanged: (value) async {
-              if (!value.isEnabled &&
-                  !await _confirmIfUsed(
-                    context,
-                    ref,
-                    title: 'Disable ${section.name}?',
-                    field: 'section',
-                    match: section.id,
-                  )) {
-                return;
-              }
-              final sections = [
-                for (final item in configuration.sections)
-                  if (item.id == value.id) value else item,
-              ];
-              await ref
-                  .read(libraryConfigurationProvider.notifier)
-                  .save(configuration.copyWith(sections: sections));
-            },
-          );
-        },
-      ),
-      const SizedBox(height: 8),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TextButton.icon(
-          onPressed: () => _addSection(context, ref),
-          icon: const Icon(Icons.add_rounded, size: 19),
-          label: const Text('Add custom section'),
-        ),
-      ),
-    ],
-  );
+  ConsumerState<_SectionsEditor> createState() => _SectionsEditorState();
+}
 
-  Future<void> _addSection(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    var selectedColor = _sectionColors.first;
-    final name = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Add library section'),
-          content: SizedBox(
-            width: 380,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  maxLength: 32,
-                  decoration: const InputDecoration(
-                    labelText: 'Section name',
-                    hintText: 'e.g. Reading Room',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                const Text('Color tag'),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  children: _sectionColors
-                      .map(
-                        (color) => InkWell(
-                          onTap: () => setState(() => selectedColor = color),
-                          borderRadius: BorderRadius.circular(20),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 160),
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: color == selectedColor
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                            child: color == selectedColor
-                                ? const Icon(
-                                    Icons.check,
-                                    size: 17,
-                                    color: Colors.white,
-                                  )
-                                : null,
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final value = controller.text.trim();
-                if (value.isNotEmpty) Navigator.pop(dialogContext, value);
-              },
-              child: const Text('Add section'),
-            ),
-          ],
-        ),
-      ),
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 320));
-    controller.dispose();
-    if (name == null || !context.mounted) return;
-    if (configuration.sections.any(
-      (section) => section.name.toLowerCase() == name.toLowerCase(),
+class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
+  late String _selectedSectionId;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSectionId = widget.configuration.sections.first.id;
+  }
+
+  @override
+  void didUpdateWidget(covariant _SectionsEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.configuration.sections.any(
+      (section) => section.id == _selectedSectionId,
     )) {
-      _message(context, 'A section with this name already exists.');
-      return;
+      _selectedSectionId = widget.configuration.sections.first.id;
     }
-    final section = LibrarySection(
-      id: 'section_${DateTime.now().millisecondsSinceEpoch}',
-      name: name,
-      colorValue: selectedColor.toARGB32(),
-    );
-    await ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(
-          configuration.copyWith(
-            sections: [...configuration.sections, section],
-          ),
-        );
   }
 
-  Future<void> _editSection(
-    BuildContext context,
-    WidgetRef ref,
-    LibrarySection section,
-  ) async {
-    final controller = TextEditingController(text: section.name);
-    var selectedColor = section.color;
-    final updated = await showDialog<LibrarySection>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Edit library section'),
-          content: SizedBox(
-            width: 380,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: controller,
-                  maxLength: 32,
-                  decoration: const InputDecoration(labelText: 'Section name'),
-                ),
-                const SizedBox(height: 12),
-                const Text('Color tag'),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 10,
-                  children: _sectionColors
-                      .map(
-                        (color) => InkWell(
-                          onTap: () => setState(() => selectedColor = color),
-                          borderRadius: BorderRadius.circular(20),
-                          child: Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: color,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: color == selectedColor
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Colors.transparent,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final name = controller.text.trim();
-                if (name.isNotEmpty) {
-                  Navigator.pop(
-                    dialogContext,
-                    section.copyWith(
-                      name: name,
-                      colorValue: selectedColor.toARGB32(),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
-      ),
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final section = widget.configuration.sections.firstWhere(
+      (item) => item.id == _selectedSectionId,
     );
-    await Future<void>.delayed(const Duration(milliseconds: 320));
-    controller.dispose();
-    if (updated == null) return;
-    final sections = [
-      for (final item in configuration.sections)
-        if (item.id == updated.id) updated else item,
+    final periods = [
+      MembershipPeriod.monthly,
+      MembershipPeriod.quarterly,
+      MembershipPeriod.halfYearly,
+      MembershipPeriod.annual,
+      if (section.membershipPeriods.contains(MembershipPeriod.custom))
+        MembershipPeriod.custom,
     ];
-    await ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(configuration.copyWith(sections: sections));
-  }
 
-  Future<void> _deleteSection(
-    BuildContext context,
-    WidgetRef ref,
-    LibrarySection section,
-  ) async {
-    if (configuration.sections.length == 1) {
-      _message(context, 'At least one section must remain.');
-      return;
-    }
-    final confirmed =
-        await showDialog<bool>(
-          context: context,
-          builder: (dialogContext) => AlertDialog(
-            title: Text('Delete ${section.name}?'),
-            content: const Text('Existing student records are preserved.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Cancel'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colors.primaryContainer.withValues(alpha: .38),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(Icons.sell_outlined, color: colors.onPrimary),
               ),
-              FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Delete'),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Plan Rate Configuration',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Set membership rates for each section.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ) ??
-        false;
-    if (!confirmed) return;
-    await ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(
-          configuration.copyWith(
-            sections: configuration.sections
-                .where((item) => item.id != section.id)
-                .toList(),
+        ),
+        const SizedBox(height: 14),
+        SegmentedButton<String>(
+          segments: [
+            for (final item in widget.configuration.sections)
+              ButtonSegment(
+                value: item.id,
+                icon: Icon(Icons.circle, size: 12, color: item.color),
+                label: Text(item.name),
+              ),
+          ],
+          selected: {_selectedSectionId},
+          showSelectedIcon: false,
+          onSelectionChanged: (value) {
+            setState(() => _selectedSectionId = value.first);
+          },
+        ),
+        const SizedBox(height: 14),
+        for (final period in periods) ...[
+          _SectionPlanCard(
+            key: ValueKey('${section.id}-${period.name}'),
+            section: section,
+            period: period,
+            onSaved: (price) => _savePlan(section, period, price),
           ),
-        );
+          const SizedBox(height: 12),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _savePlan(
+    LibrarySection section,
+    MembershipPeriod period,
+    double price,
+  ) {
+    final updated = section.copyWith(
+      membershipPeriods: {...section.membershipPeriods, period},
+      planPrices: {...section.planPrices, period: price},
+    );
+    final sections = [
+      for (final item in widget.configuration.sections)
+        if (item.id == updated.id) updated else item,
+    ];
+    return ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(sections: sections));
   }
 }
 
-class _SectionRow extends StatelessWidget {
-  const _SectionRow({
+class _SectionPlanCard extends StatelessWidget {
+  const _SectionPlanCard({
     super.key,
     required this.section,
-    required this.configuration,
-    required this.index,
-    required this.onChanged,
-    required this.onEdit,
-    required this.onDelete,
+    required this.period,
+    required this.onSaved,
   });
+
   final LibrarySection section;
-  final LibraryConfiguration configuration;
-  final int index;
-  final ValueChanged<LibrarySection> onChanged;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final MembershipPeriod period;
+  final Future<void> Function(double price) onSaved;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: Material(
-      color: Theme.of(context).colorScheme.surfaceContainerLow,
-      shape: RoundedRectangleBorder(
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final title = period == MembershipPeriod.annual
+        ? 'Yearly Plan'
+        : '${period.label} Plan';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        border: Border.all(color: colors.outlineVariant),
       ),
-      clipBehavior: Clip.antiAlias,
-      child: ExpansionTile(
-        leading: Container(
-          width: 10,
-          height: 38,
-          decoration: BoxDecoration(
-            color: section.color,
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        title: Text(
-          section.name,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.w800),
-        ),
-        subtitle: Text('${section.membershipPeriods.length} Membership Plans'),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Switch(
-              value: section.isEnabled,
-              onChanged: (value) =>
-                  onChanged(section.copyWith(isEnabled: value)),
-            ),
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'edit') onEdit();
-                if (value == 'delete') onDelete();
-              },
-              itemBuilder: (context) => const [
-                PopupMenuItem(value: 'edit', child: Text('Edit Section')),
-                PopupMenuItem(value: 'delete', child: Text('Delete Section')),
-              ],
-            ),
-            ReorderableDragStartListener(
-              index: index,
-              child: const Padding(
-                padding: EdgeInsets.all(8),
-                child: Icon(Icons.drag_handle_rounded),
-              ),
-            ),
-          ],
-        ),
-        childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final period in MembershipPeriod.values)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: _PlanOptionCard(
-                period: period,
-                selected: section.membershipPeriods.contains(period),
-                onToggle: (enabled) {
-                  if (!enabled && section.membershipPeriods.length == 1) {
-                    _message(
-                      context,
-                      'At least one membership plan must remain enabled.',
-                    );
-                    return;
-                  }
-                  final periods = {...section.membershipPeriods};
-                  enabled ? periods.add(period) : periods.remove(period);
-                  onChanged(section.copyWith(membershipPeriods: periods));
-                },
-                child: section.membershipPeriods.contains(period)
-                    ? _MoneyField(
-                        key: ValueKey(
-                          '${section.id}-${period.name}-${section.planPrices[period]}',
-                        ),
-                        label: period == MembershipPeriod.custom
-                            ? 'Default Price'
-                            : 'Price',
-                        value: section.planPrices[period] ?? 0,
-                        helperText: period == MembershipPeriod.custom
-                            ? 'Suggested starting value; it can be overridden during admission.'
-                            : null,
-                        onSaved: (price) async {
-                          final prices = {...section.planPrices, period: price};
-                          onChanged(section.copyWith(planPrices: prices));
-                        },
-                      )
-                    : null,
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: section.color.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_planIcon(period), color: section.color, size: 20),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      period.duration,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _MoneyField(
+            label: 'Price Amount',
+            value: section.planPrices[period] ?? 0,
+            helperText: period == MembershipPeriod.custom
+                ? 'This amount can be overridden during admission.'
+                : null,
+            onSaved: onSaved,
+          ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _DocumentRequirements extends ConsumerWidget {
@@ -1455,15 +1125,6 @@ class _SettingRow extends StatelessWidget {
   }
 }
 
-const _sectionColors = [
-  Color(0xFF4F6BED),
-  Color(0xFF6B5DD3),
-  Color(0xFF267A5E),
-  Color(0xFFA56722),
-  Color(0xFFB0445C),
-  Color(0xFF5F6B7A),
-];
-
 IconData _documentIcon(StudentDocumentRequirement value) => switch (value) {
   StudentDocumentRequirement.studentPhoto => Icons.account_circle_outlined,
   StudentDocumentRequirement.aadhaarCard => Icons.badge_outlined,
@@ -1501,7 +1162,6 @@ String _amountText(double value) => value == value.roundToDouble()
 
 class _MoneyField extends StatefulWidget {
   const _MoneyField({
-    super.key,
     required this.label,
     required this.value,
     required this.onSaved,
