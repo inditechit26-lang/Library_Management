@@ -88,19 +88,32 @@ class StudentsController extends Notifier<List<Student>> {
   }
 
   Future<void> remove(Student value) async {
-    final model = _modelsByLegacyId[value.id];
-    final libraryId = ref.read(currentLibraryIdProvider);
-    if (model == null || libraryId == null) return;
-    await ref
-        .read(firestore_students.studentsRepositoryProvider)
-        .softDeleteStudent(libraryId, model.id);
-    ref.invalidate(firestore_students.studentsStreamProvider);
+    await removeMany([value]);
   }
 
   Future<void> removeMany(Iterable<Student> students) async {
-    for (final student in students) {
-      await remove(student);
+    final libraryId = ref.read(currentLibraryIdProvider);
+    if (libraryId == null || libraryId.isEmpty) {
+      throw StateError('No active library is available.');
     }
+
+    // Resolve every backend ID before the stream refreshes. Refreshing after
+    // each removal could clear this legacy-ID map before the next item is sent.
+    final studentIds = <String>{};
+    for (final student in students) {
+      final model = _modelsByLegacyId[student.id];
+      if (model == null) {
+        throw StateError('The selected student is no longer available.');
+      }
+      studentIds.add(model.id);
+    }
+    if (studentIds.isEmpty) return;
+
+    final repository = ref.read(firestore_students.studentsRepositoryProvider);
+    for (final studentId in studentIds) {
+      await repository.softDeleteStudent(libraryId, studentId);
+    }
+    ref.invalidate(firestore_students.studentsStreamProvider);
   }
 
   void markPaid(Student value) {
