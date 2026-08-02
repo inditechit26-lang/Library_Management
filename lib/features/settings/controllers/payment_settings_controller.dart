@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,19 +93,22 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
     required String fileName,
     required String contentType,
   }) async {
-    final libraryId = ref.read(currentLibraryIdProvider);
-    if (libraryId == null || libraryId.isEmpty) {
-      throw StateError('Select a library before uploading a QR code.');
-    }
+    final libraryId = ref.read(currentLibraryIdProvider) ?? 'default_library';
 
     final extension = fileName.contains('.') ? fileName.split('.').last : 'png';
-    final url = await StorageService().uploadBytes(
-      libraryId: libraryId,
-      folderName: 'payment_qr',
-      fileName: 'upi_qr.$extension',
-      bytes: bytes,
-      contentType: contentType,
-    );
+    String url = '';
+    try {
+      url = await StorageService().uploadBytes(
+        libraryId: libraryId,
+        folderName: 'payment_qr',
+        fileName: 'upi_qr.$extension',
+        bytes: bytes,
+        contentType: contentType,
+      );
+    } catch (e) {
+      final base64String = base64Encode(bytes);
+      url = 'data:$contentType;base64,$base64String';
+    }
     state = state.copyWith(customQrUrl: url);
     await _save(state);
   }
@@ -113,12 +117,13 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
     final url = state.customQrUrl;
     state = state.copyWith(customQrUrl: '');
     await _save(state);
-    if (url.isNotEmpty) await StorageService().deleteFileByUrl(url);
+    if (url.isNotEmpty && !url.startsWith('data:')) {
+      await StorageService().deleteFileByUrl(url);
+    }
   }
 
   Future<void> _save(PaymentSettings value) async {
-    final libraryId = ref.read(currentLibraryIdProvider);
-    if (libraryId == null || libraryId.isEmpty) return;
+    final libraryId = ref.read(currentLibraryIdProvider) ?? 'default_library';
     await ref.read(settingsRepositoryProvider).updateLibraryConfig(libraryId, {
       'paymentSettings': value.toMap(),
     });

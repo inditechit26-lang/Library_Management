@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../core/widgets/custom_qr_image_view.dart';
 import '../controllers/payment_settings_controller.dart';
 
 class PaymentSettingsScreen extends ConsumerStatefulWidget {
@@ -75,8 +77,16 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
       withData: true,
     );
     final file = result?.files.single;
-    final bytes = file?.bytes;
-    if (file == null || bytes == null || !mounted) return;
+    if (file == null) return;
+
+    Uint8List? bytes = file.bytes;
+    if (bytes == null && file.path != null && file.path!.isNotEmpty) {
+      try {
+        bytes = await File(file.path!).readAsBytes();
+      } catch (_) {}
+    }
+
+    if (bytes == null || !mounted) return;
 
     try {
       final extension = file.extension?.toLowerCase() ?? 'png';
@@ -94,10 +104,10 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('UPI QR image uploaded.')));
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to upload the UPI QR image.')),
+        SnackBar(content: Text('Unable to upload QR: $e')),
       );
     }
   }
@@ -187,21 +197,15 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
                       ),
                     ],
                   ),
-                  child: paymentSettings.customQrUrl.isNotEmpty
-                      ? Image.network(
-                          paymentSettings.customQrUrl,
-                          width: 170,
-                          height: 170,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => QrImageView(
-                            data: paymentSettings.getQrData(),
-                            size: 170,
-                          ),
-                        )
-                      : QrImageView(
-                          data: paymentSettings.getQrData(),
-                          size: 170,
-                        ),
+                  child: CustomQrImageView(
+                    url: paymentSettings.customQrUrl,
+                    width: 170,
+                    height: 170,
+                    fallback: QrImageView(
+                      data: paymentSettings.getQrData(),
+                      size: 170,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 14),
                 Text(

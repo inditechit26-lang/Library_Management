@@ -1,8 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../core/widgets/custom_qr_image_view.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../controllers/library_configuration_controller.dart';
 import '../controllers/payment_settings_controller.dart';
@@ -469,19 +472,15 @@ class _PaymentConfiguration extends ConsumerWidget {
                 Container(
                   color: Colors.white,
                   padding: const EdgeInsets.all(10),
-                  child: usesCustomQr
-                      ? Image.network(
-                          settings.customQrUrl,
-                          width: 160,
-                          height: 160,
-                          fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => const SizedBox(
-                            width: 160,
-                            height: 160,
-                            child: Icon(Icons.broken_image_outlined),
-                          ),
-                        )
-                      : QrImageView(data: settings.getQrData(), size: 160),
+                  child: CustomQrImageView(
+                    url: settings.customQrUrl,
+                    width: 160,
+                    height: 160,
+                    fallback: QrImageView(
+                      data: settings.getQrData(),
+                      size: 160,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -557,8 +556,16 @@ class _PaymentConfiguration extends ConsumerWidget {
       withData: true,
     );
     final file = result?.files.single;
-    final bytes = file?.bytes;
-    if (file == null || bytes == null || !context.mounted) return;
+    if (file == null) return;
+
+    Uint8List? bytes = file.bytes;
+    if (bytes == null && file.path != null && file.path!.isNotEmpty) {
+      try {
+        bytes = await File(file.path!).readAsBytes();
+      } catch (_) {}
+    }
+
+    if (bytes == null || !context.mounted) return;
 
     try {
       final extension = file.extension?.toLowerCase() ?? 'png';
@@ -574,10 +581,10 @@ class _PaymentConfiguration extends ConsumerWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('UPI QR image uploaded.')));
-    } catch (_) {
+    } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to upload the UPI QR image.')),
+        SnackBar(content: Text('Unable to upload QR: $e')),
       );
     }
   }

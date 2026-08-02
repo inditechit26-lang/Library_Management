@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../core/widgets/custom_qr_image_view.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/payment_confirmation_slider.dart';
 import '../../settings/controllers/payment_settings_controller.dart';
@@ -76,21 +77,15 @@ class RenewalPaymentCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(17),
                 border: Border.all(color: const Color(0xFFEEEFF4)),
               ),
-              child: paymentSettings.customQrUrl.isNotEmpty
-                  ? Image.network(
-                      paymentSettings.customQrUrl,
-                      width: 152,
-                      height: 152,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, _, _) => QrImageView(
-                        data: paymentSettings.getQrData(amount),
-                        size: 152,
-                      ),
-                    )
-                  : QrImageView(
-                      data: paymentSettings.getQrData(amount),
-                      size: 152,
-                    ),
+              child: CustomQrImageView(
+                url: paymentSettings.customQrUrl,
+                width: 152,
+                height: 152,
+                fallback: QrImageView(
+                  data: paymentSettings.getQrData(amount),
+                  size: 152,
+                ),
+              ),
             ),
             const SizedBox(height: 7),
             Text(

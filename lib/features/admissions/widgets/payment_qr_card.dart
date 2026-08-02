@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../../core/widgets/custom_qr_image_view.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/widgets/payment_confirmation_slider.dart';
 import '../../settings/controllers/payment_settings_controller.dart';
@@ -77,16 +78,12 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
                   ),
                 ],
               ),
-              child: customQrUrl.isNotEmpty
-                  ? Image.network(
-                      customQrUrl,
-                      width: 166,
-                      height: 166,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, _, _) =>
-                          QrImageView(data: data, size: 166),
-                    )
-                  : QrImageView(data: data, size: 166),
+              child: CustomQrImageView(
+                url: customQrUrl,
+                width: 166,
+                height: 166,
+                fallback: QrImageView(data: data, size: 166),
+              ),
             ),
             const SizedBox(height: 12),
             Text(
@@ -236,16 +233,12 @@ class _State extends ConsumerState<AdmissionPaymentQrCard> {
         builder: (_) => Dialog(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: customQrUrl.isNotEmpty
-                ? Image.network(
-                    customQrUrl,
-                    width: 280,
-                    height: 280,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) =>
-                        QrImageView(data: qrData, size: 280),
-                  )
-                : QrImageView(data: qrData, size: 280),
+            child: CustomQrImageView(
+              url: customQrUrl,
+              width: 280,
+              height: 280,
+              fallback: QrImageView(data: qrData, size: 280),
+            ),
           ),
         ),
       );
