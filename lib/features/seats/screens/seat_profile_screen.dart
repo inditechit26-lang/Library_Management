@@ -257,18 +257,21 @@ class _SeatInformation extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 13),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Seat $number',
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-            ),
-            const Text(
-              'Occupied - Reserved seating',
-              style: TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
-            ),
-          ],
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Seat $number',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+              ),
+              const Text(
+                'Occupied - Reserved seating',
+                style: TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
+              ),
+            ],
+          ),
         ),
       ],
     ),
