@@ -51,6 +51,11 @@ class StudentProfileScreen extends ConsumerWidget {
             onPressed: () => _edit(context, ref, student),
             icon: const Icon(Icons.edit_outlined),
           ),
+          IconButton(
+            tooltip: 'Delete student',
+            onPressed: () => _delete(context, ref, student),
+            icon: const Icon(Icons.delete_outline_rounded),
+          ),
         ],
       ),
       body: CustomScrollView(
@@ -135,6 +140,47 @@ class StudentProfileScreen extends ConsumerWidget {
           onSave: ref.read(studentsProvider.notifier).update,
         ),
       );
+
+  Future<void> _delete(
+    BuildContext context,
+    WidgetRef ref,
+    Student student,
+  ) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: Text('Delete ${student.name}?'),
+            content: const Text(
+              'This student will be removed from the active Students and Fees lists.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton.icon(
+                style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                icon: const Icon(Icons.delete_outline_rounded),
+                label: const Text('Delete'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !context.mounted) return;
+
+    try {
+      await ref.read(studentsProvider.notifier).remove(student);
+      if (context.mounted) Navigator.pop(context);
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to delete this student.')),
+      );
+    }
+  }
 
   Future<void> _call(Student student) => launchUrl(
     Uri.parse('tel:${student.phone.replaceAll(' ', '')}'),

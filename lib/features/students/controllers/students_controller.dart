@@ -87,15 +87,20 @@ class StudentsController extends Notifier<List<Student>> {
     );
   }
 
-  void remove(Student value) {
+  Future<void> remove(Student value) async {
     final model = _modelsByLegacyId[value.id];
     final libraryId = ref.read(currentLibraryIdProvider);
     if (model == null || libraryId == null) return;
-    unawaited(
-      ref
-          .read(firestore_students.studentsRepositoryProvider)
-          .softDeleteStudent(libraryId, model.id),
-    );
+    await ref
+        .read(firestore_students.studentsRepositoryProvider)
+        .softDeleteStudent(libraryId, model.id);
+    ref.invalidate(firestore_students.studentsStreamProvider);
+  }
+
+  Future<void> removeMany(Iterable<Student> students) async {
+    for (final student in students) {
+      await remove(student);
+    }
   }
 
   void markPaid(Student value) {

@@ -8,7 +8,18 @@ import '../models/student.dart';
 class StudentCard extends StatefulWidget {
   final Student student;
   final VoidCallback onOpen;
-  const StudentCard({super.key, required this.student, required this.onOpen});
+  final VoidCallback? onSelect;
+  final bool selected;
+  final bool selectionMode;
+
+  const StudentCard({
+    super.key,
+    required this.student,
+    required this.onOpen,
+    this.onSelect,
+    this.selected = false,
+    this.selectionMode = false,
+  });
 
   @override
   State<StudentCard> createState() => _StudentCardState();
@@ -46,7 +57,9 @@ class _StudentCardState extends State<StudentCard> {
             color: isDark ? const Color(0xFF181C2B) : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: hovered
+              color: widget.selected
+                  ? theme.colorScheme.primary
+                  : hovered
                   ? theme.colorScheme.primary.withOpacity(0.4)
                   : isDark
                   ? const Color(0xFF262C40)
@@ -68,7 +81,8 @@ class _StudentCardState extends State<StudentCard> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: widget.onOpen,
+              onTap: widget.selectionMode ? widget.onSelect : widget.onOpen,
+              onLongPress: widget.onSelect,
               onHighlightChanged: (value) => setState(() => pressed = value),
               borderRadius: BorderRadius.circular(24),
               child: Padding(
@@ -85,39 +99,50 @@ class _StudentCardState extends State<StudentCard> {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _QuickAction(
-                          tooltip: 'Call',
-                          icon: Icon(
-                            Icons.phone_outlined,
-                            size: 19,
-                            color: theme.colorScheme.primary,
-                          ),
-                          onTap: () => launchUrl(
-                            Uri.parse(
-                              'tel:${student.phone.replaceAll(' ', '')}',
+                    if (widget.selectionMode)
+                      Icon(
+                        widget.selected
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded,
+                        color: widget.selected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                        size: 26,
+                      )
+                    else
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _QuickAction(
+                            tooltip: 'Call',
+                            icon: Icon(
+                              Icons.phone_outlined,
+                              size: 19,
+                              color: theme.colorScheme.primary,
+                            ),
+                            onTap: () => launchUrl(
+                              Uri.parse(
+                                'tel:${student.phone.replaceAll(' ', '')}',
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        _QuickAction(
-                          tooltip: 'WhatsApp',
-                          icon: const FaIcon(
-                            FontAwesomeIcons.whatsapp,
-                            size: 19,
-                            color: Color(0xFF25D366),
-                          ),
-                          onTap: () => launchUrl(
-                            Uri.parse(
-                              'https://wa.me/${phoneDigits(student.phone)}',
+                          const SizedBox(height: 10),
+                          _QuickAction(
+                            tooltip: 'WhatsApp',
+                            icon: const FaIcon(
+                              FontAwesomeIcons.whatsapp,
+                              size: 19,
+                              color: Color(0xFF25D366),
                             ),
-                            mode: LaunchMode.externalApplication,
+                            onTap: () => launchUrl(
+                              Uri.parse(
+                                'https://wa.me/${phoneDigits(student.phone)}',
+                              ),
+                              mode: LaunchMode.externalApplication,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
                   ],
                 ),
               ),
