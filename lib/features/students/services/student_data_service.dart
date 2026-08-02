@@ -16,10 +16,13 @@ class ParsedImportResult {
 }
 
 class StudentDataService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore? _overrideFirestore;
 
   StudentDataService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _overrideFirestore = firestore;
+
+  FirebaseFirestore get _firestore =>
+      _overrideFirestore ?? FirebaseFirestore.instance;
 
   static const List<String> csvHeaders = [
     'Student ID',
