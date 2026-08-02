@@ -66,6 +66,38 @@ void main() {
     expect(configuration.toMap().containsKey('membershipPlanPrices'), isFalse);
   });
 
+  test('full-time and half-time prices remain distinct per section', () {
+    final configuration = LibraryConfiguration.fromMap({
+      'sections': [
+        {
+          'id': 'ac',
+          'name': 'AC Section',
+          'color': 0xFF4F6BED,
+          'membershipPlans': ['monthly'],
+          'fullTimePlanPrices': {'monthly': 1800},
+          'halfTimePlanPrices': {'monthly': 1100},
+        },
+      ],
+    });
+
+    expect(
+      configuration.priceFor(
+        MembershipPeriod.monthly,
+        sectionId: 'ac',
+        isFullTime: true,
+      ),
+      1800,
+    );
+    expect(
+      configuration.priceFor(
+        MembershipPeriod.monthly,
+        sectionId: 'ac',
+        isFullTime: false,
+      ),
+      1100,
+    );
+  });
+
   Widget app() => ProviderScope(
     overrides: [
       libraryConfigProvider.overrideWith(

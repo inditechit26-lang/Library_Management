@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/utils/error_handler.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../payments/models/payment_model.dart';
+import '../../payments/providers/payments_provider.dart';
 import '../../receipts/models/receipt_model.dart';
 import '../../receipts/screens/receipt_pdf_viewer_screen.dart';
 import '../../seats/controllers/seats_controller.dart' as sc;
@@ -43,6 +44,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   final emergency = TextEditingController();
   final notes = TextEditingController();
   Student? created;
+  bool _isSubmitting = false;
   static const titles = [
     'Student Information',
     'Membership',
@@ -89,20 +91,26 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
           ? MembershipType.fullTime
           : MembershipType.halfTime;
     }
-    final planPricing = configuration.pricingForSection(
+    final fullTimePricing = configuration.pricingForSection(
       admission.selectedSectionId,
+      isFullTime: true,
+    );
+    final halfTimePricing = configuration.pricingForSection(
+      admission.selectedSectionId,
+      isFullTime: false,
     );
     final shifts = ref.watch(pricingProvider).halfTimeShifts;
     admission.customDefaultPrice = configuration.priceFor(
       MembershipPeriod.custom,
       sectionId: admission.selectedSectionId,
+      isFullTime: admission.membership == MembershipType.fullTime,
     );
     admission.updatePricing(
       PricingSettings(
-        fullTimeAc: planPricing,
-        halfTimeAc: planPricing,
-        fullTimeNonAc: planPricing,
-        halfTimeNonAc: planPricing,
+        fullTimeAc: fullTimePricing,
+        halfTimeAc: halfTimePricing,
+        fullTimeNonAc: fullTimePricing,
+        halfTimeNonAc: halfTimePricing,
         halfTimeShifts: shifts,
       ),
     );
@@ -139,7 +147,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       ),
       AdmissionNavigation(
         step: admission.step,
-        canContinue: _canContinue,
+        canContinue: _canContinue && !_isSubmitting,
         onBack: admission.back,
         onNext: _next,
       ),
@@ -233,7 +241,10 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     }
     final pricing = admission.pricing;
     final categoryPricing = (MembershipType type) =>
-        configuration.pricingForSection(admission.selectedSectionId);
+        configuration.pricingForSection(
+          admission.selectedSectionId,
+          isFullTime: type == MembershipType.fullTime,
+        );
 
     final content = Column(
       children: [
@@ -386,7 +397,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       ? 'Flexible (${admission.selectedHalfTimeShift})'
       : 'Flexible Seating';
 
-  void _next() {
+  Future<void> _next() async {
     if (admission.step == 0 && !(formKey.currentState?.validate() ?? false)) {
       return;
     }
@@ -403,6 +414,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       );
       return;
     }
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
 
     final studentId = 'std_${DateTime.now().millisecondsSinceEpoch}';
     final receiptNo =
@@ -450,48 +463,49 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       createdAt: DateTime.now(),
     );
 
-    ref
-        .read(studentsRepositoryProvider)
-        .processAdmissionTransaction(
-          libraryId: libraryId,
-          student: studentModel,
-          seatNumber: admission.selectedSeat,
-          payment: paymentModel,
-          receipt: receiptModel,
-        )
-        .then((_) {
-          if (mounted) {
-            setState(() {
-              admission.completed = true;
-              final initials = name.text
-                  .trim()
-                  .split(' ')
-                  .map((e) => e.isEmpty ? '' : e[0])
-                  .take(2)
-                  .join();
-              created = Student(
-                id: DateTime.now().millisecondsSinceEpoch % 10000,
-                name: name.text.trim(),
-                phone: phone.text.trim(),
-                seat: _seat,
-                joined: admission.joiningDisplay,
-                expiry: admission.expiryDisplay,
-                fee: admission.fee,
-                payment: PaymentStatus.paid,
-                membership: admission.membership,
-                seatType: admission.selectedSeatType.name,
-                sectionId: admission.selectedSectionId,
-                membershipPeriod: admission.period?.name,
-                initials: initials,
-              );
-            });
-          }
-        })
-        .catchError((e) {
-          if (mounted) {
-            ErrorHandler.showErrorSnackBar(context, e);
-          }
-        });
+    try {
+      await ref
+          .read(studentsRepositoryProvider)
+          .processAdmissionTransaction(
+            libraryId: libraryId,
+            student: studentModel,
+            seatNumber: admission.selectedSeat,
+            payment: paymentModel,
+            receipt: receiptModel,
+          );
+      ref.invalidate(studentsStreamProvider);
+      ref.invalidate(paymentsStreamProvider);
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+        admission.completed = true;
+        final initials = name.text
+            .trim()
+            .split(' ')
+            .map((e) => e.isEmpty ? '' : e[0])
+            .take(2)
+            .join();
+        created = Student(
+          id: DateTime.now().millisecondsSinceEpoch % 10000,
+          name: name.text.trim(),
+          phone: phone.text.trim(),
+          seat: _seat,
+          joined: admission.joiningDisplay,
+          expiry: admission.expiryDisplay,
+          fee: admission.fee,
+          payment: PaymentStatus.paid,
+          membership: admission.membership,
+          seatType: admission.selectedSeatType.name,
+          sectionId: admission.selectedSectionId,
+          membershipPeriod: admission.period?.name,
+          initials: initials,
+        );
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      ErrorHandler.showErrorSnackBar(context, e);
+    }
   }
 
   Widget _success() {

@@ -95,6 +95,8 @@ class StudentProfileScreen extends ConsumerWidget {
                       : configuration.priceFor(
                           period,
                           sectionId: student.sectionId,
+                          isFullTime:
+                              student.membership == MembershipType.fullTime,
                         ),
                 ),
                 if (configuration.requiredDocuments.isNotEmpty) ...[

@@ -39,15 +39,15 @@ class StudentsRepository implements BaseStudentsRepository {
 
   @override
   Stream<List<StudentModel>> watchStudents(String libraryId) {
-    return _studentsRef(libraryId)
-        .where('isDeleted', isEqualTo: false)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => StudentModel.fromFirestore(doc))
-              .toList(),
-        );
+    return _studentsRef(
+      libraryId,
+    ).where('isDeleted', isEqualTo: false).snapshots().map((snapshot) {
+      final students = snapshot.docs
+          .map((doc) => StudentModel.fromFirestore(doc))
+          .toList();
+      students.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return students;
+    });
   }
 
   @override
@@ -56,15 +56,15 @@ class StudentsRepository implements BaseStudentsRepository {
     int limit = 50,
   }) async {
     try {
-      final snapshot = await _studentsRef(libraryId)
-          .where('isDeleted', isEqualTo: false)
-          .orderBy('createdAt', descending: true)
-          .limit(limit)
-          .get();
+      final snapshot = await _studentsRef(
+        libraryId,
+      ).where('isDeleted', isEqualTo: false).get();
 
-      return snapshot.docs
+      final students = snapshot.docs
           .map((doc) => StudentModel.fromFirestore(doc))
           .toList();
+      students.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return students.take(limit).toList();
     } catch (e, stack) {
       throw ErrorHandler.handle(e, stack);
     }

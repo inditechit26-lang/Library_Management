@@ -583,9 +583,9 @@ class _PaymentConfiguration extends ConsumerWidget {
       ).showSnackBar(const SnackBar(content: Text('UPI QR image uploaded.')));
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to upload QR: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to upload QR: $e')));
     }
   }
 }
@@ -600,6 +600,7 @@ class _SectionsEditor extends ConsumerStatefulWidget {
 
 class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   late String _selectedSectionId;
+  bool _isFullTime = true;
 
   @override
   void initState() {
@@ -666,7 +667,7 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Set membership rates for each section.',
+                      'Set separate full-time and half-time rates for each section.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -694,12 +695,34 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
           },
         ),
         const SizedBox(height: 14),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(
+              value: true,
+              icon: Icon(Icons.wb_sunny_outlined),
+              label: Text('Full Time (24 Hours)'),
+            ),
+            ButtonSegment(
+              value: false,
+              icon: Icon(Icons.schedule_outlined),
+              label: Text('Half Time (12 Hours)'),
+            ),
+          ],
+          selected: {_isFullTime},
+          showSelectedIcon: false,
+          onSelectionChanged: (value) {
+            setState(() => _isFullTime = value.first);
+          },
+        ),
+        const SizedBox(height: 14),
         for (final period in periods) ...[
           _SectionPlanCard(
-            key: ValueKey('${section.id}-${period.name}'),
+            key: ValueKey('${section.id}-${_isFullTime}-${period.name}'),
             section: section,
             period: period,
-            onSaved: (price) => _savePlan(section, period, price),
+            isFullTime: _isFullTime,
+            onSaved: (price) =>
+                _savePlan(section, period, price, isFullTime: _isFullTime),
           ),
           const SizedBox(height: 12),
         ],
@@ -710,11 +733,17 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   Future<void> _savePlan(
     LibrarySection section,
     MembershipPeriod period,
-    double price,
-  ) {
+    double price, {
+    required bool isFullTime,
+  }) {
+    final prices = {
+      ...section.pricesFor(isFullTime: isFullTime),
+      period: price,
+    };
     final updated = section.copyWith(
       membershipPeriods: {...section.membershipPeriods, period},
-      planPrices: {...section.planPrices, period: price},
+      fullTimePlanPrices: isFullTime ? prices : section.fullTimePlanPrices,
+      halfTimePlanPrices: isFullTime ? section.halfTimePlanPrices : prices,
     );
     final sections = [
       for (final item in widget.configuration.sections)
@@ -731,11 +760,13 @@ class _SectionPlanCard extends StatelessWidget {
     super.key,
     required this.section,
     required this.period,
+    required this.isFullTime,
     required this.onSaved,
   });
 
   final LibrarySection section;
   final MembershipPeriod period;
+  final bool isFullTime;
   final Future<void> Function(double price) onSaved;
 
   @override
@@ -791,7 +822,7 @@ class _SectionPlanCard extends StatelessWidget {
           const SizedBox(height: 14),
           _MoneyField(
             label: 'Price Amount',
-            value: section.planPrices[period] ?? 0,
+            value: section.pricesFor(isFullTime: isFullTime)[period] ?? 0,
             helperText: period == MembershipPeriod.custom
                 ? 'This amount can be overridden during admission.'
                 : null,

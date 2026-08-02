@@ -39,7 +39,10 @@ class _State extends ConsumerState<RenewBottomSheet> {
 
   PlanPricing get pricing => ref
       .read(libraryConfigurationProvider)
-      .pricingForSection(widget.student.sectionId);
+      .pricingForSection(
+        widget.student.sectionId,
+        isFullTime: widget.student.membership == MembershipType.fullTime,
+      );
   double get amount => period == MembershipPeriod.custom
       ? customFee ?? -1
       : manualFee ?? pricing.priceFor(period);
@@ -77,6 +80,7 @@ class _State extends ConsumerState<RenewBottomSheet> {
     }
     final livePricing = configuration.pricingForSection(
       widget.student.sectionId,
+      isFullTime: widget.student.membership == MembershipType.fullTime,
     );
     return Column(
       key: const ValueKey(false),
@@ -115,6 +119,9 @@ class _State extends ConsumerState<RenewBottomSheet> {
                       customFee = configuration.priceFor(
                         MembershipPeriod.custom,
                         sectionId: widget.student.sectionId,
+                        isFullTime:
+                            widget.student.membership ==
+                            MembershipType.fullTime,
                       );
                     }
                     slide = 0;

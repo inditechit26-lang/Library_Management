@@ -48,7 +48,10 @@ class StudentsController extends Notifier<List<Student>> {
       expiry: DateFormat('dd MMM yyyy').format(model.validUntil),
       fee: model.monthlyFee,
       payment: expired ? PaymentStatus.expired : PaymentStatus.paid,
-      membership: model.shift.toLowerCase().contains('full')
+      membership:
+          model.seatType == 'fullTimeReserved' ||
+              (model.seatType == null &&
+                  model.shift.toLowerCase().contains('full'))
           ? MembershipType.fullTime
           : MembershipType.halfTime,
       initials: nameParts.map((part) => part[0].toUpperCase()).join(),

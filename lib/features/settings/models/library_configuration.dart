@@ -28,6 +28,8 @@ class LibrarySection {
       MembershipPeriod.annual: 0,
       MembershipPeriod.custom: 0,
     },
+    this.fullTimePlanPrices,
+    this.halfTimePlanPrices,
   });
 
   final String id;
@@ -36,6 +38,8 @@ class LibrarySection {
   final bool isEnabled;
   final Set<MembershipPeriod> membershipPeriods;
   final Map<MembershipPeriod, double> planPrices;
+  final Map<MembershipPeriod, double>? fullTimePlanPrices;
+  final Map<MembershipPeriod, double>? halfTimePlanPrices;
 
   Color get color => Color(colorValue);
 
@@ -45,6 +49,8 @@ class LibrarySection {
     bool? isEnabled,
     Set<MembershipPeriod>? membershipPeriods,
     Map<MembershipPeriod, double>? planPrices,
+    Map<MembershipPeriod, double>? fullTimePlanPrices,
+    Map<MembershipPeriod, double>? halfTimePlanPrices,
   }) => LibrarySection(
     id: id,
     name: name ?? this.name,
@@ -52,7 +58,14 @@ class LibrarySection {
     isEnabled: isEnabled ?? this.isEnabled,
     membershipPeriods: membershipPeriods ?? this.membershipPeriods,
     planPrices: planPrices ?? this.planPrices,
+    fullTimePlanPrices: fullTimePlanPrices ?? this.fullTimePlanPrices,
+    halfTimePlanPrices: halfTimePlanPrices ?? this.halfTimePlanPrices,
   );
+
+  Map<MembershipPeriod, double> pricesFor({required bool isFullTime}) =>
+      isFullTime
+      ? fullTimePlanPrices ?? planPrices
+      : halfTimePlanPrices ?? planPrices;
 
   Map<String, dynamic> toMap() => {
     'id': id,
@@ -62,6 +75,14 @@ class LibrarySection {
     'membershipPlans': membershipPeriods.map((item) => item.name).toList(),
     'membershipPlanPrices': {
       for (final entry in planPrices.entries) entry.key.name: entry.value,
+    },
+    'fullTimePlanPrices': {
+      for (final entry in pricesFor(isFullTime: true).entries)
+        entry.key.name: entry.value,
+    },
+    'halfTimePlanPrices': {
+      for (final entry in pricesFor(isFullTime: false).entries)
+        entry.key.name: entry.value,
     },
   };
 
@@ -81,11 +102,21 @@ class LibrarySection {
         ?.map(parsePeriod)
         .whereType<MembershipPeriod>()
         .toSet();
-    final rawPrices = value['membershipPlanPrices'] is Map
-        ? Map<String, dynamic>.from(value['membershipPlanPrices'] as Map)
-        : const <String, dynamic>{};
     final legacyAdditional =
         (value['additionalPrice'] as num?)?.toDouble() ?? 0;
+    Map<MembershipPeriod, double> parsePrices(Object? raw) {
+      final values = raw is Map
+          ? Map<String, dynamic>.from(raw)
+          : const <String, dynamic>{};
+      return {
+        for (final period in MembershipPeriod.values)
+          period:
+              (values[period.name] as num?)?.toDouble() ??
+              ((legacyPrices?[period] ?? 0) + legacyAdditional),
+      };
+    }
+
+    final legacyPlanPrices = parsePrices(value['membershipPlanPrices']);
     return LibrarySection(
       id: value['id'] as String? ?? '',
       name: value['name'] as String? ?? '',
@@ -95,12 +126,13 @@ class LibrarySection {
       isEnabled: value['isEnabled'] as bool? ?? true,
       membershipPeriods:
           periods ?? legacyPeriods ?? const {MembershipPeriod.monthly},
-      planPrices: {
-        for (final period in MembershipPeriod.values)
-          period:
-              (rawPrices[period.name] as num?)?.toDouble() ??
-              ((legacyPrices?[period] ?? 0) + legacyAdditional),
-      },
+      planPrices: legacyPlanPrices,
+      fullTimePlanPrices: value['fullTimePlanPrices'] is Map
+          ? parsePrices(value['fullTimePlanPrices'])
+          : legacyPlanPrices,
+      halfTimePlanPrices: value['halfTimePlanPrices'] is Map
+          ? parsePrices(value['halfTimePlanPrices'])
+          : legacyPlanPrices,
     );
   }
 }
@@ -260,20 +292,42 @@ class LibraryConfiguration {
           ? const {MembershipPeriod.monthly}
           : enabledSections.first.membershipPeriods);
 
-  double priceFor(MembershipPeriod period, {String? sectionId}) {
+  double priceFor(
+    MembershipPeriod period, {
+    String? sectionId,
+    bool isFullTime = true,
+  }) {
     final section = sectionById(sectionId);
-    return section?.planPrices[period] ??
+    return section?.pricesFor(isFullTime: isFullTime)[period] ??
         (enabledSections.isEmpty
             ? 0
-            : enabledSections.first.planPrices[period] ?? 0);
+            : enabledSections.first.pricesFor(isFullTime: isFullTime)[period] ??
+                  0);
   }
 
-  PlanPricing pricingForSection(String? sectionId) => PlanPricing(
-    monthly: priceFor(MembershipPeriod.monthly, sectionId: sectionId),
-    quarterly: priceFor(MembershipPeriod.quarterly, sectionId: sectionId),
-    halfYearly: priceFor(MembershipPeriod.halfYearly, sectionId: sectionId),
-    annual: priceFor(MembershipPeriod.annual, sectionId: sectionId),
-  );
+  PlanPricing pricingForSection(String? sectionId, {bool isFullTime = true}) =>
+      PlanPricing(
+        monthly: priceFor(
+          MembershipPeriod.monthly,
+          sectionId: sectionId,
+          isFullTime: isFullTime,
+        ),
+        quarterly: priceFor(
+          MembershipPeriod.quarterly,
+          sectionId: sectionId,
+          isFullTime: isFullTime,
+        ),
+        halfYearly: priceFor(
+          MembershipPeriod.halfYearly,
+          sectionId: sectionId,
+          isFullTime: isFullTime,
+        ),
+        annual: priceFor(
+          MembershipPeriod.annual,
+          sectionId: sectionId,
+          isFullTime: isFullTime,
+        ),
+      );
 
   String nextSeatLabel(Iterable<String> existingLabels) {
     final labels = existingLabels.map((item) => item.trim()).toSet();
