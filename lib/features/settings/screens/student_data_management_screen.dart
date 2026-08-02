@@ -6,11 +6,10 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/utils/formatters.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../../students/models/student_model.dart';
 import '../../students/providers/students_provider.dart';
 import '../../students/services/student_data_service.dart';
 
-enum ExportFormat { csv, json }
+enum ExportFormat { excel, csv, json }
 
 class StudentDataManagementScreen extends ConsumerStatefulWidget {
   const StudentDataManagementScreen({super.key});
@@ -22,7 +21,7 @@ class StudentDataManagementScreen extends ConsumerStatefulWidget {
 
 class _StudentDataManagementScreenState
     extends ConsumerState<StudentDataManagementScreen> {
-  ExportFormat _selectedFormat = ExportFormat.csv;
+  ExportFormat _selectedFormat = ExportFormat.excel;
   bool _isExporting = false;
   bool _isImporting = false;
 
@@ -46,38 +45,58 @@ class _StudentDataManagementScreenState
       }
 
       final service = StudentDataService();
-      final content = _selectedFormat == ExportFormat.csv
-          ? service.exportToCsv(students)
-          : service.exportToJson(students);
-
-      final extension = _selectedFormat == ExportFormat.csv ? 'csv' : 'json';
+      final extension = switch (_selectedFormat) {
+        ExportFormat.excel => 'xlsx',
+        ExportFormat.csv => 'csv',
+        ExportFormat.json => 'json',
+      };
       final fileName =
           'students_backup_${DateTime.now().millisecondsSinceEpoch}.$extension';
 
-      if (isShare) {
-        final params = ShareParams(
-          text: content,
-          subject: 'Student Data Backup ($fileName)',
-        );
-        await SharePlus.instance.share(params);
-      } else {
-        final bytes = utf8.encode(content);
-        final result = await FilePicker.platform.saveFile(
-          dialogTitle: 'Save Student Data Backup',
-          fileName: fileName,
-          bytes: bytes,
-          type: FileType.custom,
-          allowedExtensions: [extension],
-        );
-
-        if (result != null && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Successfully exported ${students.length} student records!'),
-              backgroundColor: const Color(0xFF288C68),
-              behavior: SnackBarBehavior.floating,
-            ),
+      if (_selectedFormat == ExportFormat.excel) {
+        final bytes = service.exportToExcel(students);
+        if (isShare) {
+          final xFile = XFile.fromData(
+            Uint8List.fromList(bytes),
+            name: fileName,
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           );
+          await SharePlus.instance.shareXFiles([xFile], text: 'Student Data Excel Backup');
+        } else {
+          final result = await FilePicker.platform.saveFile(
+            dialogTitle: 'Save Student Data Excel File',
+            fileName: fileName,
+            bytes: Uint8List.fromList(bytes),
+            type: FileType.custom,
+            allowedExtensions: ['xlsx'],
+          );
+          if (result != null && mounted) {
+            _showSuccessSnackBar(students.length, 'Excel (.xlsx)');
+          }
+        }
+      } else {
+        final content = _selectedFormat == ExportFormat.csv
+            ? service.exportToCsv(students)
+            : service.exportToJson(students);
+
+        if (isShare) {
+          final params = ShareParams(
+            text: content,
+            subject: 'Student Data Backup ($fileName)',
+          );
+          await SharePlus.instance.share(params);
+        } else {
+          final bytes = utf8.encode(content);
+          final result = await FilePicker.platform.saveFile(
+            dialogTitle: 'Save Student Data File',
+            fileName: fileName,
+            bytes: bytes,
+            type: FileType.custom,
+            allowedExtensions: [extension],
+          );
+          if (result != null && mounted) {
+            _showSuccessSnackBar(students.length, extension.toUpperCase());
+          }
         }
       }
     } catch (e) {
@@ -95,35 +114,48 @@ class _StudentDataManagementScreenState
     }
   }
 
+  void _showSuccessSnackBar(int count, String formatLabel) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Successfully exported $count student records to $formatLabel!'),
+        backgroundColor: const Color(0xFF288C68),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Future<void> _handleImport() async {
     final libraryId = ref.read(currentLibraryIdProvider) ?? 'default_library';
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['csv', 'json'],
+      allowedExtensions: ['xlsx', 'xls', 'csv', 'json'],
       withData: true,
     );
 
     final file = result?.files.single;
     if (file == null || !mounted) return;
 
-    String content = '';
-    if (file.bytes != null) {
-      content = utf8.decode(file.bytes!);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to read file content.'),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
+    final ext = file.extension?.toLowerCase() ?? '';
     final service = StudentDataService();
-    final isCsv = file.extension?.toLowerCase() == 'csv';
-    final parsedResult =
-        isCsv ? service.parseCsv(content) : service.parseJson(content);
+    ParsedImportResult parsedResult;
+
+    if (ext == 'xlsx' || ext == 'xls') {
+      final bytes = file.bytes;
+      if (bytes == null) {
+        _showErrorSnackBar('Unable to read Excel file bytes.');
+        return;
+      }
+      parsedResult = service.parseExcel(bytes);
+    } else {
+      final content = file.bytes != null ? utf8.decode(file.bytes!) : '';
+      if (content.isEmpty) {
+        _showErrorSnackBar('File is empty.');
+        return;
+      }
+      parsedResult = ext == 'csv'
+          ? service.parseCsv(content)
+          : service.parseJson(content);
+    }
 
     if (!mounted) return;
 
@@ -134,15 +166,24 @@ class _StudentDataManagementScreenState
     );
   }
 
-  void _downloadSampleTemplate() async {
-    final content = StudentDataService.generateSampleCsv();
-    final bytes = utf8.encode(content);
+  void _showErrorSnackBar(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _downloadSampleExcelTemplate() async {
+    final bytes = StudentDataService.generateSampleExcel();
     await FilePicker.platform.saveFile(
-      dialogTitle: 'Save Sample CSV Template',
-      fileName: 'student_import_template.csv',
-      bytes: bytes,
+      dialogTitle: 'Save Sample Excel Template',
+      fileName: 'student_import_template.xlsx',
+      bytes: Uint8List.fromList(bytes),
       type: FileType.custom,
-      allowedExtensions: ['csv'],
+      allowedExtensions: ['xlsx'],
     );
   }
 
@@ -185,7 +226,7 @@ class _StudentDataManagementScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Student Data Backup & Import'),
+        title: const Text('Student Excel & Data Backup'),
         centerTitle: false,
       ),
       body: ListView(
@@ -197,13 +238,13 @@ class _StudentDataManagementScreenState
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
-                    ? [const Color(0xFF252A36), const Color(0xFF1B1F2A)]
-                    : [const Color(0xFFEEF2FE), const Color(0xFFE2E9FB)],
+                    ? [const Color(0xFF1E3A2E), const Color(0xFF16251F)]
+                    : [const Color(0xFFE8F5E9), const Color(0xFFC8E6C9)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+              border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,12 +254,12 @@ class _StudentDataManagementScreenState
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: 0.15),
+                        color: const Color(0xFF2E7D32).withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(
-                        Icons.swap_vert_circle_outlined,
-                        color: colors.primary,
+                      child: const Icon(
+                        Icons.table_view_rounded,
+                        color: Color(0xFF2E7D32),
                         size: 28,
                       ),
                     ),
@@ -228,7 +269,7 @@ class _StudentDataManagementScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Data Backup & Transfer Suite',
+                            'Excel Student Data Suite',
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
@@ -237,7 +278,7 @@ class _StudentDataManagementScreenState
                           ),
                           const SizedBox(height: 3),
                           Text(
-                            'Seamlessly export or bulk import library student records.',
+                            'Export or import full student details in Microsoft Excel (.xlsx) format.',
                             style: TextStyle(
                               fontSize: 12,
                               color: colors.onSurfaceVariant,
@@ -259,8 +300,8 @@ class _StudentDataManagementScreenState
                     const SizedBox(width: 12),
                     const _StatBadge(
                       icon: Icons.verified_outlined,
-                      label: 'Formats',
-                      value: 'CSV & JSON',
+                      label: 'Primary Format',
+                      value: 'Excel (.xlsx)',
                     ),
                   ],
                 ),
@@ -283,14 +324,14 @@ class _StudentDataManagementScreenState
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.file_download_outlined,
-                      color: colors.primary,
+                      color: Color(0xFF2E7D32),
                       size: 22,
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Export Student Records',
+                      'Export Student Excel Data',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -301,7 +342,7 @@ class _StudentDataManagementScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Download your active student list to standard CSV spreadsheet or structured JSON.',
+                  'Download your complete student list in formatted Excel spreadsheet (.xlsx).',
                   style: TextStyle(
                     fontSize: 12,
                     color: colors.onSurfaceVariant,
@@ -314,7 +355,18 @@ class _StudentDataManagementScreenState
                   children: [
                     Expanded(
                       child: _FormatChip(
-                        label: 'CSV Spreadsheet',
+                        label: 'Excel (.xlsx)',
+                        icon: Icons.grid_on_rounded,
+                        selected: _selectedFormat == ExportFormat.excel,
+                        onTap: () => setState(
+                          () => _selectedFormat = ExportFormat.excel,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _FormatChip(
+                        label: 'CSV File',
                         icon: Icons.table_chart_outlined,
                         selected: _selectedFormat == ExportFormat.csv,
                         onTap: () => setState(
@@ -322,10 +374,10 @@ class _StudentDataManagementScreenState
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: _FormatChip(
-                        label: 'JSON Data Backup',
+                        label: 'JSON Data',
                         icon: Icons.code_rounded,
                         selected: _selectedFormat == ExportFormat.json,
                         onTap: () => setState(
@@ -354,8 +406,10 @@ class _StudentDataManagementScreenState
                                 ),
                               )
                             : const Icon(Icons.download_rounded),
-                        label: const Text('Export File'),
+                        label: const Text('Export Excel File'),
                         style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF2E7D32),
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -401,14 +455,14 @@ class _StudentDataManagementScreenState
               children: [
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.file_upload_outlined,
-                      color: colors.primary,
+                      color: Color(0xFF2E7D32),
                       size: 22,
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Bulk Import Students',
+                      'Import Excel Student Records',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -419,7 +473,7 @@ class _StudentDataManagementScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Upload a CSV or JSON file to batch import student profiles into your library.',
+                  'Upload an Excel (.xlsx) file to batch import student profiles into your library database.',
                   style: TextStyle(
                     fontSize: 12,
                     color: colors.onSurfaceVariant,
@@ -428,9 +482,9 @@ class _StudentDataManagementScreenState
                 const SizedBox(height: 16),
 
                 OutlinedButton.icon(
-                  onPressed: _downloadSampleTemplate,
+                  onPressed: _downloadSampleExcelTemplate,
                   icon: const Icon(Icons.description_outlined, size: 18),
-                  label: const Text('Download Sample CSV Template'),
+                  label: const Text('Download Sample Excel Template (.xlsx)'),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -449,7 +503,7 @@ class _StudentDataManagementScreenState
                   child: FilledButton.icon(
                     onPressed: _isImporting ? null : _handleImport,
                     icon: const Icon(Icons.drive_folder_upload_rounded),
-                    label: const Text('Select File to Import'),
+                    label: const Text('Select Excel File to Import'),
                     style: FilledButton.styleFrom(
                       backgroundColor: colors.secondaryContainer,
                       foregroundColor: colors.onSecondaryContainer,
@@ -493,7 +547,7 @@ class _StatBadge extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: colors.primary),
+            Icon(icon, size: 18, color: const Color(0xFF2E7D32)),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -547,15 +601,15 @@ class _FormatChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected
-                ? colors.primary.withValues(alpha: 0.12)
+                ? const Color(0xFF2E7D32).withValues(alpha: 0.15)
                 : colors.surfaceContainerHighest.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
-                  ? colors.primary
+                  ? const Color(0xFF2E7D32)
                   : colors.outlineVariant.withValues(alpha: 0.5),
               width: selected ? 1.5 : 1,
             ),
@@ -565,16 +619,16 @@ class _FormatChip extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                size: 18,
-                color: selected ? colors.primary : colors.onSurfaceVariant,
+                size: 16,
+                color: selected ? const Color(0xFF2E7D32) : colors.onSurfaceVariant,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                  color: selected ? const Color(0xFF2E7D32) : colors.onSurfaceVariant,
                 ),
               ),
             ],
@@ -666,7 +720,7 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
           const SizedBox(height: 16),
 
           Text(
-            'Import Audit & Validation',
+            'Excel Import Audit & Validation',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
@@ -698,6 +752,7 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
             LinearProgressIndicator(
               value: total > 0 ? _processed / total : 0,
               backgroundColor: colors.surfaceContainerHighest,
+              color: const Color(0xFF2E7D32),
             ),
             const SizedBox(height: 8),
             Text(
@@ -722,11 +777,11 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: colors.primaryContainer,
+                    backgroundColor: const Color(0xFF2E7D32).withValues(alpha: 0.15),
                     child: Text(
                       student.name.isNotEmpty ? student.name[0] : 'S',
-                      style: TextStyle(
-                        color: colors.onPrimaryContainer,
+                      style: const TextStyle(
+                        color: Color(0xFF2E7D32),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -774,6 +829,8 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
               icon: const Icon(Icons.check_circle_outline),
               label: Text('Import $total Student Records'),
               style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2E7D32),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
