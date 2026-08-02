@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,7 +62,7 @@ class _StudentDataManagementScreenState
             name: fileName,
             mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           );
-          await SharePlus.instance.shareXFiles([xFile], text: 'Student Data Excel Backup');
+          await Share.shareXFiles([xFile], text: 'Student Data Excel Backup');
         } else {
           final result = await FilePicker.platform.saveFile(
             dialogTitle: 'Save Student Data Excel File',
