@@ -17,10 +17,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Libraries'), findsNWidgets(2)); // AppBar title + Header title
-    expect(find.text('Manage all your libraries from one place.'), findsOneWidget);
+    expect(find.text('Manage and switch between your library branches.'), findsOneWidget);
     expect(find.text('Bright Minds Library'), findsOneWidget);
     expect(find.text('Central Study Library'), findsOneWidget);
-    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsOneWidget);
     expect(find.text('Add New Library'), findsOneWidget);
   });
 
@@ -33,13 +33,13 @@ void main() {
     await tester.pump();
 
     // Verify overlay appears during transition
-    expect(find.text('Switching Library...'), findsOneWidget);
+    expect(find.text('SWITCHING LIBRARY'), findsOneWidget);
 
     // Complete timer and reverse animation
     await tester.pump(const Duration(milliseconds: 1200));
     await tester.pump(const Duration(milliseconds: 400));
 
-    expect(find.text('Active'), findsOneWidget);
+    expect(find.text('ACTIVE'), findsOneWidget);
   });
 
   testWidgets('Tapping Add New Library opens bottom sheet', (tester) async {
@@ -49,7 +49,8 @@ void main() {
     await tester.tap(find.text('Add New Library'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Create Library'), findsNWidgets(2)); // Title and Button
+    expect(find.text('Create New Library'), findsOneWidget);
+    expect(find.text('Create Library'), findsOneWidget);
     expect(find.text('Library Name'), findsOneWidget);
     expect(find.text('Library Logo'), findsOneWidget);
     expect(find.text('Cancel'), findsOneWidget);
