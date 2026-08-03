@@ -106,9 +106,9 @@ class _PaymentSettingsScreenState extends ConsumerState<PaymentSettingsScreen> {
       ).showSnackBar(const SnackBar(content: Text('UPI QR image uploaded.')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to upload QR: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Unable to upload QR: $e')));
     }
   }
 

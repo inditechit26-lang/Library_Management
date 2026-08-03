@@ -68,7 +68,9 @@ class _SeatCardState extends State<SeatCard> {
       if (widget.student?.payment == PaymentStatus.pending ||
           widget.student?.payment == PaymentStatus.expired) {
         cardBg = isDark ? const Color(0xFF2A1C20) : const Color(0xFFFFF5F5);
-        borderColor = isDark ? const Color(0xFF4A252B) : const Color(0xFFFEE2E2);
+        borderColor = isDark
+            ? const Color(0xFF4A252B)
+            : const Color(0xFFFEE2E2);
         cardShadows = [
           BoxShadow(
             color: const Color(0xFFEF4444).withOpacity(0.12),
@@ -78,7 +80,9 @@ class _SeatCardState extends State<SeatCard> {
         ];
       } else {
         cardBg = isDark ? const Color(0xFF192523) : const Color(0xFFF0FDF4);
-        borderColor = isDark ? const Color(0xFF1E3A34) : const Color(0xFFDCFCE7);
+        borderColor = isDark
+            ? const Color(0xFF1E3A34)
+            : const Color(0xFFDCFCE7);
         cardShadows = [
           BoxShadow(
             color: const Color(0xFF10B981).withOpacity(0.08),
@@ -235,7 +239,8 @@ class _SeatCardState extends State<SeatCard> {
                                   ),
                                   const SizedBox(height: 1),
                                   Text(
-                                    widget.student!.payment == PaymentStatus.paid
+                                    widget.student!.payment ==
+                                            PaymentStatus.paid
                                         ? 'Active'
                                         : 'Due Soon',
                                     maxLines: 1,

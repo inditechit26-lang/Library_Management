@@ -39,7 +39,8 @@ class PaymentModel {
       netAmount: (data['netAmount'] as num?)?.toDouble() ?? 0.0,
       paymentMode: data['paymentMode'] ?? 'Cash',
       receiptNumber: data['receiptNumber'] ?? '',
-      paymentDate: (data['paymentDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      paymentDate:
+          (data['paymentDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
       remarks: data['remarks'],
     );
   }

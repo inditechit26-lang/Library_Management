@@ -87,18 +87,8 @@ class PricingSettings {
   );
 
   static const defaults = PricingSettings(
-    fullTimeAc: PlanPricing(
-      monthly: 0,
-      quarterly: 0,
-      halfYearly: 0,
-      annual: 0,
-    ),
-    halfTimeAc: PlanPricing(
-      monthly: 0,
-      quarterly: 0,
-      halfYearly: 0,
-      annual: 0,
-    ),
+    fullTimeAc: PlanPricing(monthly: 0, quarterly: 0, halfYearly: 0, annual: 0),
+    halfTimeAc: PlanPricing(monthly: 0, quarterly: 0, halfYearly: 0, annual: 0),
     fullTimeNonAc: PlanPricing(
       monthly: 0,
       quarterly: 0,

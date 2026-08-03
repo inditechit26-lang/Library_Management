@@ -45,9 +45,9 @@ class _YearSelectorSheetState extends State<YearSelectorSheet> {
                 const SizedBox(width: 10),
                 Text(
                   'Select Financial Year',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const Spacer(),
                 IconButton(
@@ -69,11 +69,15 @@ class _YearSelectorSheetState extends State<YearSelectorSheet> {
                     borderRadius: BorderRadius.circular(14),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 16),
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFF0083B0)
-                            : colors.surfaceContainerHighest.withValues(alpha: 0.4),
+                            : colors.surfaceContainerHighest.withValues(
+                                alpha: 0.4,
+                              ),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: isSelected
@@ -88,7 +92,9 @@ class _YearSelectorSheetState extends State<YearSelectorSheet> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
-                              color: isSelected ? Colors.white : colors.onSurface,
+                              color: isSelected
+                                  ? Colors.white
+                                  : colors.onSurface,
                             ),
                           ),
                           const Spacer(),

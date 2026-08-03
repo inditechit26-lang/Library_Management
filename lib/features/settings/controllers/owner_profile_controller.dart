@@ -104,15 +104,11 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
       if (closingTime != null) 'closingTime': closingTime.trim(),
     };
     if (updates.isEmpty) return;
-    unawaited(
-      ref
-          .read(settingsRepositoryProvider)
-          .updateLibraryInfo(libraryId, updates),
-    );
+    unawaited(ref.read(settingsRepositoryProvider).updateLibraryInfo(updates));
   }
 }
 
 final ownerProfileProvider =
     NotifierProvider<OwnerProfileNotifier, OwnerProfile>(
-  OwnerProfileNotifier.new,
-);
+      OwnerProfileNotifier.new,
+    );

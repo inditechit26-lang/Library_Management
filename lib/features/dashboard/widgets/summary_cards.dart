@@ -41,14 +41,24 @@ class DashboardSummaryCards extends ConsumerWidget {
         .where((s) => s.status == SeatStatus.occupied)
         .length;
     final totalSeatsCount = seats.length;
-    final availableSeatsCount = (totalSeatsCount - occupiedSeatsCount) > 0
-        ? (totalSeatsCount - occupiedSeatsCount)
-        : 0;
+    final availableSeatsCount = seats
+        .where((s) => s.status == SeatStatus.available)
+        .length;
     final occupancyPercentage = totalSeatsCount > 0
         ? (occupiedSeatsCount / totalSeatsCount)
         : 0.0;
 
-    final collectedRevenue = payments.fold(0.0, (sum, p) => sum + p.netAmount);
+    final activeStudentIds = students
+        .where((student) => student.status.toLowerCase() == 'active')
+        .map((student) => student.id)
+        .toSet();
+    final activePayments = payments
+        .where((payment) => activeStudentIds.contains(payment.studentId))
+        .toList();
+    final collectedRevenue = activePayments.fold(
+      0.0,
+      (sum, payment) => sum + payment.netAmount,
+    );
     final now = DateTime.now();
     final pendingDues = students
         .where((s) => s.validUntil.isBefore(now))
@@ -60,11 +70,7 @@ class DashboardSummaryCards extends ConsumerWidget {
     final collectionPercentage = totalBilled > 0
         ? (collectedRevenue / totalBilled)
         : 0.0;
-    final activeStudentIds = students
-        .where((student) => student.status.toLowerCase() == 'active')
-        .map((student) => student.id)
-        .toSet();
-    final paidStudentsCount = payments
+    final paidStudentsCount = activePayments
         .map((payment) => payment.studentId)
         .where(activeStudentIds.contains)
         .toSet()

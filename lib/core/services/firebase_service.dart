@@ -46,8 +46,9 @@ class FirebaseService {
 
       // Initialize Crashlytics
       if (!kIsWeb) {
-        await FirebaseCrashlytics.instance
-            .setCrashlyticsCollectionEnabled(!kDebugMode);
+        await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(
+          !kDebugMode,
+        );
         FlutterError.onError =
             FirebaseCrashlytics.instance.recordFlutterFatalError;
         PlatformDispatcher.instance.onError = (error, stack) {
@@ -69,6 +70,4 @@ class FirebaseService {
   /// Analytics instance helper
   FirebaseAnalytics get analytics => FirebaseAnalytics.instance;
 
-  /// Firestore instance helper
-  FirebaseFirestore get firestore => FirebaseFirestore.instance;
 }

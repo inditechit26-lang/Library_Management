@@ -4,7 +4,8 @@ import '../services/report_service.dart';
 
 class CustomReportSheet extends StatefulWidget {
   final String creationDateStr;
-  final Function(DateTime startDate, DateTime endDate, String periodTitle) onGenerate;
+  final Function(DateTime startDate, DateTime endDate, String periodTitle)
+  onGenerate;
 
   const CustomReportSheet({
     super.key,
@@ -26,9 +27,12 @@ class _CustomReportSheetState extends State<CustomReportSheet> {
   @override
   void initState() {
     super.initState();
-    _creationDate = ReportService.parseDate(widget.creationDateStr) ?? DateTime(2025, 1, 1);
+    _creationDate =
+        ReportService.parseDate(widget.creationDateStr) ?? DateTime(2025, 1, 1);
     final now = DateTime.now();
-    _startDate = now.isAfter(_creationDate) ? now.subtract(const Duration(days: 30)) : _creationDate;
+    _startDate = now.isAfter(_creationDate)
+        ? now.subtract(const Duration(days: 30))
+        : _creationDate;
     if (_startDate!.isBefore(_creationDate)) {
       _startDate = _creationDate;
     }
@@ -45,7 +49,8 @@ class _CustomReportSheetState extends State<CustomReportSheet> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _startDate ?? DateTime.now(),
-      firstDate: _creationDate, // Enforce library creation date as earliest selectable date
+      firstDate:
+          _creationDate, // Enforce library creation date as earliest selectable date
       lastDate: DateTime(2030),
     );
     if (picked != null) {
@@ -92,7 +97,9 @@ class _CustomReportSheetState extends State<CustomReportSheet> {
                 const SizedBox(width: 10),
                 Text(
                   'Custom Report',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -112,9 +119,15 @@ class _CustomReportSheetState extends State<CustomReportSheet> {
                     child: InputDecorator(
                       decoration: InputDecoration(
                         labelText: 'Start Date',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: Text(_startDate != null ? _displayFormat.format(_startDate!) : 'Select'),
+                      child: Text(
+                        _startDate != null
+                            ? _displayFormat.format(_startDate!)
+                            : 'Select',
+                      ),
                     ),
                   ),
                 ),
@@ -126,9 +139,15 @@ class _CustomReportSheetState extends State<CustomReportSheet> {
                     child: InputDecorator(
                       decoration: InputDecoration(
                         labelText: 'End Date',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: Text(_endDate != null ? _displayFormat.format(_endDate!) : 'Select'),
+                      child: Text(
+                        _endDate != null
+                            ? _displayFormat.format(_endDate!)
+                            : 'Select',
+                      ),
                     ),
                   ),
                 ),
@@ -150,7 +169,8 @@ class _CustomReportSheetState extends State<CustomReportSheet> {
                     onPressed: _isValidRange
                         ? () {
                             Navigator.pop(context);
-                            final title = '${_displayFormat.format(_startDate!)} - ${_displayFormat.format(_endDate!)}';
+                            final title =
+                                '${_displayFormat.format(_startDate!)} - ${_displayFormat.format(_endDate!)}';
                             widget.onGenerate(_startDate!, _endDate!, title);
                           }
                         : null,

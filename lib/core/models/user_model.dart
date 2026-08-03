@@ -23,28 +23,34 @@ class AppUserModel {
 
   factory AppUserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    final profile = Map<String, dynamic>.from(
+      data['profile'] as Map? ?? const <String, dynamic>{},
+    );
     return AppUserModel(
       uid: doc.id,
-      email: data['email'] ?? '',
-      displayName: data['displayName'] ?? '',
-      photoUrl: data['photoUrl'],
-      libraryId: data['libraryId'] ?? '',
-      role: data['role'] ?? 'owner',
-      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      email: profile['email'] ?? '',
+      displayName: profile['displayName'] ?? '',
+      photoUrl: profile['photoUrl'],
+      libraryId: data['currentLibraryId'] ?? '',
+      role: profile['role'] ?? 'owner',
+      createdAt:
+          (profile['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt:
+          (profile['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'uid': uid,
-      'email': email,
-      'displayName': displayName,
-      'photoUrl': photoUrl,
-      'libraryId': libraryId,
-      'role': role,
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
+      'profile': {
+        'email': email,
+        'displayName': displayName,
+        'photoUrl': photoUrl,
+        'role': role,
+        'createdAt': Timestamp.fromDate(createdAt),
+        'updatedAt': Timestamp.fromDate(updatedAt),
+      },
+      'currentLibraryId': libraryId,
     };
   }
 

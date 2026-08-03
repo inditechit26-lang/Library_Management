@@ -76,10 +76,12 @@ class PriorityAlertCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          ...priorityItems.map((item) => _PriorityItemTile(
-                item: item,
-                onActionTap: (action) => onActionTap(item, action),
-              )),
+          ...priorityItems.map(
+            (item) => _PriorityItemTile(
+              item: item,
+              onActionTap: (action) => onActionTap(item, action),
+            ),
+          ),
         ],
       ),
     );
@@ -90,10 +92,7 @@ class _PriorityItemTile extends StatelessWidget {
   final NotificationItem item;
   final Function(NotificationAction action) onActionTap;
 
-  const _PriorityItemTile({
-    required this.item,
-    required this.onActionTap,
-  });
+  const _PriorityItemTile({required this.item, required this.onActionTap});
 
   @override
   Widget build(BuildContext context) {
@@ -150,12 +149,22 @@ class _PriorityItemTile extends StatelessWidget {
                   icon: Icon(action.icon, size: 14),
                   label: Text(
                     action.label,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   style: FilledButton.styleFrom(
-                    backgroundColor: action.isPrimary ? const Color(0xFFFF5252) : const Color(0xFFFFEBEE),
-                    foregroundColor: action.isPrimary ? Colors.white : const Color(0xFFD32F2F),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    backgroundColor: action.isPrimary
+                        ? const Color(0xFFFF5252)
+                        : const Color(0xFFFFEBEE),
+                    foregroundColor: action.isPrimary
+                        ? Colors.white
+                        : const Color(0xFFD32F2F),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     shape: RoundedRectangleBorder(

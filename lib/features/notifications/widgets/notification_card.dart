@@ -42,7 +42,13 @@ class NotificationCard extends StatelessWidget {
           children: [
             Icon(Icons.check_circle_outline_rounded, color: Colors.white),
             SizedBox(width: 8),
-            Text('Mark Read', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(
+              'Mark Read',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
@@ -56,7 +62,13 @@ class NotificationCard extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text('Dismiss', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            Text(
+              'Dismiss',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             SizedBox(width: 8),
             Icon(Icons.delete_outline_rounded, color: Colors.white),
           ],
@@ -69,12 +81,16 @@ class NotificationCard extends StatelessWidget {
           color: item.isRead ? colors.surfaceContainerLow : colors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: item.isRead ? colors.outlineVariant.withOpacity(0.5) : colors.primary.withOpacity(0.25),
+            color: item.isRead
+                ? colors.outlineVariant.withOpacity(0.5)
+                : colors.primary.withOpacity(0.25),
             width: item.isRead ? 1 : 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: item.isRead ? Colors.transparent : colors.primary.withOpacity(0.04),
+              color: item.isRead
+                  ? Colors.transparent
+                  : colors.primary.withOpacity(0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -100,7 +116,9 @@ class NotificationCard extends StatelessWidget {
                               item.title,
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: item.isRead ? FontWeight.w600 : FontWeight.w800,
+                                fontWeight: item.isRead
+                                    ? FontWeight.w600
+                                    : FontWeight.w800,
                                 color: colors.onSurface,
                               ),
                             ),
@@ -142,12 +160,22 @@ class NotificationCard extends StatelessWidget {
                     icon: Icon(act.icon, size: 14),
                     label: Text(
                       act.label,
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     style: FilledButton.styleFrom(
-                      backgroundColor: act.isPrimary ? colors.primary : colors.surfaceContainerHighest,
-                      foregroundColor: act.isPrimary ? Colors.white : colors.onSurface,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      backgroundColor: act.isPrimary
+                          ? colors.primary
+                          : colors.surfaceContainerHighest,
+                      foregroundColor: act.isPrimary
+                          ? Colors.white
+                          : colors.onSurface,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 6,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       shape: RoundedRectangleBorder(
@@ -258,11 +286,7 @@ class _PriorityBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w800,
-          color: fg,
-        ),
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: fg),
       ),
     );
   }

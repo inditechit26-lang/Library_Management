@@ -4,7 +4,7 @@ import '../models/payment_model.dart';
 import '../repositories/payments_repository.dart';
 
 final paymentsRepositoryProvider = Provider<BasePaymentsRepository>((ref) {
-  return PaymentsRepository();
+  return PaymentsRepository(ref.watch(firestoreServiceProvider)!);
 });
 
 final paymentsStreamProvider = StreamProvider<List<PaymentModel>>((ref) {
@@ -13,7 +13,7 @@ final paymentsStreamProvider = StreamProvider<List<PaymentModel>>((ref) {
     return Stream.value([]);
   }
   final repository = ref.watch(paymentsRepositoryProvider);
-  return repository.watchPayments(libraryId);
+  return repository.watchPayments();
 });
 
 final totalRevenueProvider = Provider<double>((ref) {

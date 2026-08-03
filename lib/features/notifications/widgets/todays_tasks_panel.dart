@@ -40,10 +40,7 @@ class TodaysTasksPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text(
-                    '🎯',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  const Text('🎯', style: TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
                   Text(
                     "TODAY'S TASKS",
@@ -57,14 +54,21 @@ class TodaysTasksPanel extends StatelessWidget {
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF4CAF50).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle_rounded, size: 13, color: Color(0xFF4CAF50)),
+                    const Icon(
+                      Icons.check_circle_rounded,
+                      size: 13,
+                      color: Color(0xFF4CAF50),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'Completed: $completedTodayCount',
@@ -80,7 +84,9 @@ class TodaysTasksPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          ...tasks.map((task) => _TaskRow(task: task, onAction: () => onTaskAction(task))),
+          ...tasks.map(
+            (task) => _TaskRow(task: task, onAction: () => onTaskAction(task)),
+          ),
         ],
       ),
     );
@@ -91,10 +97,7 @@ class _TaskRow extends StatelessWidget {
   final TaskItem task;
   final VoidCallback onAction;
 
-  const _TaskRow({
-    required this.task,
-    required this.onAction,
-  });
+  const _TaskRow({required this.task, required this.onAction});
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +153,10 @@ class _TaskRow extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: task.color.withOpacity(0.12),
                 foregroundColor: task.color,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 shape: RoundedRectangleBorder(

@@ -19,6 +19,17 @@ class PaymentRecord {
   });
 }
 
+class DailyAdmissionRecord {
+  const DailyAdmissionRecord({
+    required this.date,
+    required this.count,
+    required this.revenue,
+  });
+  final String date;
+  final int count;
+  final double revenue;
+}
+
 class ReportData {
   final String reportType; // Monthly, Yearly, Custom
   final String selectedPeriod;
@@ -47,6 +58,30 @@ class ReportData {
   final Map<String, double> revenueBySection;
   final Map<String, String> sectionNames;
 
+  // Extended analytics used by the detailed report builder.
+  final String reportTitle;
+  final int activeStudents;
+  final int totalSeats;
+  final int maintenanceSeats;
+  final int reservedSeats;
+  final double occupancyPercentage;
+  final double pendingPayments;
+  final double averageMonthlyCollection;
+  final double cashCollection;
+  final double upiCollection;
+  final double discountGiven;
+  final double refund;
+  final double securityDeposits;
+  final double outstandingAmount;
+  final List<double> monthlyRevenueGraphData;
+  final int monthlyPlanCount;
+  final int quarterlyPlanCount;
+  final int halfYearlyPlanCount;
+  final int yearlyPlanCount;
+  final int customPlanCount;
+  final List<Student> filteredStudents;
+  final List<DailyAdmissionRecord> dailyAdmissions;
+
   const ReportData({
     required this.reportType,
     required this.selectedPeriod,
@@ -68,5 +103,27 @@ class ReportData {
     required this.paymentHistory,
     this.revenueBySection = const {},
     this.sectionNames = const {},
+    this.reportTitle = '',
+    this.activeStudents = 0,
+    this.totalSeats = 0,
+    this.maintenanceSeats = 0,
+    this.reservedSeats = 0,
+    this.occupancyPercentage = 0,
+    this.pendingPayments = 0,
+    this.averageMonthlyCollection = 0,
+    this.cashCollection = 0,
+    this.upiCollection = 0,
+    this.discountGiven = 0,
+    this.refund = 0,
+    this.securityDeposits = 0,
+    this.outstandingAmount = 0,
+    this.monthlyRevenueGraphData = const [],
+    this.monthlyPlanCount = 0,
+    this.quarterlyPlanCount = 0,
+    this.halfYearlyPlanCount = 0,
+    this.yearlyPlanCount = 0,
+    this.customPlanCount = 0,
+    this.filteredStudents = const [],
+    this.dailyAdmissions = const [],
   });
 }

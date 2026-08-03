@@ -4,7 +4,7 @@ import '../models/plan_model.dart';
 import '../repositories/settings_repository.dart';
 
 final settingsRepositoryProvider = Provider<BaseSettingsRepository>((ref) {
-  return SettingsRepository();
+  return SettingsRepository(ref.watch(firestoreServiceProvider)!);
 });
 
 final libraryInfoProvider = StreamProvider<Map<String, dynamic>>((ref) {
@@ -13,7 +13,7 @@ final libraryInfoProvider = StreamProvider<Map<String, dynamic>>((ref) {
     return Stream.value({});
   }
   final repository = ref.watch(settingsRepositoryProvider);
-  return repository.watchLibraryInfo(libraryId);
+  return repository.watchLibraryInfo();
 });
 
 final libraryConfigProvider = StreamProvider<Map<String, dynamic>>((ref) {
@@ -22,7 +22,7 @@ final libraryConfigProvider = StreamProvider<Map<String, dynamic>>((ref) {
     return Stream.value({});
   }
   final repository = ref.watch(settingsRepositoryProvider);
-  return repository.watchLibraryConfig(libraryId);
+  return repository.watchLibraryConfig();
 });
 
 final plansStreamProvider = StreamProvider<List<PlanModel>>((ref) {
@@ -31,5 +31,5 @@ final plansStreamProvider = StreamProvider<List<PlanModel>>((ref) {
     return Stream.value([]);
   }
   final repository = ref.watch(settingsRepositoryProvider);
-  return repository.watchPlans(libraryId);
+  return repository.watchPlans();
 });

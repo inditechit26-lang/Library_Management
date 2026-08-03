@@ -21,8 +21,18 @@ class _MonthlySelectorSheetState extends State<MonthlySelectorSheet> {
   late int _selectedYear;
 
   final List<String> _months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
 
   final List<int> _years = [2024, 2025, 2026, 2027];
@@ -51,13 +61,16 @@ class _MonthlySelectorSheetState extends State<MonthlySelectorSheet> {
           children: [
             Row(
               children: [
-                const Icon(Icons.calendar_month_rounded, color: Color(0xFF574DEB)),
+                const Icon(
+                  Icons.calendar_month_rounded,
+                  color: Color(0xFF574DEB),
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'Select Month & Year',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 const Spacer(),
                 IconButton(
@@ -117,7 +130,9 @@ class _MonthlySelectorSheetState extends State<MonthlySelectorSheet> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF574DEB)
-                          : colors.surfaceContainerHighest.withValues(alpha: 0.5),
+                          : colors.surfaceContainerHighest.withValues(
+                              alpha: 0.5,
+                            ),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected

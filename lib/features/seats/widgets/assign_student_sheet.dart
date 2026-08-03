@@ -27,10 +27,9 @@ class _State extends ConsumerState<AssignStudentSheet> {
 
     final students = allStudents
         .where(
-          (s) =>
-              '${s.name} ${s.phone} ${s.seat}'.toLowerCase().contains(
-                    query.toLowerCase(),
-                  ),
+          (s) => '${s.name} ${s.phone} ${s.seat}'.toLowerCase().contains(
+            query.toLowerCase(),
+          ),
         )
         .toList();
 
@@ -52,7 +51,9 @@ class _State extends ConsumerState<AssignStudentSheet> {
               width: 42,
               height: 4,
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF3E4556) : const Color(0xFFD4D7E2),
+                color: isDark
+                    ? const Color(0xFF3E4556)
+                    : const Color(0xFFD4D7E2),
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -120,11 +121,18 @@ class _State extends ConsumerState<AssignStudentSheet> {
                 hintText: 'Search student name, phone, or current seat...',
                 hintStyle: TextStyle(
                   fontSize: 13,
-                  color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                  color: isDark
+                      ? const Color(0xFF64748B)
+                      : const Color(0xFF94A3B8),
                 ),
                 filled: true,
-                fillColor: isDark ? const Color(0xFF181C2B) : const Color(0xFFF8FAFC),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                fillColor: isDark
+                    ? const Color(0xFF181C2B)
+                    : const Color(0xFFF8FAFC),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -132,7 +140,9 @@ class _State extends ConsumerState<AssignStudentSheet> {
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(
-                    color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                    color: isDark
+                        ? const Color(0xFF262C40)
+                        : const Color(0xFFE2E8F0),
                     width: 1.2,
                   ),
                 ),
@@ -165,23 +175,25 @@ class _State extends ConsumerState<AssignStudentSheet> {
                       shrinkWrap: true,
                       physics: const BouncingScrollPhysics(),
                       itemCount: students.length,
-                      separatorBuilder: (context, index) => SizedBox(
-                        height: 8,
-                      ),
+                      separatorBuilder: (context, index) => SizedBox(height: 8),
                       itemBuilder: (_, i) {
                         final student = students[i];
 
                         // Find if student already holds a seat
-                        final currentOccupiedSeat = allSeats.cast<Seat?>().firstWhere(
+                        final currentOccupiedSeat = allSeats
+                            .cast<Seat?>()
+                            .firstWhere(
                               (s) => s != null && s.studentId == student.id,
                               orElse: () => null,
                             );
 
-                        final hasExistingSeat = currentOccupiedSeat != null &&
+                        final hasExistingSeat =
+                            currentOccupiedSeat != null &&
                             currentOccupiedSeat.seatLabel.isNotEmpty &&
                             currentOccupiedSeat.seatId != widget.seat.seatId;
 
-                        final isAlreadySameSeat = currentOccupiedSeat != null &&
+                        final isAlreadySameSeat =
+                            currentOccupiedSeat != null &&
                             currentOccupiedSeat.seatId == widget.seat.seatId;
 
                         return Container(
@@ -198,110 +210,121 @@ class _State extends ConsumerState<AssignStudentSheet> {
                             color: theme.colorScheme.surface,
                             borderRadius: BorderRadius.circular(18),
                             child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 4,
-                            ),
-                            leading: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: isDark
-                                  ? theme.colorScheme.primary.withOpacity(0.18)
-                                  : const Color(0xFFEEF2FF),
-                              child: Text(
-                                student.initials,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w900,
-                                  color: theme.colorScheme.primary,
-                                ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 4,
                               ),
-                            ),
-                            title: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    student.name,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                              leading: CircleAvatar(
+                                radius: 20,
+                                backgroundColor: isDark
+                                    ? theme.colorScheme.primary.withOpacity(
+                                        0.18,
+                                      )
+                                    : const Color(0xFFEEF2FF),
+                                child: Text(
+                                  student.initials,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w900,
+                                    color: theme.colorScheme.primary,
                                   ),
                                 ),
-                                if (hasExistingSeat)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFF59E0B).withOpacity(0.14),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: const Color(0xFFF59E0B).withOpacity(0.3),
-                                      ),
-                                    ),
+                              ),
+                              title: Row(
+                                children: [
+                                  Expanded(
                                     child: Text(
-                                      'Assigned to Seat ${currentOccupiedSeat.seatLabel}',
+                                      student.name,
                                       style: const TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w800,
-                                        color: Color(0xFFF59E0B),
-                                      ),
-                                    ),
-                                  )
-                                else if (isAlreadySameSeat)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 3,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withOpacity(0.14),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: const Color(0xFF10B981).withOpacity(0.3),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Current Seat',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF10B981),
                                       ),
                                     ),
                                   ),
-                              ],
-                            ),
-                            subtitle: Text(
-                              student.phone,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
+                                  if (hasExistingSeat)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFFF59E0B,
+                                        ).withOpacity(0.14),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: const Color(
+                                            0xFFF59E0B,
+                                          ).withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Assigned to Seat ${currentOccupiedSeat.seatLabel}',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFFF59E0B),
+                                        ),
+                                      ),
+                                    )
+                                  else if (isAlreadySameSeat)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF10B981,
+                                        ).withOpacity(0.14),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: const Color(
+                                            0xFF10B981,
+                                          ).withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Current Seat',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w800,
+                                          color: Color(0xFF10B981),
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
+                              subtitle: Text(
+                                student.phone,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 14,
+                                color: theme.colorScheme.primary,
+                              ),
+                              onTap: () {
+                                if (hasExistingSeat) {
+                                  _showSeatChangeWarningDialog(
+                                    context: context,
+                                    student: student,
+                                    currentSeatLabel:
+                                        currentOccupiedSeat.seatLabel,
+                                    currentSeatId: currentOccupiedSeat.seatId,
+                                  );
+                                } else {
+                                  _assign(student);
+                                }
+                              },
                             ),
-                            trailing: Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 14,
-                              color: theme.colorScheme.primary,
-                            ),
-                            onTap: () {
-                              if (hasExistingSeat) {
-                                _showSeatChangeWarningDialog(
-                                  context: context,
-                                  student: student,
-                                  currentSeatLabel: currentOccupiedSeat.seatLabel,
-                                  currentSeatId: currentOccupiedSeat.seatId,
-                                );
-                              } else {
-                                _assign(student);
-                              }
-                            },
                           ),
-                        ),
-                      );
+                        );
                       },
                     ),
             ),
@@ -343,10 +366,7 @@ class _State extends ConsumerState<AssignStudentSheet> {
             const Expanded(
               child: Text(
                 'Change Seat Assignment?',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                ),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
               ),
             ),
           ],
@@ -367,10 +387,14 @@ class _State extends ConsumerState<AssignStudentSheet> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF131724) : const Color(0xFFF8FAFC),
+                color: isDark
+                    ? const Color(0xFF131724)
+                    : const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                  color: isDark
+                      ? const Color(0xFF262C40)
+                      : const Color(0xFFE2E8F0),
                 ),
               ),
               child: Row(
@@ -403,7 +427,9 @@ class _State extends ConsumerState<AssignStudentSheet> {
               'Assigning Seat ${widget.seat.seatLabel} will automatically free up Seat $currentSeatLabel.',
               style: TextStyle(
                 fontSize: 11.5,
-                color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
               ),
             ),
           ],
@@ -454,7 +480,9 @@ class _State extends ConsumerState<AssignStudentSheet> {
     Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${student.name} assigned to Seat ${widget.seat.seatLabel}'),
+        content: Text(
+          '${student.name} assigned to Seat ${widget.seat.seatLabel}',
+        ),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),

@@ -4,10 +4,7 @@ import '../models/notification_item.dart';
 class ActivityTimeline extends StatelessWidget {
   final List<ActivityLogItem> activities;
 
-  const ActivityTimeline({
-    super.key,
-    required this.activities,
-  });
+  const ActivityTimeline({super.key, required this.activities});
 
   @override
   Widget build(BuildContext context) {
@@ -57,10 +54,7 @@ class ActivityTimeline extends StatelessWidget {
             final idx = entry.key;
             final item = entry.value;
             final isLast = idx == activities.length - 1;
-            return _TimelineTile(
-              activity: item,
-              isLast: isLast,
-            );
+            return _TimelineTile(activity: item, isLast: isLast);
           }),
         ],
       ),
@@ -72,10 +66,7 @@ class _TimelineTile extends StatelessWidget {
   final ActivityLogItem activity;
   final bool isLast;
 
-  const _TimelineTile({
-    required this.activity,
-    required this.isLast,
-  });
+  const _TimelineTile({required this.activity, required this.isLast});
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +97,11 @@ class _TimelineTile extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: activity.accentColor, width: 2),
                 ),
-                child: Icon(activity.icon, size: 12, color: activity.accentColor),
+                child: Icon(
+                  activity.icon,
+                  size: 12,
+                  color: activity.accentColor,
+                ),
               ),
               if (!isLast)
                 Expanded(

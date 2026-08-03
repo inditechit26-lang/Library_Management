@@ -4,7 +4,8 @@ import '../services/report_service.dart';
 
 class MonthlyReportSheet extends StatefulWidget {
   final String creationDateStr;
-  final Function(DateTime startDate, DateTime endDate, String periodTitle) onGenerate;
+  final Function(DateTime startDate, DateTime endDate, String periodTitle)
+  onGenerate;
 
   const MonthlyReportSheet({
     super.key,
@@ -18,8 +19,18 @@ class MonthlyReportSheet extends StatefulWidget {
 
 class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
   final List<String> _months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   late int _selectedMonth;
@@ -32,11 +43,19 @@ class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
     final now = DateTime.now();
     _selectedMonth = now.month;
     _selectedYear = now.year;
-    _creationDate = ReportService.parseDate(widget.creationDateStr) ?? DateTime(2025, 1, 1);
+    _creationDate =
+        ReportService.parseDate(widget.creationDateStr) ?? DateTime(2025, 1, 1);
   }
 
   bool get _isValidSelection {
-    final endOfMonth = DateTime(_selectedYear, _selectedMonth + 1, 0, 23, 59, 59);
+    final endOfMonth = DateTime(
+      _selectedYear,
+      _selectedMonth + 1,
+      0,
+      23,
+      59,
+      59,
+    );
     return !endOfMonth.isBefore(_creationDate);
   }
 
@@ -68,7 +87,9 @@ class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
                 const SizedBox(width: 10),
                 Text(
                   'Monthly Report',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -81,7 +102,9 @@ class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
 
             Text(
               'Select Year',
-              style: theme.textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             SingleChildScrollView(
@@ -106,14 +129,21 @@ class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
 
             Text(
               'Select Month',
-              style: theme.textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<int>(
               initialValue: _selectedMonth,
               decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               items: List.generate(12, (index) {
                 return DropdownMenuItem<int>(
@@ -137,12 +167,19 @@ class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline_rounded, color: colors.error, size: 20),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: colors.error,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'No data is available because your library was created on $formattedCreation.',
-                        style: TextStyle(fontSize: 12, color: colors.onErrorContainer),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.onErrorContainer,
+                        ),
                       ),
                     ),
                   ],
@@ -165,9 +202,21 @@ class _MonthlyReportSheetState extends State<MonthlyReportSheet> {
                     onPressed: _isValidSelection
                         ? () {
                             Navigator.pop(context);
-                            final startDate = DateTime(_selectedYear, _selectedMonth, 1);
-                            final endDate = DateTime(_selectedYear, _selectedMonth + 1, 0, 23, 59, 59);
-                            final periodTitle = '${_months[_selectedMonth - 1]} $_selectedYear';
+                            final startDate = DateTime(
+                              _selectedYear,
+                              _selectedMonth,
+                              1,
+                            );
+                            final endDate = DateTime(
+                              _selectedYear,
+                              _selectedMonth + 1,
+                              0,
+                              23,
+                              59,
+                              59,
+                            );
+                            final periodTitle =
+                                '${_months[_selectedMonth - 1]} $_selectedYear';
                             widget.onGenerate(startDate, endDate, periodTitle);
                           }
                         : null,

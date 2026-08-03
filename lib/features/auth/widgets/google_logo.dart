@@ -9,9 +9,7 @@ class GoogleLogoWidget extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _OfficialGooglePainter(),
-      ),
+      child: CustomPaint(painter: _OfficialGooglePainter()),
     );
   }
 }
@@ -45,12 +43,7 @@ class _OfficialGooglePainter extends CustomPainter {
     canvas.drawCircle(center, radius * 0.54, Paint()..color = Colors.white);
 
     // Blue horizontal bar
-    final barRect = Rect.fromLTWH(
-      w * 0.44,
-      h * 0.40,
-      w * 0.52,
-      h * 0.20,
-    );
+    final barRect = Rect.fromLTWH(w * 0.44, h * 0.40, w * 0.52, h * 0.20);
     canvas.drawRect(barRect, blue);
   }
 

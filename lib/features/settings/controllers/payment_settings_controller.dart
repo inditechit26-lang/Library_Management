@@ -2,17 +2,12 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/services/storage_service.dart';
 import '../models/payment_settings.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 
 class PaymentSettingsController extends Notifier<PaymentSettings> {
-  static const _activeUpiKey = 'payment_active_upi_id';
-  static const _upiListKey = 'payment_upi_ids_list';
-  static const _payeeNameKey = 'payment_payee_name';
-
   @override
   PaymentSettings build() {
     final config = ref.watch(libraryConfigProvider).value ?? const {};
@@ -21,33 +16,7 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
         Map<String, dynamic>.from(config['paymentSettings'] as Map),
       );
     }
-    Future.microtask(_restoreLegacy);
     return const PaymentSettings();
-  }
-
-  Future<void> _restoreLegacy() async {
-    final prefs = await SharedPreferences.getInstance();
-    final active = prefs.getString(_activeUpiKey) ?? '';
-    final list = prefs.getStringList(_upiListKey) ?? [];
-    final payee = prefs.getString(_payeeNameKey) ?? '';
-
-    final updatedList = List<String>.from(list);
-    if (!updatedList.contains(active) && active.isNotEmpty) {
-      updatedList.add(active);
-    }
-
-    final restored = PaymentSettings(
-      activeUpiId: active,
-      upiIds: updatedList,
-      payeeName: payee,
-    );
-    if (restored.activeUpiId.isEmpty &&
-        restored.upiIds.isEmpty &&
-        restored.payeeName.isEmpty) {
-      return;
-    }
-    state = restored;
-    await _save(restored);
   }
 
   Future<void> setActiveUpiId(String upiId) async {
@@ -123,8 +92,7 @@ class PaymentSettingsController extends Notifier<PaymentSettings> {
   }
 
   Future<void> _save(PaymentSettings value) async {
-    final libraryId = ref.read(currentLibraryIdProvider) ?? 'default_library';
-    await ref.read(settingsRepositoryProvider).updateLibraryConfig(libraryId, {
+    await ref.read(settingsRepositoryProvider).updateLibraryConfig({
       'paymentSettings': value.toMap(),
     });
   }

@@ -504,7 +504,10 @@ class _WheelTimeRangePickerDialogState
                     color: colors.primaryContainer.withValues(alpha: 0.5),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.watch_later_outlined, color: colors.primary),
+                  child: Icon(
+                    Icons.watch_later_outlined,
+                    color: colors.primary,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -513,15 +516,14 @@ class _WheelTimeRangePickerDialogState
                     children: [
                       Text(
                         'Half-Time Shift Wheel Picker',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       Text(
                         'Scroll the wheels to pick start and end time',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -537,7 +539,8 @@ class _WheelTimeRangePickerDialogState
                     hourController: _startHourCtrl,
                     minuteController: _startMinCtrl,
                     periodController: _startPeriodCtrl,
-                    onHourChanged: (val) => setState(() => _startHour = val + 1),
+                    onHourChanged: (val) =>
+                        setState(() => _startHour = val + 1),
                     onMinuteChanged: (val) =>
                         setState(() => _startMinute = val * 5),
                     onPeriodChanged: (val) =>
@@ -599,8 +602,16 @@ class _WheelTimeRangePickerDialogState
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () {
-                    final startStr = _formatTime(_startHour, _startMinute, _startPeriod);
-                    final endStr = _formatTime(_endHour, _endMinute, _endPeriod);
+                    final startStr = _formatTime(
+                      _startHour,
+                      _startMinute,
+                      _startPeriod,
+                    );
+                    final endStr = _formatTime(
+                      _endHour,
+                      _endMinute,
+                      _endPeriod,
+                    );
                     Navigator.pop(context, 'Shift ($startStr - $endStr)');
                   },
                   child: const Text('Set Shift'),
@@ -679,7 +690,10 @@ class _TimeWheelColumn extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Text(':', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    ':',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   Expanded(
                     child: ListWheelScrollView.useDelegate(
                       controller: minuteController,

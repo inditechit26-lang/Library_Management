@@ -10,12 +10,7 @@ enum NotificationCategory {
   system,
 }
 
-enum NotificationPriority {
-  low,
-  medium,
-  high,
-  urgent,
-}
+enum NotificationPriority { low, medium, high, urgent }
 
 class NotificationAction {
   final String label;
@@ -64,10 +59,7 @@ class NotificationItem {
     this.actions = const [],
   });
 
-  NotificationItem copyWith({
-    bool? isRead,
-    bool? isCompleted,
-  }) {
+  NotificationItem copyWith({bool? isRead, bool? isCompleted}) {
     return NotificationItem(
       id: id,
       title: title,

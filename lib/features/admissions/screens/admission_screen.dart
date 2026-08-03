@@ -467,7 +467,6 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       await ref
           .read(studentsRepositoryProvider)
           .processAdmissionTransaction(
-            libraryId: libraryId,
             student: studentModel,
             seatNumber: admission.selectedSeat,
             payment: paymentModel,

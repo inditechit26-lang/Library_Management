@@ -34,14 +34,20 @@ class NotificationScreen extends ConsumerWidget {
 
     // Group filtered items by date
     final now = DateTime.now();
-    final todayItems = filteredItems.where((i) => _isSameDay(i.timestamp, now)).toList();
+    final todayItems = filteredItems
+        .where((i) => _isSameDay(i.timestamp, now))
+        .toList();
     final yesterdayItems = filteredItems
-        .where((i) => _isSameDay(i.timestamp, now.subtract(const Duration(days: 1))))
+        .where(
+          (i) => _isSameDay(i.timestamp, now.subtract(const Duration(days: 1))),
+        )
         .toList();
     final earlierItems = filteredItems
-        .where((i) =>
-            !_isSameDay(i.timestamp, now) &&
-            !_isSameDay(i.timestamp, now.subtract(const Duration(days: 1))))
+        .where(
+          (i) =>
+              !_isSameDay(i.timestamp, now) &&
+              !_isSameDay(i.timestamp, now.subtract(const Duration(days: 1))),
+        )
         .toList();
 
     return Scaffold(
@@ -54,14 +60,20 @@ class NotificationScreen extends ConsumerWidget {
             SnackBar(
               content: const Row(
                 children: [
-                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                  Icon(
+                    Icons.check_circle_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
                   SizedBox(width: 8),
                   Text('All notifications marked as read'),
                 ],
               ),
               backgroundColor: colors.primary,
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         },
@@ -79,7 +91,11 @@ class NotificationScreen extends ConsumerWidget {
               isUnreadOnly: state.showOnlyUnread,
               isPriorityOnly: state.showOnlyPriority,
               onSelectFilter: (cat, {unreadOnly, priorityOnly}) {
-                controller.applyFilter(cat, unreadOnly: unreadOnly, priorityOnly: priorityOnly);
+                controller.applyFilter(
+                  cat,
+                  unreadOnly: unreadOnly,
+                  priorityOnly: priorityOnly,
+                );
               },
             ),
             const SizedBox(height: 8),
@@ -88,14 +104,16 @@ class NotificationScreen extends ConsumerWidget {
             if (filteredItems.isEmpty)
               _EmptyStateView(
                 isUnreadOnly: state.showOnlyUnread,
-                onResetFilters: () => controller.applyFilter(NotificationCategory.all),
+                onResetFilters: () =>
+                    controller.applyFilter(NotificationCategory.all),
               )
             else ...[
               if (todayItems.isNotEmpty)
                 _NotificationSectionGroup(
                   title: 'TODAY',
                   items: todayItems,
-                  onAction: (item, action) => _handleAction(context, ref, item, action),
+                  onAction: (item, action) =>
+                      _handleAction(context, ref, item, action),
                   onDismiss: (id) => controller.dismissNotification(id),
                   onMarkRead: (id) => controller.markAsRead(id),
                 ),
@@ -103,7 +121,8 @@ class NotificationScreen extends ConsumerWidget {
                 _NotificationSectionGroup(
                   title: 'YESTERDAY',
                   items: yesterdayItems,
-                  onAction: (item, action) => _handleAction(context, ref, item, action),
+                  onAction: (item, action) =>
+                      _handleAction(context, ref, item, action),
                   onDismiss: (id) => controller.dismissNotification(id),
                   onMarkRead: (id) => controller.markAsRead(id),
                 ),
@@ -111,7 +130,8 @@ class NotificationScreen extends ConsumerWidget {
                 _NotificationSectionGroup(
                   title: 'EARLIER',
                   items: earlierItems,
-                  onAction: (item, action) => _handleAction(context, ref, item, action),
+                  onAction: (item, action) =>
+                      _handleAction(context, ref, item, action),
                   onDismiss: (id) => controller.dismissNotification(id),
                   onMarkRead: (id) => controller.markAsRead(id),
                 ),
@@ -126,14 +146,19 @@ class NotificationScreen extends ConsumerWidget {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
-  void _openSearchSheet(BuildContext context, WidgetRef ref, List<NotificationItem> items) {
+  void _openSearchSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<NotificationItem> items,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => NotificationSearchSheet(
         items: items,
-        onActionTap: (item, action) => _handleAction(context, ref, item, action),
+        onActionTap: (item, action) =>
+            _handleAction(context, ref, item, action),
       ),
     );
   }
@@ -165,7 +190,9 @@ class NotificationScreen extends ConsumerWidget {
     if (action.actionKey == 'whatsapp') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('WhatsApp reminder queued for ${item.studentName ?? 'member'}'),
+          content: Text(
+            'WhatsApp reminder queued for ${item.studentName ?? 'member'}',
+          ),
           backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
         ),
@@ -176,7 +203,9 @@ class NotificationScreen extends ConsumerWidget {
     if (action.actionKey == 'collect_fee') {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Collecting fee for ${item.studentName ?? 'member'} (${item.amount != null ? '₹${item.amount!.toInt()}' : ''})'),
+          content: Text(
+            'Collecting fee for ${item.studentName ?? 'member'} (${item.amount != null ? '₹${item.amount!.toInt()}' : ''})',
+          ),
           backgroundColor: Colors.green.shade700,
           behavior: SnackBarBehavior.floating,
         ),
@@ -216,7 +245,12 @@ class _NotificationSectionGroup extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 6),
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 12,
+            bottom: 6,
+          ),
           child: Text(
             title,
             style: TextStyle(
@@ -284,10 +318,7 @@ class _EmptyStateView extends StatelessWidget {
                 ? "You have marked all notifications as read."
                 : "There are no notifications matching your active filter.",
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 16),
           TextButton.icon(

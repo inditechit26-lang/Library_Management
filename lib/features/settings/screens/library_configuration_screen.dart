@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/widgets/custom_qr_image_view.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../students/providers/students_provider.dart';
 import '../controllers/library_configuration_controller.dart';
 import '../controllers/payment_settings_controller.dart';
 import '../models/library_configuration.dart';
@@ -189,10 +189,11 @@ class _ConfigurationCardState extends State<_ConfigurationCard> {
                         const SizedBox(height: 3),
                         Text(
                           widget.description,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant,
-                            height: 1.35,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: colors.onSurfaceVariant,
+                                height: 1.35,
+                              ),
                         ),
                       ],
                     ),
@@ -1311,15 +1312,12 @@ Future<bool> _confirmIfUsed(
 }) async {
   final libraryId = ref.read(currentLibraryIdProvider);
   if (libraryId == null || libraryId.isEmpty) return false;
-  final snapshot = await FirebaseFirestore.instance
-      .collection('libraries')
-      .doc(libraryId)
-      .collection('students')
-      .where('isDeleted', isEqualTo: false)
-      .get();
+  final students = await ref
+      .read(studentsRepositoryProvider)
+      .getStudents(limit: 10000);
   final normalized = match.replaceAll('_', ' ').toLowerCase();
-  final inUse = snapshot.docs.any((document) {
-    final data = document.data();
+  final inUse = students.any((student) {
+    final data = student.toFirestore();
     final source = switch (field) {
       'plan' => '${data['planName'] ?? ''} ${data['membershipPeriod'] ?? ''}',
       'seatType' =>

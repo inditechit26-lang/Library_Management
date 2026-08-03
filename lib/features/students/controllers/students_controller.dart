@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../models/student.dart';
 import '../models/student_model.dart';
+import '../../payments/models/payment_model.dart';
+import '../../receipts/models/receipt_model.dart';
 import '../providers/students_provider.dart' as firestore_students;
 
 class StudentsController extends Notifier<List<Student>> {
@@ -69,21 +71,40 @@ class StudentsController extends Notifier<List<Student>> {
     PaymentMode? paymentMode,
   }) {
     final model = _modelsByLegacyId[value.id];
-    final libraryId = ref.read(currentLibraryIdProvider);
     final parsedExpiry = DateFormat('dd MMM yyyy').tryParse(expiry);
-    if (model == null || libraryId == null || parsedExpiry == null) return;
+    if (model == null || parsedExpiry == null) return;
+    final now = DateTime.now();
+    final paymentId = 'pay_${now.microsecondsSinceEpoch}';
+    final receiptNumber = 'REC-${now.microsecondsSinceEpoch}';
+    final renewed = model.copyWith(
+      validUntil: parsedExpiry,
+      monthlyFee: fee ?? model.monthlyFee,
+      status: 'Active',
+      updatedAt: now,
+    );
+    final payment = PaymentModel(
+      id: paymentId,
+      studentId: model.id,
+      studentName: model.name,
+      amount: fee ?? model.monthlyFee,
+      netAmount: fee ?? model.monthlyFee,
+      paymentMode: paymentMode?.name ?? 'cash',
+      receiptNumber: receiptNumber,
+      paymentDate: now,
+      remarks: 'Membership renewal',
+    );
+    final receipt = ReceiptModel(
+      receiptNumber: receiptNumber,
+      studentId: model.id,
+      studentName: model.name,
+      paymentId: paymentId,
+      amount: payment.netAmount,
+      createdAt: now,
+    );
     unawaited(
       ref
           .read(firestore_students.studentsRepositoryProvider)
-          .updateStudent(
-            libraryId,
-            model.copyWith(
-              validUntil: parsedExpiry,
-              monthlyFee: fee ?? model.monthlyFee,
-              status: 'Active',
-              updatedAt: DateTime.now(),
-            ),
-          ),
+          .renewStudent(student: renewed, payment: payment, receipt: receipt),
     );
   }
 
@@ -100,31 +121,37 @@ class StudentsController extends Notifier<List<Student>> {
     // Resolve every backend ID before the stream refreshes. Refreshing after
     // each removal could clear this legacy-ID map before the next item is sent.
     final studentIds = <String>{};
+    final legacyIds = <int>{};
     for (final student in students) {
       final model = _modelsByLegacyId[student.id];
       if (model == null) {
         throw StateError('The selected student is no longer available.');
       }
       studentIds.add(model.id);
+      legacyIds.add(student.id);
     }
     if (studentIds.isEmpty) return;
 
     final repository = ref.read(firestore_students.studentsRepositoryProvider);
     for (final studentId in studentIds) {
-      await repository.softDeleteStudent(libraryId, studentId);
+      await repository.softDeleteStudent(studentId);
     }
+    _modelsByLegacyId.removeWhere(
+      (legacyId, _) => legacyIds.contains(legacyId),
+    );
+    state = state
+        .where((student) => !legacyIds.contains(student.id))
+        .toList(growable: false);
     ref.invalidate(firestore_students.studentsStreamProvider);
   }
 
   void markPaid(Student value) {
     final model = _modelsByLegacyId[value.id];
-    final libraryId = ref.read(currentLibraryIdProvider);
-    if (model == null || libraryId == null) return;
+    if (model == null) return;
     unawaited(
       ref
           .read(firestore_students.studentsRepositoryProvider)
           .updateStudent(
-            libraryId,
             model.copyWith(status: 'Active', updatedAt: DateTime.now()),
           ),
     );
@@ -163,21 +190,19 @@ class StudentsController extends Notifier<List<Student>> {
     unawaited(
       ref
           .read(firestore_students.studentsRepositoryProvider)
-          .createStudent(libraryId, model),
+          .createStudent(model),
     );
   }
 
   void update(Student value) {
     final model = _modelsByLegacyId[value.id];
-    final libraryId = ref.read(currentLibraryIdProvider);
-    if (model == null || libraryId == null) return;
+    if (model == null) return;
     final expiry =
         DateFormat('dd MMM yyyy').tryParse(value.expiry) ?? model.validUntil;
     unawaited(
       ref
           .read(firestore_students.studentsRepositoryProvider)
           .updateStudent(
-            libraryId,
             model.copyWith(
               name: value.name,
               phone: value.phone,

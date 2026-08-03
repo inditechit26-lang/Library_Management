@@ -21,7 +21,12 @@ class SmartFilters extends StatelessWidget {
   final NotificationCategory selectedCategory;
   final bool isUnreadOnly;
   final bool isPriorityOnly;
-  final Function(NotificationCategory category, {bool? unreadOnly, bool? priorityOnly}) onSelectFilter;
+  final Function(
+    NotificationCategory category, {
+    bool? unreadOnly,
+    bool? priorityOnly,
+  })
+  onSelectFilter;
 
   const SmartFilters({
     super.key,
@@ -32,15 +37,53 @@ class SmartFilters extends StatelessWidget {
   });
 
   static const filters = <FilterChipData>[
-    FilterChipData(label: 'All', category: NotificationCategory.all, icon: Icons.grid_view_rounded),
-    FilterChipData(label: 'Priority', category: NotificationCategory.all, icon: Icons.local_fire_department_rounded, isSpecialPriority: true),
-    FilterChipData(label: 'Payments', category: NotificationCategory.payments, icon: Icons.payments_outlined),
-    FilterChipData(label: 'Renewals', category: NotificationCategory.renewals, icon: Icons.history_toggle_off_rounded),
-    FilterChipData(label: 'Admissions', category: NotificationCategory.admissions, icon: Icons.person_add_alt_1_outlined),
-    FilterChipData(label: 'Seats', category: NotificationCategory.seats, icon: Icons.event_seat_outlined),
-    FilterChipData(label: 'Announcements', category: NotificationCategory.announcements, icon: Icons.campaign_outlined),
-    FilterChipData(label: 'System', category: NotificationCategory.system, icon: Icons.tune_rounded),
-    FilterChipData(label: 'Unread', category: NotificationCategory.all, icon: Icons.mark_email_unread_outlined, isSpecialUnread: true),
+    FilterChipData(
+      label: 'All',
+      category: NotificationCategory.all,
+      icon: Icons.grid_view_rounded,
+    ),
+    FilterChipData(
+      label: 'Priority',
+      category: NotificationCategory.all,
+      icon: Icons.local_fire_department_rounded,
+      isSpecialPriority: true,
+    ),
+    FilterChipData(
+      label: 'Payments',
+      category: NotificationCategory.payments,
+      icon: Icons.payments_outlined,
+    ),
+    FilterChipData(
+      label: 'Renewals',
+      category: NotificationCategory.renewals,
+      icon: Icons.history_toggle_off_rounded,
+    ),
+    FilterChipData(
+      label: 'Admissions',
+      category: NotificationCategory.admissions,
+      icon: Icons.person_add_alt_1_outlined,
+    ),
+    FilterChipData(
+      label: 'Seats',
+      category: NotificationCategory.seats,
+      icon: Icons.event_seat_outlined,
+    ),
+    FilterChipData(
+      label: 'Announcements',
+      category: NotificationCategory.announcements,
+      icon: Icons.campaign_outlined,
+    ),
+    FilterChipData(
+      label: 'System',
+      category: NotificationCategory.system,
+      icon: Icons.tune_rounded,
+    ),
+    FilterChipData(
+      label: 'Unread',
+      category: NotificationCategory.all,
+      icon: Icons.mark_email_unread_outlined,
+      isSpecialUnread: true,
+    ),
   ];
 
   @override
@@ -59,11 +102,23 @@ class SmartFilters extends StatelessWidget {
               isSelected: isSelected,
               onTap: () {
                 if (data.isSpecialUnread) {
-                  onSelectFilter(NotificationCategory.all, unreadOnly: true, priorityOnly: false);
+                  onSelectFilter(
+                    NotificationCategory.all,
+                    unreadOnly: true,
+                    priorityOnly: false,
+                  );
                 } else if (data.isSpecialPriority) {
-                  onSelectFilter(NotificationCategory.all, unreadOnly: false, priorityOnly: true);
+                  onSelectFilter(
+                    NotificationCategory.all,
+                    unreadOnly: false,
+                    priorityOnly: true,
+                  );
                 } else {
-                  onSelectFilter(data.category, unreadOnly: false, priorityOnly: false);
+                  onSelectFilter(
+                    data.category,
+                    unreadOnly: false,
+                    priorityOnly: false,
+                  );
                 }
               },
             ),
@@ -76,7 +131,9 @@ class SmartFilters extends StatelessWidget {
   bool _checkIsSelected(FilterChipData data) {
     if (data.isSpecialUnread) return isUnreadOnly;
     if (data.isSpecialPriority) return isPriorityOnly;
-    return !isUnreadOnly && !isPriorityOnly && selectedCategory == data.category;
+    return !isUnreadOnly &&
+        !isPriorityOnly &&
+        selectedCategory == data.category;
   }
 }
 
@@ -118,7 +175,7 @@ class _AnimatedFilterChip extends StatelessWidget {
                       color: primary.withOpacity(0.25),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
-                    )
+                    ),
                   ]
                 : [],
           ),

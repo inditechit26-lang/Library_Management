@@ -4,7 +4,7 @@ import '../models/student_model.dart';
 import '../repositories/students_repository.dart';
 
 final studentsRepositoryProvider = Provider<BaseStudentsRepository>((ref) {
-  return StudentsRepository();
+  return StudentsRepository(ref.watch(firestoreServiceProvider)!);
 });
 
 final studentsStreamProvider = StreamProvider<List<StudentModel>>((ref) {
@@ -13,7 +13,7 @@ final studentsStreamProvider = StreamProvider<List<StudentModel>>((ref) {
     return Stream.value([]);
   }
   final repository = ref.watch(studentsRepositoryProvider);
-  return repository.watchStudents(libraryId);
+  return repository.watchStudents();
 });
 
 final studentsProvider = Provider<List<StudentModel>>((ref) {

@@ -54,7 +54,9 @@ class SeatModel {
       'studentName': studentName,
       'studentPhone': studentPhone,
       'shift': shift,
-      'assignedDate': assignedDate != null ? Timestamp.fromDate(assignedDate!) : null,
+      'assignedDate': assignedDate != null
+          ? Timestamp.fromDate(assignedDate!)
+          : null,
       'expiryDate': expiryDate != null ? Timestamp.fromDate(expiryDate!) : null,
       'blockReason': blockReason,
     };

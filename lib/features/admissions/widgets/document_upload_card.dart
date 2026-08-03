@@ -41,7 +41,7 @@ class DocumentUploadCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-              'Optional',
+                'Optional',
                 style: const TextStyle(fontSize: 10, color: Color(0xFF979CAC)),
               ),
             ],

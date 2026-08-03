@@ -1,7 +1,8 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+
 import '../providers/active_library_provider.dart';
 
 class LibrariesScreen extends ConsumerStatefulWidget {
@@ -13,319 +14,153 @@ class LibrariesScreen extends ConsumerStatefulWidget {
 
 class _LibrariesScreenState extends ConsumerState<LibrariesScreen>
     with SingleTickerProviderStateMixin {
-  bool _isSwitching = false;
+  late final AnimationController _switchController;
   LibraryModel? _targetLibrary;
-  late AnimationController _overlayAnimationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
+  bool _isSwitching = false;
 
   @override
   void initState() {
     super.initState();
-    _overlayAnimationController = AnimationController(
+    _switchController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _overlayAnimationController,
-      curve: Curves.easeOut,
-    );
-    _scaleAnimation = Tween<double>(begin: 0.82, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _overlayAnimationController,
-        curve: Curves.easeOutBack,
-      ),
+      duration: const Duration(milliseconds: 320),
     );
   }
 
   @override
   void dispose() {
-    _overlayAnimationController.dispose();
+    _switchController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSwitchLibrary(LibraryModel library) async {
-    final activeLibrary = ref.read(activeLibraryProvider);
-    if (activeLibrary.id == library.id) return;
-
+  Future<void> _switchLibrary(LibraryModel library) async {
+    if (library.id == ref.read(activeLibraryProvider).id) return;
     setState(() {
-      _isSwitching = true;
       _targetLibrary = library;
+      _isSwitching = true;
     });
-
-    _overlayAnimationController.forward();
-
-    // Simulate ultra-smooth library switching transition
-    await Future.delayed(const Duration(milliseconds: 1000));
-
+    _switchController.forward();
+    await Future<void>.delayed(const Duration(milliseconds: 850));
     if (!mounted) return;
-
-    // Update active library in Riverpod local state
-    ref.read(activeLibraryProvider.notifier).selectLibrary(library);
-
-    await _overlayAnimationController.reverse();
-
+    await ref.read(activeLibraryProvider.notifier).selectLibrary(library);
+    await _switchController.reverse();
     if (!mounted) return;
-
-    if (Navigator.canPop(context)) {
-      Navigator.pop(context);
-    }
+    setState(() => _isSwitching = false);
+    if (Navigator.canPop(context)) Navigator.pop(context);
   }
 
-  void _openCreateLibraryBottomSheet() {
-    final nameController = TextEditingController();
-    final colors = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    showModalBottomSheet(
+  Future<void> _openCreateLibrary() async {
+    final controller = TextEditingController();
+    var submitting = false;
+    String? error;
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       backgroundColor: Colors.transparent,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E2235) : colors.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border.all(
-              color: colors.outlineVariant.withValues(alpha: 0.5),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) {
+          final theme = Theme.of(context);
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 30,
-                offset: const Offset(0, -8),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Premium Grab Handle
-              Center(
-                child: Container(
-                  width: 44,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: colors.onSurfaceVariant.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(30),
                 ),
               ),
-
-              // Title Section with Luxury Icon Header
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.add_business_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Create New Library',
-                          style: Theme.of(sheetContext).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.3,
-                              ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Add a new library branch to your organization.',
-                          style: Theme.of(sheetContext).textTheme.bodySmall?.copyWith(
-                                color: colors.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 26),
-
-              // Input 1: Library Name
-              TextFormField(
-                controller: nameController,
-                autofocus: true,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-                decoration: InputDecoration(
-                  labelText: 'Library Name',
-                  hintText: 'e.g. Bright Minds Library',
-                  prefixIcon: const Icon(Icons.apartment_rounded),
-                  filled: true,
-                  fillColor: colors.surfaceContainerLow,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(color: colors.outlineVariant),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(18),
-                    borderSide: BorderSide(color: colors.primary, width: 2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Input 2: Library Logo (Placeholder Container)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.6)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [colors.primaryContainer, colors.secondaryContainer],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(
-                        Icons.add_photo_alternate_rounded,
-                        color: colors.primary,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Library Logo',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: colors.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Upload logo image (PNG, JPG)',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.upload_rounded, size: 16),
-                      label: const Text('Upload'),
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Buttons Section
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      onPressed: () => Navigator.pop(sheetContext),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
+                  Center(child: _SheetHandle(theme: theme)),
+                  const SizedBox(height: 22),
+                  const _CreateHeader(),
+                  const SizedBox(height: 26),
+                  TextField(
+                    controller: controller,
+                    autofocus: true,
+                    textCapitalization: TextCapitalization.words,
+                    onChanged: (_) {
+                      if (error != null) setSheetState(() => error = null);
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Library Name',
+                      hintText: 'e.g. Bright Minds Library',
+                      errorText: error,
+                      prefixIcon: const Icon(Icons.domain_rounded),
+                      filled: true,
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        onPressed: () {
-                          final name = nameController.text.trim();
-                          if (name.isNotEmpty) {
-                            ref
-                                .read(activeLibraryProvider.notifier)
-                                .addLibrary(name);
-                          }
-                          Navigator.pop(sheetContext);
-                        },
-                        child: const Text(
-                          'Create Library',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            fontSize: 15,
-                          ),
-                        ),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
+                  const SizedBox(height: 14),
+                  const _LogoPlaceholder(),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: submitting
+                              ? null
+                              : () => Navigator.pop(sheetContext),
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 2,
+                        child: FilledButton.icon(
+                          onPressed: submitting
+                              ? null
+                              : () async {
+                                  final name = controller.text.trim();
+                                  if (name.isEmpty) {
+                                    setSheetState(
+                                      () => error = 'Enter a library name',
+                                    );
+                                    return;
+                                  }
+                                  setSheetState(() => submitting = true);
+                                  try {
+                                    await ref
+                                        .read(activeLibraryProvider.notifier)
+                                        .addLibrary(name);
+                                    if (sheetContext.mounted) {
+                                      Navigator.pop(sheetContext);
+                                    }
+                                  } catch (exception) {
+                                    setSheetState(() {
+                                      submitting = false;
+                                      error = exception.toString();
+                                    });
+                                  }
+                                },
+                          icon: submitting
+                              ? const SizedBox.square(
+                                  dimension: 17,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Icon(Icons.add_rounded),
+                          label: const Text('Create Library'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -333,568 +168,617 @@ class _LibrariesScreenState extends ConsumerState<LibrariesScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final activeLibrary = ref.watch(activeLibraryProvider);
-    final libraries = ref.watch(activeLibraryProvider.notifier).libraries;
+    final active = ref.watch(activeLibraryProvider);
+    final librariesState = ref.watch(librariesProvider);
+    final libraries = librariesState.value ?? const <LibraryModel>[];
 
     return Stack(
       children: [
         Scaffold(
-          backgroundColor: isDark ? const Color(0xFF0F121C) : const Color(0xFFF8FAFC),
+          backgroundColor: theme.brightness == Brightness.dark
+              ? const Color(0xFF0B1020)
+              : const Color(0xFFF5F7FB),
           appBar: AppBar(
-            title: const Text(
-              'Libraries',
-              style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: -0.3),
-            ),
-            elevation: 0,
+            title: const Text('Libraries'),
+            centerTitle: false,
             backgroundColor: Colors.transparent,
           ),
-          body: IgnorePointer(
-            ignoring: _isSwitching,
-            child: SafeArea(
-              child: Column(
-                children: [
-                  Expanded(
+          body: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async => ref.invalidate(librariesProvider),
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 22),
                       children: [
-                        // Ultra Premium Header Card
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: isDark
-                                  ? [const Color(0xFF1E2438), const Color(0xFF161A29)]
-                                  : [const Color(0xFFEEF2FF), const Color(0xFFE0E7FF)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDark
-                                  ? const Color(0xFF2E3752)
-                                  : const Color(0xFFC7D2FE),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: isDark
-                                    ? Colors.black.withValues(alpha: 0.3)
-                                    : const Color(0xFF6366F1).withValues(alpha: 0.1),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.business_rounded,
-                                  color: Colors.white,
-                                  size: 26,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Libraries',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: -0.4,
-                                        color: colors.onSurface,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      'Manage and switch between your library branches.',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: colors.onSurfaceVariant,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                        _PremiumHero(
+                          activeLibrary: active,
+                          libraryCount: libraries.length,
                         ),
-                        const SizedBox(height: 24),
-
-                        // Section Title & Counter
-                        Row(
-                          children: [
-                            Text(
-                              'ALL BRANCHES',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                                color: colors.onSurfaceVariant,
-                              ),
-                            ),
-                            const Spacer(),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: colors.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                '${libraries.length} Available',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w800,
-                                  color: colors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-
-                        if (libraries.isEmpty)
-                          // Empty State Card
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 54,
-                              horizontal: 24,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.surface,
-                              borderRadius: BorderRadius.circular(26),
-                              border: Border.all(color: colors.outlineVariant),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colors.shadow.withValues(alpha: 0.04),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 84,
-                                  height: 84,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colors.primaryContainer.withValues(alpha: 0.6),
-                                        colors.primaryContainer.withValues(alpha: 0.2),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.business_rounded,
-                                    size: 42,
-                                    color: colors.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 22),
-                                Text(
-                                  'No Libraries Found',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                        color: colors.onSurface,
-                                        fontSize: 18,
-                                      ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'Create your first library to get started.',
-                                  textAlign: TextAlign.center,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                        color: colors.onSurfaceVariant,
-                                        fontSize: 13,
-                                      ),
-                                ),
-                                const SizedBox(height: 26),
-                                FilledButton.icon(
-                                  onPressed: _openCreateLibraryBottomSheet,
-                                  icon: const Icon(Icons.add_rounded),
-                                  label: const Text('Create Library'),
-                                  style: FilledButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 26,
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                        const SizedBox(height: 26),
+                        _SectionHeader(count: libraries.length),
+                        const SizedBox(height: 12),
+                        if (librariesState.isLoading)
+                          const _LoadingLibraries()
+                        else if (librariesState.hasError)
+                          _LibrariesError(
+                            onRetry: () => ref.invalidate(librariesProvider),
                           )
+                        else if (libraries.isEmpty)
+                          _EmptyLibraries(onCreate: _openCreateLibrary)
                         else
-                          for (final lib in libraries) ...[
-                            Builder(
-                              builder: (context) {
-                                final isActive = lib.id == activeLibrary.id;
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 14),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 240),
-                                    curve: Curves.easeInOut,
-                                    child: Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: () => _handleSwitchLibrary(lib),
-                                        borderRadius: BorderRadius.circular(24),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            color: colors.surface,
-                                            borderRadius: BorderRadius.circular(24),
-                                            border: Border.all(
-                                              color: isActive
-                                                  ? const Color(0xFF3AB080)
-                                                  : colors.outlineVariant.withValues(alpha: 0.6),
-                                              width: isActive ? 2 : 1,
-                                            ),
-                                            boxShadow: [
-                                              if (isActive)
-                                                BoxShadow(
-                                                  color: const Color(0xFF3AB080)
-                                                      .withValues(alpha: 0.2),
-                                                  blurRadius: 20,
-                                                  spreadRadius: 1,
-                                                  offset: const Offset(0, 6),
-                                                )
-                                              else
-                                                BoxShadow(
-                                                  color: colors.shadow.withValues(alpha: 0.04),
-                                                  blurRadius: 12,
-                                                  offset: const Offset(0, 4),
-                                                ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Logo Avatar
-                                              Container(
-                                                width: 52,
-                                                height: 52,
-                                                decoration: BoxDecoration(
-                                                  gradient: isActive
-                                                      ? const LinearGradient(
-                                                          colors: [
-                                                            Color(0xFF3AB080),
-                                                            Color(0xFF288C68),
-                                                          ],
-                                                          begin: Alignment.topLeft,
-                                                          end: Alignment.bottomRight,
-                                                        )
-                                                      : LinearGradient(
-                                                          colors: [
-                                                            colors.secondaryContainer,
-                                                            colors.surfaceContainerHighest,
-                                                          ],
-                                                        ),
-                                                  borderRadius: BorderRadius.circular(16),
-                                                  boxShadow: [
-                                                    if (isActive)
-                                                      BoxShadow(
-                                                        color: const Color(0xFF288C68)
-                                                            .withValues(alpha: 0.35),
-                                                        blurRadius: 10,
-                                                        offset: const Offset(0, 4),
-                                                      ),
-                                                  ],
-                                                ),
-                                                child: Icon(
-                                                  lib.icon,
-                                                  size: 26,
-                                                  color: isActive
-                                                      ? Colors.white
-                                                      : colors.onSecondaryContainer,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 16),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      lib.name,
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.w900,
-                                                        letterSpacing: -0.2,
-                                                        color: colors.onSurface,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 6),
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: const EdgeInsets.symmetric(
-                                                            horizontal: 9,
-                                                            vertical: 3,
-                                                          ),
-                                                          decoration: BoxDecoration(
-                                                            color: colors.surfaceContainerHighest,
-                                                            borderRadius:
-                                                                BorderRadius.circular(8),
-                                                          ),
-                                                          child: Text(
-                                                            lib.ownerName,
-                                                            style: TextStyle(
-                                                              fontSize: 10.5,
-                                                              fontWeight: FontWeight.w700,
-                                                              color: colors.onSurfaceVariant,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(width: 8),
-                                                        if (isActive)
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                              horizontal: 9,
-                                                              vertical: 3.5,
-                                                            ),
-                                                            decoration: BoxDecoration(
-                                                              gradient: const LinearGradient(
-                                                                colors: [
-                                                                  Color(0xFFE8F5E9),
-                                                                  Color(0xFFC8E6C9),
-                                                                ],
-                                                              ),
-                                                              borderRadius:
-                                                                  BorderRadius.circular(8),
-                                                              border: Border.all(
-                                                                color: const Color(0xFF2E7D32)
-                                                                    .withValues(alpha: 0.3),
-                                                              ),
-                                                            ),
-                                                            child: const Row(
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              children: [
-                                                                Icon(
-                                                                  Icons.check_circle_rounded,
-                                                                  size: 13,
-                                                                  color: Color(0xFF2E7D32),
-                                                                ),
-                                                                SizedBox(width: 4),
-                                                                Text(
-                                                                  'ACTIVE',
-                                                                  style: TextStyle(
-                                                                    fontSize: 10,
-                                                                    fontWeight:
-                                                                        FontWeight.w900,
-                                                                    color: Color(0xFF2E7D32),
-                                                                    letterSpacing: 0.6,
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          )
-                                                        else
-                                                          Text(
-                                                            'Tap to switch',
-                                                            style: TextStyle(
-                                                              fontSize: 11,
-                                                              fontWeight: FontWeight.w500,
-                                                              color: colors.onSurfaceVariant
-                                                                  .withValues(alpha: 0.7),
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Icon(
-                                                isActive
-                                                    ? Icons.radio_button_checked_rounded
-                                                    : Icons.radio_button_off_rounded,
-                                                color: isActive
-                                                    ? const Color(0xFF3AB080)
-                                                    : colors.outlineVariant,
-                                                size: 22,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
+                          ...libraries.indexed.map(
+                            (entry) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _LibraryCard(
+                                library: entry.$2,
+                                index: entry.$1,
+                                isActive: entry.$2.id == active.id,
+                                onTap: () => _switchLibrary(entry.$2),
+                              ),
                             ),
-                          ],
+                          ),
                       ],
                     ),
                   ),
+                ),
+                _AddLibraryBar(onPressed: _openCreateLibrary),
+              ],
+            ),
+          ),
+        ),
+        if (_isSwitching)
+          _SwitchOverlay(
+            controller: _switchController,
+            library: _targetLibrary,
+          ),
+      ],
+    );
+  }
+}
 
-                  // Full-Width Ultra Premium Button
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-                    child: Container(
-                      width: double.infinity,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF4F46E5).withValues(alpha: 0.38),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton.icon(
-                        onPressed: _openCreateLibraryBottomSheet,
-                        icon: const Icon(Icons.add_rounded, size: 22, color: Colors.white),
-                        label: const Text(
-                          'Add New Library',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.3,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
+class _PremiumHero extends StatelessWidget {
+  const _PremiumHero({required this.activeLibrary, required this.libraryCount});
+
+  final LibraryModel activeLibrary;
+  final int libraryCount;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(22),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(28),
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFF111B3D), Color(0xFF263A7A), Color(0xFF5B4FD8)],
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFF293B80).withValues(alpha: .28),
+          blurRadius: 28,
+          offset: const Offset(0, 14),
+        ),
+      ],
+    ),
+    child: Stack(
+      children: [
+        const Positioned(right: -18, top: -34, child: _HeroGlow()),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const _HeroIcon(),
+                const Spacer(),
+                _CountPill(count: libraryCount),
+              ],
+            ),
+            const SizedBox(height: 28),
+            const Text(
+              'Libraries',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -.5,
+              ),
+            ),
+            const SizedBox(height: 7),
+            const Text(
+              'Manage and switch between your library branches.',
+              style: TextStyle(color: Color(0xFFC9D2F5), fontSize: 13),
+            ),
+            if (activeLibrary.id.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    size: 17,
+                    color: Color(0xFF67E8B4),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${activeLibrary.name} is active',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Text(
+        'ALL BRANCHES',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.35,
+        ),
+      ),
+      const Spacer(),
+      Text('$count total', style: Theme.of(context).textTheme.bodySmall),
+    ],
+  );
+}
+
+class _LibraryCard extends StatelessWidget {
+  const _LibraryCard({
+    required this.library,
+    required this.index,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final LibraryModel library;
+  final int index;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  static const _accents = [
+    Color(0xFF6254E7),
+    Color(0xFF159A79),
+    Color(0xFFD57832),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final accent = isActive ? const Color(0xFF159A79) : _accents[index % 3];
+    return Semantics(
+      button: true,
+      selected: isActive,
+      child: Material(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(22),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 220),
+            padding: const EdgeInsets.all(17),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: isActive
+                    ? accent
+                    : colors.outlineVariant.withValues(alpha: .55),
+                width: isActive ? 1.7 : 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isActive
+                      ? accent.withValues(alpha: .13)
+                      : Colors.black.withValues(alpha: .035),
+                  blurRadius: isActive ? 22 : 12,
+                  offset: const Offset(0, 7),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                _LibraryMonogram(name: library.name, accent: accent),
+                const SizedBox(width: 15),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        library.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        isActive
+                            ? 'Currently selected workspace'
+                            : 'Tap to open this workspace',
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                if (isActive)
+                  const _ActiveBadge()
+                else
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 15,
+                    color: colors.outline,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddLibraryBar extends StatelessWidget {
+  const _AddLibraryBar({required this.onPressed});
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      border: Border(
+        top: BorderSide(
+          color: Theme.of(context).dividerColor.withValues(alpha: .4),
+        ),
+      ),
+    ),
+    child: SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+        child: SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: FilledButton.icon(
+            onPressed: onPressed,
+            icon: const Icon(Icons.add_business_rounded),
+            label: const Text('Add New Library'),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _SwitchOverlay extends StatelessWidget {
+  const _SwitchOverlay({required this.controller, required this.library});
+  final AnimationController controller;
+  final LibraryModel? library;
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: CurvedAnimation(parent: controller, curve: Curves.easeOut),
+    child: BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: ColoredBox(
+        color: const Color(0xFF071025).withValues(alpha: .72),
+        child: Center(
+          child: ScaleTransition(
+            scale: Tween<double>(begin: .9, end: 1).animate(
+              CurvedAnimation(parent: controller, curve: Curves.easeOutBack),
+            ),
+            child: Container(
+              width: 270,
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(strokeWidth: 3),
+                  const SizedBox(height: 22),
+                  const Text(
+                    'SWITCHING LIBRARY',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.25,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    library?.name ?? '',
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
           ),
         ),
+      ),
+    ),
+  );
+}
 
-        // Ultra Premium Glassmorphic Switch Loading Overlay (Fade + Scale + Backdrop Blur)
-        if (_isSwitching)
-          FadeTransition(
-            opacity: _fadeAnimation,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.65),
-                alignment: Alignment.center,
-                child: ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: Container(
-                    width: 260,
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E2235) : Colors.white,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(
-                        color: colors.primary.withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          blurRadius: 32,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 56,
-                          height: 56,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: colors.primary.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: CircularProgressIndicator(
-                            strokeWidth: 3.5,
-                            color: colors.primary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'SWITCHING LIBRARY',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            color: colors.onSurface,
-                          ),
-                        ),
-                        if (_targetLibrary != null) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              _targetLibrary!.name,
-                              textAlign: TextAlign.center,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colors.primary,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+class _CreateHeader extends StatelessWidget {
+  const _CreateHeader();
+  @override
+  Widget build(BuildContext context) => const Row(
+    children: [
+      _GradientIcon(icon: Icons.add_business_rounded, filled: true),
+      SizedBox(width: 14),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Create New Library',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
+            SizedBox(height: 3),
+            Text('Create an independent workspace for your branch.'),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _LogoPlaceholder extends StatelessWidget {
+  const _LogoPlaceholder();
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: const Row(
+      children: [
+        Icon(Icons.image_outlined),
+        SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Library Logo',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              Text(
+                'You can add branding later in settings.',
+                style: TextStyle(fontSize: 11),
+              ),
+            ],
           ),
+        ),
       ],
-    );
-  }
+    ),
+  );
+}
+
+class _LoadingLibraries extends StatelessWidget {
+  const _LoadingLibraries();
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.symmetric(vertical: 48),
+    child: Center(child: CircularProgressIndicator()),
+  );
+}
+
+class _LibrariesError extends StatelessWidget {
+  const _LibrariesError({required this.onRetry});
+  final VoidCallback onRetry;
+  @override
+  Widget build(BuildContext context) => _MessageCard(
+    icon: Icons.cloud_off_rounded,
+    title: 'Could not load libraries',
+    subtitle: 'Check your connection and try again.',
+    action: TextButton.icon(
+      onPressed: onRetry,
+      icon: const Icon(Icons.refresh),
+      label: const Text('Retry'),
+    ),
+  );
+}
+
+class _EmptyLibraries extends StatelessWidget {
+  const _EmptyLibraries({required this.onCreate});
+  final VoidCallback onCreate;
+  @override
+  Widget build(BuildContext context) => _MessageCard(
+    icon: Icons.domain_add_rounded,
+    title: 'No libraries yet',
+    subtitle: 'Create your first workspace to get started.',
+    action: TextButton(
+      onPressed: onCreate,
+      child: const Text('Create library'),
+    ),
+  );
+}
+
+class _MessageCard extends StatelessWidget {
+  const _MessageCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.action,
+  });
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Widget action;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(28),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(22),
+    ),
+    child: Column(
+      children: [
+        Icon(icon, size: 36),
+        const SizedBox(height: 14),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 4),
+        Text(subtitle, textAlign: TextAlign.center),
+        const SizedBox(height: 8),
+        action,
+      ],
+    ),
+  );
+}
+
+class _LibraryMonogram extends StatelessWidget {
+  const _LibraryMonogram({required this.name, required this.accent});
+  final String name;
+  final Color accent;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 52,
+    height: 52,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: accent.withValues(alpha: .11),
+      borderRadius: BorderRadius.circular(16),
+    ),
+    child: Text(
+      name.trim().isEmpty ? 'L' : name.trim()[0].toUpperCase(),
+      style: TextStyle(
+        color: accent,
+        fontSize: 20,
+        fontWeight: FontWeight.w900,
+      ),
+    ),
+  );
+}
+
+class _ActiveBadge extends StatelessWidget {
+  const _ActiveBadge();
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+    decoration: BoxDecoration(
+      color: const Color(0xFF159A79).withValues(alpha: .1),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: const Text(
+      'ACTIVE',
+      style: TextStyle(
+        color: Color(0xFF128064),
+        fontSize: 9,
+        fontWeight: FontWeight.w900,
+        letterSpacing: .55,
+      ),
+    ),
+  );
+}
+
+class _HeroIcon extends StatelessWidget {
+  const _HeroIcon();
+  @override
+  Widget build(BuildContext context) =>
+      const _GradientIcon(icon: Icons.account_balance_rounded);
+}
+
+class _GradientIcon extends StatelessWidget {
+  const _GradientIcon({required this.icon, this.filled = false});
+  final IconData icon;
+  final bool filled;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 48,
+    height: 48,
+    decoration: BoxDecoration(
+      color: filled
+          ? const Color(0xFF5B4FD8)
+          : Colors.white.withValues(alpha: .13),
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(color: Colors.white.withValues(alpha: .17)),
+    ),
+    child: Icon(icon, color: Colors.white),
+  );
+}
+
+class _CountPill extends StatelessWidget {
+  const _CountPill({required this.count});
+  final int count;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: .12),
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: Colors.white.withValues(alpha: .14)),
+    ),
+    child: Text(
+      '$count ${count == 1 ? 'branch' : 'branches'}',
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
+}
+
+class _HeroGlow extends StatelessWidget {
+  const _HeroGlow();
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 140,
+    height: 140,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.white.withValues(alpha: .06),
+    ),
+  );
+}
+
+class _SheetHandle extends StatelessWidget {
+  const _SheetHandle({required this.theme});
+  final ThemeData theme;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 42,
+    height: 4,
+    decoration: BoxDecoration(
+      color: theme.colorScheme.outlineVariant,
+      borderRadius: BorderRadius.circular(4),
+    ),
+  );
 }

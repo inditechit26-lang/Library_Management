@@ -24,7 +24,10 @@ class PdfReportBuilder {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
                 pw.Container(
-                  padding: const pw.EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding: const pw.EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
                   decoration: pw.BoxDecoration(
                     color: primaryColor,
                     borderRadius: pw.BorderRadius.circular(8),
@@ -81,10 +84,14 @@ class PdfReportBuilder {
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
-                      pw.Text('Prepared By: ${report.ownerProfile.name}',
-                          style: pw.TextStyle(color: darkColor, fontSize: 11)),
-                      pw.Text('Branch: ${report.ownerProfile.branchName}',
-                          style: pw.TextStyle(color: darkColor, fontSize: 11)),
+                      pw.Text(
+                        'Prepared By: ${report.ownerProfile.name}',
+                        style: pw.TextStyle(color: darkColor, fontSize: 11),
+                      ),
+                      pw.Text(
+                        'Branch: ${report.ownerProfile.branchName}',
+                        style: pw.TextStyle(color: darkColor, fontSize: 11),
+                      ),
                     ],
                   ),
                 ],
@@ -110,15 +117,51 @@ class PdfReportBuilder {
               crossAxisCount: 3,
               childAspectRatio: 0.85,
               children: [
-                _buildMetricBox('Total Students', '${report.totalStudents}', primaryColor),
-                _buildMetricBox('Active Students', '${report.activeStudents}', PdfColors.green700),
-                _buildMetricBox('Expired Memberships', '${report.expiredMemberships}', PdfColors.red700),
-                _buildMetricBox('New Admissions', '${report.newAdmissions}', primaryColor),
-                _buildMetricBox('Renewals', '${report.renewals}', PdfColors.blue700),
-                _buildMetricBox('Occupancy Rate', '${report.occupancyPercentage.toStringAsFixed(1)}%', primaryColor),
-                _buildMetricBox('Total Revenue', '₹${report.totalRevenue.toInt()}', PdfColors.green800),
-                _buildMetricBox('Pending Payments', '₹${report.pendingPayments.toInt()}', PdfColors.orange700),
-                _buildMetricBox('Avg Monthly Collection', '₹${report.averageMonthlyCollection.toInt()}', primaryColor),
+                _buildMetricBox(
+                  'Total Students',
+                  '${report.totalStudents}',
+                  primaryColor,
+                ),
+                _buildMetricBox(
+                  'Active Students',
+                  '${report.activeStudents}',
+                  PdfColors.green700,
+                ),
+                _buildMetricBox(
+                  'Expired Memberships',
+                  '${report.expiredMemberships}',
+                  PdfColors.red700,
+                ),
+                _buildMetricBox(
+                  'New Admissions',
+                  '${report.newAdmissions}',
+                  primaryColor,
+                ),
+                _buildMetricBox(
+                  'Renewals',
+                  '${report.renewals}',
+                  PdfColors.blue700,
+                ),
+                _buildMetricBox(
+                  'Occupancy Rate',
+                  '${report.occupancyPercentage.toStringAsFixed(1)}%',
+                  primaryColor,
+                ),
+                _buildMetricBox(
+                  'Total Revenue',
+                  '₹${report.totalRevenue.toInt()}',
+                  PdfColors.green800,
+                ),
+                _buildMetricBox(
+                  'Pending Payments',
+                  '₹${report.pendingPayments.toInt()}',
+                  PdfColors.orange700,
+                ),
+                _buildMetricBox(
+                  'Avg Monthly Collection',
+                  '₹${report.averageMonthlyCollection.toInt()}',
+                  primaryColor,
+                ),
               ],
             ),
           ],
@@ -147,7 +190,10 @@ class PdfReportBuilder {
                 ['Security Deposits', '₹${report.securityDeposits.toInt()}'],
                 ['Outstanding Amount', '₹${report.outstandingAmount.toInt()}'],
               ],
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: pw.BoxDecoration(color: primaryColor),
               cellPadding: const pw.EdgeInsets.all(8),
             ),
@@ -175,7 +221,10 @@ class PdfReportBuilder {
                 ['Yearly Plan', '${report.yearlyPlanCount}'],
                 ['Custom / Half Day Plans', '${report.customPlanCount}'],
               ],
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: pw.BoxDecoration(color: primaryColor),
               cellPadding: const pw.EdgeInsets.all(8),
             ),
@@ -197,9 +246,18 @@ class PdfReportBuilder {
             pw.TableHelper.fromTextArray(
               headers: ['Date', 'New Students Joined', 'Revenue Generated'],
               data: report.dailyAdmissions
-                  .map((rec) => [rec.date, '${rec.count}', '₹${rec.revenue.toInt()}'])
+                  .map(
+                    (rec) => [
+                      rec.date,
+                      '${rec.count}',
+                      '₹${rec.revenue.toInt()}',
+                    ],
+                  )
                   .toList(),
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: pw.BoxDecoration(color: primaryColor),
               cellPadding: const pw.EdgeInsets.all(8),
             ),
@@ -222,12 +280,23 @@ class PdfReportBuilder {
               headers: ['Seat Category', 'Count', 'Percentage'],
               data: [
                 ['Total Capacity', '${report.totalSeats}', '100%'],
-                ['Occupied Seats', '${report.occupiedSeats}', '${report.occupancyPercentage.toStringAsFixed(1)}%'],
-                ['Available Seats', '${report.availableSeats}', '${(100 - report.occupancyPercentage).toStringAsFixed(1)}%'],
+                [
+                  'Occupied Seats',
+                  '${report.occupiedSeats}',
+                  '${report.occupancyPercentage.toStringAsFixed(1)}%',
+                ],
+                [
+                  'Available Seats',
+                  '${report.availableSeats}',
+                  '${(100 - report.occupancyPercentage).toStringAsFixed(1)}%',
+                ],
                 ['Under Maintenance', '${report.maintenanceSeats}', '-'],
                 ['Reserved Seats', '${report.reservedSeats}', '-'],
               ],
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: pw.BoxDecoration(color: primaryColor),
               cellPadding: const pw.EdgeInsets.all(8),
             ),
@@ -248,14 +317,22 @@ class PdfReportBuilder {
             pw.SizedBox(height: 16),
             pw.TableHelper.fromTextArray(
               headers: ['ID', 'Name', 'Seat', 'Expiry', 'Amount'],
-              data: report.filteredStudents.take(15).map((s) => [
-                '${s.id}',
-                s.name,
-                s.seat,
-                s.expiry,
-                '₹${s.fee.toInt()}',
-              ]).toList(),
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              data: report.filteredStudents
+                  .take(15)
+                  .map(
+                    (s) => [
+                      '${s.id}',
+                      s.name,
+                      s.seat,
+                      s.expiry,
+                      '₹${s.fee.toInt()}',
+                    ],
+                  )
+                  .toList(),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: pw.BoxDecoration(color: primaryColor),
               cellPadding: const pw.EdgeInsets.all(6),
             ),
@@ -276,14 +353,22 @@ class PdfReportBuilder {
             pw.SizedBox(height: 16),
             pw.TableHelper.fromTextArray(
               headers: ['Receipt No', 'Student', 'Mode', 'Amount', 'Status'],
-              data: report.paymentHistory.take(15).map((p) => [
-                p.receiptNo,
-                p.studentName,
-                p.mode,
-                '₹${p.amount.toInt()}',
-                p.status,
-              ]).toList(),
-              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+              data: report.paymentHistory
+                  .take(15)
+                  .map(
+                    (p) => [
+                      p.receiptNo,
+                      p.studentName,
+                      p.mode,
+                      '₹${p.amount.toInt()}',
+                      p.status,
+                    ],
+                  )
+                  .toList(),
+              headerStyle: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white,
+              ),
               headerDecoration: pw.BoxDecoration(color: primaryColor),
               cellPadding: const pw.EdgeInsets.all(6),
             ),
@@ -304,7 +389,11 @@ class PdfReportBuilder {
             pw.Spacer(),
             pw.Text(
               'Report Summary Completed',
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: primaryColor),
+              style: pw.TextStyle(
+                fontSize: 20,
+                fontWeight: pw.FontWeight.bold,
+                color: primaryColor,
+              ),
             ),
             pw.SizedBox(height: 10),
             pw.Text(
@@ -316,10 +405,16 @@ class PdfReportBuilder {
             pw.SizedBox(height: 10),
             pw.Text(
               'Powered by StudyDesk Business Analytics Suite',
-              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: darkColor),
+              style: pw.TextStyle(
+                fontSize: 10,
+                fontWeight: pw.FontWeight.bold,
+                color: darkColor,
+              ),
             ),
-            pw.Text('Generated Date: ${report.generatedDate}',
-                style: pw.TextStyle(fontSize: 9, color: greyColor)),
+            pw.Text(
+              'Generated Date: ${report.generatedDate}',
+              style: pw.TextStyle(fontSize: 9, color: greyColor),
+            ),
             pw.Spacer(),
           ],
         ),
@@ -333,7 +428,14 @@ class PdfReportBuilder {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(title, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold, color: color)),
+        pw.Text(
+          title,
+          style: pw.TextStyle(
+            fontSize: 20,
+            fontWeight: pw.FontWeight.bold,
+            color: color,
+          ),
+        ),
         pw.SizedBox(height: 6),
         pw.Divider(color: color, thickness: 1.5),
       ],
@@ -352,9 +454,19 @@ class PdfReportBuilder {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          pw.Text(title, style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+          pw.Text(
+            title,
+            style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+          ),
           pw.SizedBox(height: 4),
-          pw.Text(value, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: color)),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+              color: color,
+            ),
+          ),
         ],
       ),
     );

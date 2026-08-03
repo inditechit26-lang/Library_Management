@@ -1,13 +1,14 @@
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../models/seat_model.dart' as firestore_model;
 import '../providers/seats_provider.dart' as firestore_seats;
+import '../repositories/seats_repository.dart';
 import '../models/seat.dart';
 import '../../settings/models/library_configuration.dart';
 import '../../students/models/student.dart';
+import '../../students/models/student_model.dart';
+import '../../students/providers/students_provider.dart' as student_records;
 
 class SeatsController extends Notifier<List<Seat>> {
   @override
@@ -44,39 +45,19 @@ class SeatsController extends Notifier<List<Seat>> {
     return hash;
   }
 
-  CollectionReference<Map<String, dynamic>>? get _seatsRef {
-    final libraryId = ref.read(currentLibraryIdProvider);
-    if (libraryId == null || libraryId.isEmpty) return null;
-    return FirebaseFirestore.instance
-        .collection('libraries')
-        .doc(libraryId)
-        .collection('seats');
-  }
+  BaseSeatsRepository get _repository =>
+      ref.read(firestore_seats.seatsRepositoryProvider);
 
   void _persistSeat(Seat seat) {
-    final seatsRef = _seatsRef;
-    if (seatsRef == null) return;
-    unawaited(
-      seatsRef.doc(seat.seatId).set({
-        'seatNumber': seat.seatLabel,
-        'status': seat.status.name,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true)),
-    );
+    unawaited(_repository.setSeat(seat.seatId, _seatData(seat)));
   }
 
   void _persistCurrentState() {
-    final seatsRef = _seatsRef;
-    if (seatsRef == null) return;
-    final batch = FirebaseFirestore.instance.batch();
-    for (final seat in state) {
-      batch.set(seatsRef.doc(seat.seatId), {
-        'seatNumber': seat.seatLabel,
-        'status': seat.status.name,
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    }
-    unawaited(batch.commit());
+    unawaited(
+      _repository.setSeats({
+        for (final seat in state) seat.seatId: _seatData(seat),
+      }),
+    );
   }
 
   void assign(String seatId, int studentId, {String? previousSeatId}) {
@@ -123,7 +104,6 @@ class SeatsController extends Notifier<List<Seat>> {
   void rename(String seatId, String label) {
     final trimmed = label.trim();
     if (trimmed.isEmpty || trimmed == seatId) return;
-    final seatsRef = _seatsRef;
     final oldSeat = state.firstWhere((seat) => seat.seatId == seatId);
     state = [
       for (final seat in state)
@@ -140,15 +120,14 @@ class SeatsController extends Notifier<List<Seat>> {
         else
           seat,
     ];
-    if (seatsRef == null) return;
-    final batch = FirebaseFirestore.instance.batch();
-    batch.set(seatsRef.doc(trimmed), {
-      'seatNumber': trimmed,
-      'status': oldSeat.status.name,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-    batch.delete(seatsRef.doc(seatId));
-    unawaited(batch.commit());
+    unawaited(
+      _repository.replaceSeats(
+        deleteIds: [seatId],
+        seats: {
+          trimmed: {..._seatData(oldSeat), 'seatNumber': trimmed},
+        },
+      ),
+    );
   }
 
   Seat add(String label) {
@@ -171,8 +150,7 @@ class SeatsController extends Notifier<List<Seat>> {
       return false;
     }
     state = state.where((item) => item.seatId != seatId).toList();
-    final seatsRef = _seatsRef;
-    if (seatsRef != null) unawaited(seatsRef.doc(seatId).delete());
+    unawaited(_repository.deleteSeats([seatId]));
     return true;
   }
 
@@ -221,19 +199,8 @@ class SeatsController extends Notifier<List<Seat>> {
     state = [...fixed, ...renamed]
       ..sort((a, b) => _compareLabels(a.seatLabel, b.seatLabel));
 
-    final seatsRef = _seatsRef;
-    if (seatsRef == null) return;
-    final snapshot = await seatsRef.get();
-    final sourceData = {
-      for (final document in snapshot.docs) document.id: document.data(),
-    };
-    final deleteBatch = FirebaseFirestore.instance.batch();
-    for (final seat in mutable) {
-      deleteBatch.delete(seatsRef.doc(seat.seatId));
-    }
-    await deleteBatch.commit();
-
-    final createBatch = FirebaseFirestore.instance.batch();
+    final sourceData = await _repository.getSeatData();
+    final replacements = <String, Map<String, dynamic>>{};
     for (var index = 0; index < renamed.length; index++) {
       final newSeat = renamed[index];
       final data = Map<String, dynamic>.from(
@@ -243,10 +210,13 @@ class SeatsController extends Notifier<List<Seat>> {
       );
       data['seatNumber'] = newSeat.seatLabel;
       data['status'] = newSeat.status.name;
-      data['updatedAt'] = FieldValue.serverTimestamp();
-      createBatch.set(seatsRef.doc(newSeat.seatId), data);
+      data['updatedAt'] = DateTime.now();
+      replacements[newSeat.seatId] = data;
     }
-    await createBatch.commit();
+    await _repository.replaceSeats(
+      deleteIds: mutable.map((seat) => seat.seatId),
+      seats: replacements,
+    );
   }
 
   List<String> _numberingLabels(
@@ -299,13 +269,7 @@ class SeatsController extends Notifier<List<Seat>> {
   void deleteAll() {
     final existing = [...state];
     state = [];
-    final seatsRef = _seatsRef;
-    if (seatsRef == null) return;
-    final batch = FirebaseFirestore.instance.batch();
-    for (final seat in existing) {
-      batch.delete(seatsRef.doc(seat.seatId));
-    }
-    unawaited(batch.commit());
+    unawaited(_repository.deleteSeats(existing.map((seat) => seat.seatId)));
   }
 
   void replaceAll(List<String> labels) => _replaceLabels(labels);
@@ -323,20 +287,19 @@ class SeatsController extends Notifier<List<Seat>> {
           updatedAt: now,
         ),
     ];
-    final seatsRef = _seatsRef;
-    if (seatsRef == null) return;
-    final batch = FirebaseFirestore.instance.batch();
-    for (final seat in existing) {
-      batch.delete(seatsRef.doc(seat.seatId));
-    }
-    for (final seat in state) {
-      batch.set(seatsRef.doc(seat.seatId), {
-        'seatNumber': seat.seatLabel,
-        'status': 'available',
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    }
-    unawaited(batch.commit());
+    unawaited(
+      _repository.replaceSeats(
+        deleteIds: existing.map((seat) => seat.seatId),
+        seats: {
+          for (final seat in state)
+            seat.seatId: {
+              'seatNumber': seat.seatLabel,
+              'status': 'available',
+              'updatedAt': DateTime.now(),
+            },
+        },
+      ),
+    );
   }
 
   void _update(String seatId, Seat Function(Seat) update) {
@@ -348,6 +311,28 @@ class SeatsController extends Notifier<List<Seat>> {
         else
           seat,
     ];
+  }
+
+  Map<String, dynamic> _seatData(Seat seat) {
+    StudentModel? student;
+    if (seat.studentId != null) {
+      for (final record in ref.read(student_records.studentsProvider)) {
+        if (_legacyId(record.id) == seat.studentId) {
+          student = record;
+          break;
+        }
+      }
+    }
+    return {
+      'seatNumber': seat.seatLabel,
+      'status': seat.status.name,
+      'studentId': student?.id,
+      'studentName': student?.name,
+      'studentPhone': student?.phone,
+      'shift': student?.shift,
+      'expiryDate': student?.validUntil,
+      'updatedAt': DateTime.now(),
+    };
   }
 }
 

@@ -53,10 +53,7 @@ class AboutUsScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const AppLogo(
-                    size: 84,
-                    borderRadius: 22,
-                  ),
+                  const AppLogo(size: 84, borderRadius: 22),
                   const SizedBox(height: 16),
                   Text(
                     'StudyDesk',
@@ -69,7 +66,10 @@ class AboutUsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: colors.primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
@@ -121,28 +121,32 @@ class AboutUsScreen extends StatelessWidget {
             _FeatureCard(
               icon: Icons.airline_seat_recline_normal_rounded,
               title: 'Smart Seat Allocation',
-              description: 'Interactive seat maps for AC and Non-AC sections supporting full-time and half-time shift bookings.',
+              description:
+                  'Interactive seat maps for AC and Non-AC sections supporting full-time and half-time shift bookings.',
               accentColor: const Color(0xFF6366F1),
             ),
             const SizedBox(height: 12),
             _FeatureCard(
               icon: Icons.people_alt_rounded,
               title: 'Student Member Profiles',
-              description: 'Centralized directory for active, pending, and expired student memberships with instant digital ID cards.',
+              description:
+                  'Centralized directory for active, pending, and expired student memberships with instant digital ID cards.',
               accentColor: const Color(0xFF10B981),
             ),
             const SizedBox(height: 12),
             _FeatureCard(
               icon: Icons.mark_chat_read_rounded,
               title: 'Automated WhatsApp Messaging',
-              description: 'One-click customizable WhatsApp templates for admission receipts, due reminders, and seat updates.',
+              description:
+                  'One-click customizable WhatsApp templates for admission receipts, due reminders, and seat updates.',
               accentColor: const Color(0xFF25D366),
             ),
             const SizedBox(height: 12),
             _FeatureCard(
               icon: Icons.receipt_long_rounded,
               title: 'Digital Invoices & Reports',
-              description: 'Generate verified PDF payment receipts and analytical reports for monthly library collections.',
+              description:
+                  'Generate verified PDF payment receipts and analytical reports for monthly library collections.',
               accentColor: const Color(0xFFF59E0B),
             ),
             const SizedBox(height: 28),
@@ -166,7 +170,11 @@ class AboutUsScreen extends StatelessWidget {
                           color: colors.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: Icon(Icons.support_agent_rounded, color: colors.primary, size: 24),
+                        child: Icon(
+                          Icons.support_agent_rounded,
+                          color: colors.primary,
+                          size: 24,
+                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -199,7 +207,11 @@ class AboutUsScreen extends StatelessWidget {
                   const SizedBox(height: 14),
                   Row(
                     children: [
-                      Icon(Icons.email_outlined, size: 18, color: colors.primary),
+                      Icon(
+                        Icons.email_outlined,
+                        size: 18,
+                        color: colors.primary,
+                      ),
                       const SizedBox(width: 10),
                       Text(
                         'Email: inditechit26@gmail.com',

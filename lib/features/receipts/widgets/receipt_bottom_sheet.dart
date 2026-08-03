@@ -126,12 +126,14 @@ class ReceiptBottomSheet extends StatelessWidget {
                 ),
                 _line(
                   context,
-                  student.membership == MembershipType.fullTime ? 'Seat' : 'Seat / Shift',
+                  student.membership == MembershipType.fullTime
+                      ? 'Seat'
+                      : 'Seat / Shift',
                   student.membership == MembershipType.fullTime
                       ? student.seat
                       : student.seat.isNotEmpty
-                          ? student.seat
-                          : 'Flexible',
+                      ? student.seat
+                      : 'Flexible',
                 ),
                 _line(context, 'Joining date', student.joined),
                 _line(
@@ -142,12 +144,7 @@ class ReceiptBottomSheet extends StatelessWidget {
                 _line(context, 'New expiry', newExpiry ?? student.expiry),
                 _line(context, 'Payment method', 'UPI'),
                 const SizedBox(height: 6),
-                _line(
-                  context,
-                  'Amount paid',
-                  money(student.fee),
-                  strong: true,
-                ),
+                _line(context, 'Amount paid', money(student.fee), strong: true),
               ],
             ),
           ),
@@ -255,7 +252,9 @@ class ReceiptBottomSheet extends StatelessWidget {
               fontWeight: strong ? FontWeight.w900 : FontWeight.w700,
               fontSize: strong ? 17 : 13,
               color: strong
-                  ? (isDark ? theme.colorScheme.primary : const Color(0xFF5145EA))
+                  ? (isDark
+                        ? theme.colorScheme.primary
+                        : const Color(0xFF5145EA))
                   : theme.colorScheme.onSurface,
             ),
           ),
@@ -264,4 +263,3 @@ class ReceiptBottomSheet extends StatelessWidget {
     );
   }
 }
-

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';
 import '../models/student_model.dart';
@@ -17,14 +17,6 @@ class ParsedImportResult {
 }
 
 class StudentDataService {
-  final FirebaseFirestore? _overrideFirestore;
-
-  StudentDataService({FirebaseFirestore? firestore})
-      : _overrideFirestore = firestore;
-
-  FirebaseFirestore get _firestore =>
-      _overrideFirestore ?? FirebaseFirestore.instance;
-
   static const List<String> excelHeaders = [
     'Student Name',
     'Mobile Number',
@@ -154,34 +146,53 @@ class StudentDataService {
         if (rows.isEmpty) continue;
 
         int startIndex = 0;
-        final firstRowCells = rows.first.map((c) => c?.value?.toString()?.trim() ?? '').toList();
+        final firstRowCells = rows.first
+            .map((c) => c?.value?.toString()?.trim() ?? '')
+            .toList();
         final firstRowText = firstRowCells.join(' ').toLowerCase();
 
         Map<String, int> headerMap = {};
-        if (firstRowText.contains('name') || firstRowText.contains('phone') || firstRowText.contains('mobile')) {
+        if (firstRowText.contains('name') ||
+            firstRowText.contains('phone') ||
+            firstRowText.contains('mobile')) {
           startIndex = 1;
           for (int c = 0; c < firstRowCells.length; c++) {
             final h = firstRowCells[c].toLowerCase();
-            if (h.contains('student name') || (h.contains('name') && !h.contains('plan'))) headerMap['name'] = c;
-            if (h.contains('mobile') || h.contains('phone')) headerMap['phone'] = c;
-            if (h.contains('emergency') || h.contains('email')) headerMap['email'] = c;
-            if (h.contains('section') || h.contains('category')) headerMap['section'] = c;
-            if (h.contains('seat number') || h.contains('assigned seat') || (h.contains('seat') && !h.contains('type'))) headerMap['seat'] = c;
+            if (h.contains('student name') ||
+                (h.contains('name') && !h.contains('plan')))
+              headerMap['name'] = c;
+            if (h.contains('mobile') || h.contains('phone'))
+              headerMap['phone'] = c;
+            if (h.contains('emergency') || h.contains('email'))
+              headerMap['email'] = c;
+            if (h.contains('section') || h.contains('category'))
+              headerMap['section'] = c;
+            if (h.contains('seat number') ||
+                h.contains('assigned seat') ||
+                (h.contains('seat') && !h.contains('type')))
+              headerMap['seat'] = c;
             if (h.contains('shift')) headerMap['shift'] = c;
-            if (h.contains('membership plan') || h.contains('plan name') || h.contains('plan')) headerMap['plan'] = c;
+            if (h.contains('membership plan') ||
+                h.contains('plan name') ||
+                h.contains('plan'))
+              headerMap['plan'] = c;
             if (h.contains('seat type')) headerMap['seatType'] = c;
             if (h.contains('fee') || h.contains('amount')) headerMap['fee'] = c;
             if (h.contains('joining')) headerMap['joining'] = c;
-            if (h.contains('expiry') || h.contains('valid until')) headerMap['expiry'] = c;
+            if (h.contains('expiry') || h.contains('valid until'))
+              headerMap['expiry'] = c;
             if (h.contains('status')) headerMap['status'] = c;
-            if (h.contains('id') && !h.contains('valid') && !h.contains('paid')) headerMap['id'] = c;
+            if (h.contains('id') && !h.contains('valid') && !h.contains('paid'))
+              headerMap['id'] = c;
           }
         }
 
         for (int i = startIndex; i < rows.length; i++) {
           final rowNum = i + 1;
           final row = rows[i];
-          final columns = row.map((c) => c?.value?.toString()?.trim() ?? '').toList();
+          final columns = row
+              .map((c) => c?.value?.toString()?.trim() ?? '')
+              .toList();
 
           if (columns.every((c) => c.isEmpty)) continue;
 
@@ -199,16 +210,29 @@ class StudentDataService {
           final phone = getCol('phone', columns.length > 2 ? 2 : 1);
           final email = getCol('email', 2);
           final sectionId = getCol('section', 3);
-          final assignedSeat = getCol('seat', 4).isNotEmpty ? getCol('seat', 4) : null;
-          final shift = getCol('shift', 5).isNotEmpty ? getCol('shift', 5) : 'Full Day';
-          final planName = getCol('plan', 6).isNotEmpty ? getCol('plan', 6) : 'Monthly Standard';
+          final assignedSeat = getCol('seat', 4).isNotEmpty
+              ? getCol('seat', 4)
+              : null;
+          final shift = getCol('shift', 5).isNotEmpty
+              ? getCol('shift', 5)
+              : 'Full Day';
+          final planName = getCol('plan', 6).isNotEmpty
+              ? getCol('plan', 6)
+              : 'Monthly Standard';
           final feeStr = getCol('fee', 7);
-          final monthlyFee = double.tryParse(feeStr.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
-          final status = getCol('status', 9).isNotEmpty ? getCol('status', 9) : 'Active';
+          final monthlyFee =
+              double.tryParse(feeStr.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+          final status = getCol('status', 9).isNotEmpty
+              ? getCol('status', 9)
+              : 'Active';
           final joiningDate = _parseDate(getCol('joining', 10)) ?? now;
-          final validUntil = _parseDate(getCol('expiry', 11)) ?? now.add(const Duration(days: 30));
+          final validUntil =
+              _parseDate(getCol('expiry', 11)) ??
+              now.add(const Duration(days: 30));
           final idStr = getCol('id', 0);
-          final id = idStr.isNotEmpty ? idStr : 'imp_${now.microsecondsSinceEpoch}_$i';
+          final id = idStr.isNotEmpty
+              ? idStr
+              : 'imp_${now.microsecondsSinceEpoch}_$i';
 
           validStudents.add(
             StudentModel(
@@ -220,7 +244,9 @@ class StudentDataService {
               assignedSeat: assignedSeat,
               shift: shift,
               planName: planName,
-              seatType: getCol('seatType', -1).isNotEmpty ? getCol('seatType', -1) : null,
+              seatType: getCol('seatType', -1).isNotEmpty
+                  ? getCol('seatType', -1)
+                  : null,
               sectionId: sectionId.isNotEmpty ? sectionId : null,
               monthlyFee: monthlyFee,
               joiningDate: joiningDate,
@@ -282,16 +308,24 @@ class StudentDataService {
     final formattedList = list.map((map) {
       final copy = Map<String, dynamic>.from(map);
       if (copy['joiningDate'] is Timestamp) {
-        copy['joiningDate'] = (copy['joiningDate'] as Timestamp).toDate().toIso8601String();
+        copy['joiningDate'] = (copy['joiningDate'] as Timestamp)
+            .toDate()
+            .toIso8601String();
       }
       if (copy['validUntil'] is Timestamp) {
-        copy['validUntil'] = (copy['validUntil'] as Timestamp).toDate().toIso8601String();
+        copy['validUntil'] = (copy['validUntil'] as Timestamp)
+            .toDate()
+            .toIso8601String();
       }
       if (copy['createdAt'] is Timestamp) {
-        copy['createdAt'] = (copy['createdAt'] as Timestamp).toDate().toIso8601String();
+        copy['createdAt'] = (copy['createdAt'] as Timestamp)
+            .toDate()
+            .toIso8601String();
       }
       if (copy['updatedAt'] is Timestamp) {
-        copy['updatedAt'] = (copy['updatedAt'] as Timestamp).toDate().toIso8601String();
+        copy['updatedAt'] = (copy['updatedAt'] as Timestamp)
+            .toDate()
+            .toIso8601String();
       }
       return copy;
     }).toList();
@@ -301,9 +335,9 @@ class StudentDataService {
 
   /// Parses CSV string content into student models
   ParsedImportResult parseCsv(String csvContent) {
-    final lines = LineSplitter.split(csvContent)
-        .where((l) => l.trim().isNotEmpty)
-        .toList();
+    final lines = LineSplitter.split(
+      csvContent,
+    ).where((l) => l.trim().isNotEmpty).toList();
     if (lines.isEmpty) {
       return const ParsedImportResult(
         validStudents: [],
@@ -317,27 +351,43 @@ class StudentDataService {
     final now = DateTime.now();
 
     int startIndex = 0;
-    final firstLineCells = _parseCsvLine(lines.first).map((c) => c.trim()).toList();
+    final firstLineCells = _parseCsvLine(
+      lines.first,
+    ).map((c) => c.trim()).toList();
     final firstLineText = firstLineCells.join(' ').toLowerCase();
 
     Map<String, int> headerMap = {};
-    if (firstLineText.contains('name') || firstLineText.contains('phone') || firstLineText.contains('mobile')) {
+    if (firstLineText.contains('name') ||
+        firstLineText.contains('phone') ||
+        firstLineText.contains('mobile')) {
       startIndex = 1;
       for (int c = 0; c < firstLineCells.length; c++) {
         final h = firstLineCells[c].toLowerCase();
-        if (h.contains('student name') || (h.contains('name') && !h.contains('plan'))) headerMap['name'] = c;
+        if (h.contains('student name') ||
+            (h.contains('name') && !h.contains('plan')))
+          headerMap['name'] = c;
         if (h.contains('mobile') || h.contains('phone')) headerMap['phone'] = c;
-        if (h.contains('emergency') || h.contains('email')) headerMap['email'] = c;
-        if (h.contains('section') || h.contains('category')) headerMap['section'] = c;
-        if (h.contains('seat number') || h.contains('assigned seat') || (h.contains('seat') && !h.contains('type'))) headerMap['seat'] = c;
+        if (h.contains('emergency') || h.contains('email'))
+          headerMap['email'] = c;
+        if (h.contains('section') || h.contains('category'))
+          headerMap['section'] = c;
+        if (h.contains('seat number') ||
+            h.contains('assigned seat') ||
+            (h.contains('seat') && !h.contains('type')))
+          headerMap['seat'] = c;
         if (h.contains('shift')) headerMap['shift'] = c;
-        if (h.contains('membership plan') || h.contains('plan name') || h.contains('plan')) headerMap['plan'] = c;
+        if (h.contains('membership plan') ||
+            h.contains('plan name') ||
+            h.contains('plan'))
+          headerMap['plan'] = c;
         if (h.contains('seat type')) headerMap['seatType'] = c;
         if (h.contains('fee') || h.contains('amount')) headerMap['fee'] = c;
         if (h.contains('joining')) headerMap['joining'] = c;
-        if (h.contains('expiry') || h.contains('valid until')) headerMap['expiry'] = c;
+        if (h.contains('expiry') || h.contains('valid until'))
+          headerMap['expiry'] = c;
         if (h.contains('status')) headerMap['status'] = c;
-        if (h.contains('id') && !h.contains('valid') && !h.contains('paid')) headerMap['id'] = c;
+        if (h.contains('id') && !h.contains('valid') && !h.contains('paid'))
+          headerMap['id'] = c;
       }
     }
 
@@ -362,16 +412,28 @@ class StudentDataService {
       final phone = getCol('phone', columns.length > 2 ? 2 : 1);
       final email = getCol('email', 2);
       final sectionId = getCol('section', 3);
-      final assignedSeat = getCol('seat', 4).isNotEmpty ? getCol('seat', 4) : null;
-      final shift = getCol('shift', 5).isNotEmpty ? getCol('shift', 5) : 'Full Day';
-      final planName = getCol('plan', 6).isNotEmpty ? getCol('plan', 6) : 'Monthly Standard';
+      final assignedSeat = getCol('seat', 4).isNotEmpty
+          ? getCol('seat', 4)
+          : null;
+      final shift = getCol('shift', 5).isNotEmpty
+          ? getCol('shift', 5)
+          : 'Full Day';
+      final planName = getCol('plan', 6).isNotEmpty
+          ? getCol('plan', 6)
+          : 'Monthly Standard';
       final feeStr = getCol('fee', 7);
-      final monthlyFee = double.tryParse(feeStr.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
-      final status = getCol('status', 9).isNotEmpty ? getCol('status', 9) : 'Active';
+      final monthlyFee =
+          double.tryParse(feeStr.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+      final status = getCol('status', 9).isNotEmpty
+          ? getCol('status', 9)
+          : 'Active';
       final joiningDate = _parseDate(getCol('joining', 10)) ?? now;
-      final validUntil = _parseDate(getCol('expiry', 11)) ?? now.add(const Duration(days: 30));
+      final validUntil =
+          _parseDate(getCol('expiry', 11)) ?? now.add(const Duration(days: 30));
       final idStr = getCol('id', 0);
-      final id = idStr.isNotEmpty ? idStr : 'imp_${now.microsecondsSinceEpoch}_$i';
+      final id = idStr.isNotEmpty
+          ? idStr
+          : 'imp_${now.microsecondsSinceEpoch}_$i';
 
       validStudents.add(
         StudentModel(
@@ -383,7 +445,9 @@ class StudentDataService {
           assignedSeat: assignedSeat,
           shift: shift,
           planName: planName,
-          seatType: getCol('seatType', -1).isNotEmpty ? getCol('seatType', -1) : null,
+          seatType: getCol('seatType', -1).isNotEmpty
+              ? getCol('seatType', -1)
+              : null,
           sectionId: sectionId.isNotEmpty ? sectionId : null,
           monthlyFee: monthlyFee,
           joiningDate: joiningDate,
@@ -446,7 +510,8 @@ class StudentDataService {
                 ? DateTime.tryParse(item['joiningDate'] as String) ?? now
                 : now,
             validUntil: item['validUntil'] is String
-                ? DateTime.tryParse(item['validUntil'] as String) ?? now.add(const Duration(days: 30))
+                ? DateTime.tryParse(item['validUntil'] as String) ??
+                      now.add(const Duration(days: 30))
                 : now.add(const Duration(days: 30)),
             status: item['status'] as String? ?? 'Active',
             photoUrl: item['photoUrl'] as String?,
@@ -467,37 +532,6 @@ class StudentDataService {
         errorMessages: ['Invalid JSON format: $e'],
         totalRows: 0,
       );
-    }
-  }
-
-  /// Batch imports student models into Firestore in chunks of 400 documents
-  Future<void> batchImportStudents({
-    required String libraryId,
-    required List<StudentModel> students,
-    void Function(int processed, int total)? onProgress,
-  }) async {
-    const chunkSize = 400;
-    int processed = 0;
-
-    for (int i = 0; i < students.length; i += chunkSize) {
-      final chunk = students.sublist(
-        i,
-        i + chunkSize > students.length ? students.length : i + chunkSize,
-      );
-
-      final batch = _firestore.batch();
-      for (final student in chunk) {
-        final ref = _firestore
-            .collection('libraries')
-            .doc(libraryId)
-            .collection('students')
-            .doc(student.id);
-        batch.set(ref, student.toFirestore(), SetOptions(merge: true));
-      }
-
-      await batch.commit();
-      processed += chunk.length;
-      onProgress?.call(processed, students.length);
     }
   }
 
