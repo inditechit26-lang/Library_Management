@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/services/firestore_service.dart';
 import '../repositories/auth_repository.dart';
 
 final authRepositoryProvider = Provider<BaseAuthRepository>((ref) {
@@ -22,17 +23,25 @@ final userProfileProvider = FutureProvider<AppUserModel?>((ref) async {
   return await repository.getUserProfile(user.uid);
 });
 
+final currentLibraryStreamProvider = StreamProvider<String?>((ref) {
+  ref.watch(authStateProvider);
+  return ref.watch(authRepositoryProvider).watchCurrentLibraryId();
+});
+
 final currentLibraryIdProvider = Provider<String?>((ref) {
-  // Auth can complete before authStateChanges has caused the Firestore profile
-  // provider to rebuild (especially during account creation). Prefer the profile
-  // returned by the just-completed auth operation so user-scoped streams switch
-  // libraries immediately.
+  final streamed = ref.watch(currentLibraryStreamProvider).value;
+  if (streamed != null && streamed.isNotEmpty) return streamed;
   final authenticatedProfile = ref.watch(authControllerProvider).value;
-  if (authenticatedProfile != null) {
-    return authenticatedProfile.libraryId;
+  if (authenticatedProfile?.libraryId.isNotEmpty ?? false) {
+    return authenticatedProfile!.libraryId;
   }
-  final userProfile = ref.watch(userProfileProvider);
-  return userProfile.value?.libraryId;
+  return ref.watch(userProfileProvider).value?.libraryId;
+});
+
+final firestoreServiceProvider = Provider<FirestoreService?>((ref) {
+  final libraryId = ref.watch(currentLibraryIdProvider);
+  if (libraryId == null || libraryId.isEmpty) return null;
+  return FirestoreService.current(libraryId: libraryId);
 });
 
 class AuthNotifier extends AsyncNotifier<AppUserModel?> {

@@ -32,8 +32,19 @@ class PlanModel {
     );
   }
 
+  factory PlanModel.fromMap(Map<String, dynamic> data) => PlanModel(
+    id: data['id'] as String? ?? '',
+    name: data['name'] as String? ?? '',
+    durationMonths: (data['durationMonths'] as num?)?.toInt() ?? 1,
+    price: (data['price'] as num?)?.toDouble() ?? 0,
+    shift: data['shift'] as String? ?? 'Full Day',
+    description: data['description'] as String?,
+    isActive: data['isActive'] as bool? ?? true,
+  );
+
   Map<String, dynamic> toFirestore() {
     return {
+      'id': id,
       'name': name,
       'durationMonths': durationMonths,
       'price': price,

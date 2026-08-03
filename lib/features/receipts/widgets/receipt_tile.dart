@@ -23,10 +23,7 @@ class ReceiptTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: theme.colorScheme.outline,
-              width: 1.2,
-            ),
+            border: Border.all(color: theme.colorScheme.outline, width: 1.2),
             boxShadow: [
               BoxShadow(
                 color: isDark
@@ -90,7 +87,10 @@ class ReceiptTile extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: theme.colorScheme.primary.withOpacity(0.09),
                   borderRadius: BorderRadius.circular(12),
@@ -111,4 +111,3 @@ class ReceiptTile extends StatelessWidget {
     );
   }
 }
-

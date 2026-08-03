@@ -106,7 +106,11 @@ class ReceiptService {
                   children: [
                     _metaItem('Receipt No.', receiptNo, primaryColor),
                     _metaItem('Date & Time', issueDate, null),
-                    _metaItem('Payment Mode', student.paymentMode.fullLabel, null),
+                    _metaItem(
+                      'Payment Mode',
+                      student.paymentMode.fullLabel,
+                      null,
+                    ),
                     _metaItem('Status', 'SUCCESSFUL', PdfColors.green700),
                   ],
                 ),
@@ -186,8 +190,8 @@ class ReceiptService {
                             student.membership == MembershipType.fullTime
                                 ? student.seat
                                 : student.seat.isNotEmpty
-                                    ? student.seat
-                                    : 'Flexi Desk',
+                                ? student.seat
+                                : 'Flexi Desk',
                           ),
                           _infoRow(
                             'Previous Expiry',
@@ -505,4 +509,3 @@ class ReceiptService {
     );
   }
 }
-

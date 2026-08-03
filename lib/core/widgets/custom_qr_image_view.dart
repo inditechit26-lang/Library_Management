@@ -25,7 +25,9 @@ class CustomQrImageView extends StatelessWidget {
     if (cleanUrl.startsWith('data:')) {
       try {
         final commaIndex = cleanUrl.indexOf(',');
-        final base64Content = commaIndex != -1 ? cleanUrl.substring(commaIndex + 1) : cleanUrl;
+        final base64Content = commaIndex != -1
+            ? cleanUrl.substring(commaIndex + 1)
+            : cleanUrl;
         final bytes = base64Decode(base64Content);
         return Image.memory(
           bytes,

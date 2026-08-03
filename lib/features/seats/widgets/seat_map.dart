@@ -35,11 +35,17 @@ class SeatMap extends StatelessWidget {
     if (seats.isEmpty) return const _EmptyMap();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final availableCount = seats.where((s) => s.status == SeatStatus.available).length;
-    final occupiedCount = seats.where((s) => s.status == SeatStatus.occupied).length;
+    final availableCount = seats
+        .where((s) => s.status == SeatStatus.available)
+        .length;
+    final occupiedCount = seats
+        .where((s) => s.status == SeatStatus.occupied)
+        .length;
     final alertCount = seats.where((s) {
       final st = _studentFor(s);
-      return st != null && (st.payment == PaymentStatus.pending || st.payment == PaymentStatus.expired);
+      return st != null &&
+          (st.payment == PaymentStatus.pending ||
+              st.payment == PaymentStatus.expired);
     }).length;
 
     return LayoutBuilder(
@@ -62,19 +68,11 @@ class SeatMap extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDark
-                  ? const [
-                      Color(0xFF1E2235),
-                      Color(0xFF151828),
-                    ]
-                  : const [
-                      Color(0xFFF8FAFC),
-                      Color(0xFFEEF2F6),
-                    ],
+                  ? const [Color(0xFF1E2235), Color(0xFF151828)]
+                  : const [Color(0xFFF8FAFC), Color(0xFFEEF2F6)],
             ),
             border: Border.all(
-              color: isDark
-                  ? const Color(0xFF2E354C)
-                  : const Color(0xFFE2E8F0),
+              color: isDark ? const Color(0xFF2E354C) : const Color(0xFFE2E8F0),
               width: 1.5,
             ),
             boxShadow: [
@@ -91,7 +89,10 @@ class SeatMap extends StatelessWidget {
             children: [
               // Ultra-premium canvas status bar
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
@@ -126,27 +127,35 @@ class SeatMap extends StatelessWidget {
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.2,
-                        color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                        color: isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF475569),
                       ),
                     ),
                     const Spacer(),
                     _StatBadge(
                       label: '$availableCount Free',
                       color: const Color(0xFF10B981),
-                      bg: isDark ? const Color(0x1F10B981) : const Color(0xFFECFDF5),
+                      bg: isDark
+                          ? const Color(0x1F10B981)
+                          : const Color(0xFFECFDF5),
                     ),
                     const SizedBox(width: 6),
                     _StatBadge(
                       label: '$occupiedCount Taken',
                       color: const Color(0xFF6366F1),
-                      bg: isDark ? const Color(0x1F6366F1) : const Color(0xFFEEF2FF),
+                      bg: isDark
+                          ? const Color(0x1F6366F1)
+                          : const Color(0xFFEEF2FF),
                     ),
                     if (alertCount > 0) ...[
                       const SizedBox(width: 6),
                       _StatBadge(
                         label: '$alertCount Due',
                         color: const Color(0xFFEF4444),
-                        bg: isDark ? const Color(0x1FEF4444) : const Color(0xFFFEF2F2),
+                        bg: isDark
+                            ? const Color(0x1FEF4444)
+                            : const Color(0xFFFEF2F2),
                       ),
                     ],
                   ],

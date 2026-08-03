@@ -72,17 +72,26 @@ class _State extends ConsumerState<ReceiptScreen> {
               prefixIcon: Icon(
                 Icons.search_rounded,
                 size: 22,
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
               ),
               hintText: 'Search student by name or room...',
               hintStyle: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
               ),
               filled: true,
-              fillColor: isDark ? const Color(0xFF181C2B) : const Color(0xFFF8FAFC),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              fillColor: isDark
+                  ? const Color(0xFF181C2B)
+                  : const Color(0xFFF8FAFC),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 15,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
                 borderSide: BorderSide.none,
@@ -90,7 +99,9 @@ class _State extends ConsumerState<ReceiptScreen> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
                 borderSide: BorderSide(
-                  color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
+                  color: isDark
+                      ? const Color(0xFF262C40)
+                      : const Color(0xFFE2E8F0),
                   width: 1.2,
                 ),
               ),
@@ -132,11 +143,13 @@ class _State extends ConsumerState<ReceiptScreen> {
                         color: selectedFilter == filter
                             ? theme.colorScheme.primary
                             : isDark
-                                ? const Color(0xFF262C40)
-                                : const Color(0xFFE2E8F0),
+                            ? const Color(0xFF262C40)
+                            : const Color(0xFFE2E8F0),
                         width: 1.2,
                       ),
-                      selectedColor: theme.colorScheme.primary.withOpacity(0.18),
+                      selectedColor: theme.colorScheme.primary.withOpacity(
+                        0.18,
+                      ),
                       backgroundColor: isDark
                           ? const Color(0xFF181C2B)
                           : const Color(0xFFF8FAFC),
@@ -148,8 +161,8 @@ class _State extends ConsumerState<ReceiptScreen> {
                         color: selectedFilter == filter
                             ? theme.colorScheme.primary
                             : isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                       showCheckmark: false,
                     ),
@@ -178,10 +191,7 @@ class _State extends ConsumerState<ReceiptScreen> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: theme.colorScheme.surface,
-              border: Border.all(
-                color: theme.colorScheme.outline,
-                width: 1.2,
-              ),
+              border: Border.all(color: theme.colorScheme.outline, width: 1.2),
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -214,7 +224,9 @@ class _State extends ConsumerState<ReceiptScreen> {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -273,7 +285,6 @@ class _State extends ConsumerState<ReceiptScreen> {
   void _viewReceipt(Student student) =>
       ReceiptPdfViewerScreen.open(context, student, newExpiry: student.expiry);
 
-
   Future<void> _sendWhatsAppReminder(Student student) async {
     final template = ref.read(whatsappTemplateProvider);
     final ownerProfile = ref.read(ownerProfileProvider);
@@ -307,7 +318,9 @@ class _State extends ConsumerState<ReceiptScreen> {
           content: Text('WhatsApp reminder ready for ${student.name}'),
           backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -338,10 +351,7 @@ class _FeeOverview extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.outline,
-          width: 1.2,
-        ),
+        border: Border.all(color: theme.colorScheme.outline, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -424,7 +434,9 @@ class _OverviewMetric extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 9.5,
                   letterSpacing: 0.8,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -509,10 +521,7 @@ class _FeeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: theme.colorScheme.outline,
-          width: 1.2,
-        ),
+        border: Border.all(color: theme.colorScheme.outline, width: 1.2),
         boxShadow: [
           BoxShadow(
             color: isDark
@@ -575,7 +584,9 @@ class _FeeCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                   ],
@@ -591,9 +602,7 @@ class _FeeCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.14),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: statusColor.withOpacity(0.3),
-                  ),
+                  border: Border.all(color: statusColor.withOpacity(0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -688,7 +697,11 @@ class _FeeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 17, color: Colors.white),
+                    icon: const FaIcon(
+                      FontAwesomeIcons.whatsapp,
+                      size: 17,
+                      color: Colors.white,
+                    ),
                     label: const Text(
                       'WhatsApp',
                       style: TextStyle(

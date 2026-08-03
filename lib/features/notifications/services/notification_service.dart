@@ -6,7 +6,7 @@ class NotificationService {
   final FirebaseMessaging _fcm;
 
   NotificationService({FirebaseMessaging? fcm})
-      : _fcm = fcm ?? FirebaseMessaging.instance;
+    : _fcm = fcm ?? FirebaseMessaging.instance;
 
   /// Requests FCM permissions and retrieves device token
   Future<String?> initializeFcm() async {
@@ -26,7 +26,9 @@ class NotificationService {
 
         // Handle foreground notifications
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-          debugPrint('Foreground Message received: ${message.notification?.title}');
+          debugPrint(
+            'Foreground Message received: ${message.notification?.title}',
+          );
         });
 
         return token;

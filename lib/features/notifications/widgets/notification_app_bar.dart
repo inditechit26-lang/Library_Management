@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-class NotificationAppBar extends StatelessWidget implements PreferredSizeWidget {
+class NotificationAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   final VoidCallback onMarkAllReadPressed;
   final int unreadCount;
 
@@ -45,7 +46,10 @@ class NotificationAppBar extends StatelessWidget implements PreferredSizeWidget 
                     if (unreadCount > 0) ...[
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: colors.primary,
                           borderRadius: BorderRadius.circular(12),
@@ -115,11 +119,7 @@ class _IconButton extends StatelessWidget {
               border: Border.all(color: colors.outlineVariant),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              size: 19,
-              color: colors.onSurfaceVariant,
-            ),
+            child: Icon(icon, size: 19, color: colors.onSurfaceVariant),
           ),
         ),
       ),

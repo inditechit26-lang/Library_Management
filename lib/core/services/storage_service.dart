@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import '../exceptions/app_exception.dart';
 import '../utils/error_handler.dart';
@@ -8,7 +9,7 @@ class StorageService {
   final FirebaseStorage _storage;
 
   StorageService({FirebaseStorage? storage})
-      : _storage = storage ?? FirebaseStorage.instance;
+    : _storage = storage ?? FirebaseStorage.instance;
 
   /// Uploads a file to Firebase Storage and returns the public download URL
   Future<String> uploadFile({
@@ -18,8 +19,11 @@ class StorageService {
     required File file,
   }) async {
     try {
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
       final ref = _storage
           .ref()
+          .child('users')
+          .child(uid)
           .child('libraries')
           .child(libraryId)
           .child(folderName)
@@ -45,8 +49,11 @@ class StorageService {
     String contentType = 'application/pdf',
   }) async {
     try {
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous';
       final ref = _storage
           .ref()
+          .child('users')
+          .child(uid)
           .child('libraries')
           .child(libraryId)
           .child(folderName)

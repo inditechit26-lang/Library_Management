@@ -94,7 +94,9 @@ class SeatProfileScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outline)),
+            border: Border(
+              top: BorderSide(color: Theme.of(context).colorScheme.outline),
+            ),
           ),
           child: Row(
             children: [
@@ -143,8 +145,7 @@ class SeatProfileScreen extends ConsumerWidget {
     isScrollControlled: true,
     builder: (_) => RenewBottomSheet(student: s),
   );
-  void _receipt(BuildContext c, Student s) =>
-      ReceiptPdfViewerScreen.open(c, s);
+  void _receipt(BuildContext c, Student s) => ReceiptPdfViewerScreen.open(c, s);
 
   void _edit(BuildContext c, WidgetRef ref, Student s) => showModalBottomSheet(
     context: c,
@@ -222,7 +223,9 @@ class SeatProfileScreen extends ConsumerWidget {
           content: Text('WhatsApp reminder ready for ${student.name}'),
           backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
     }
@@ -242,40 +245,42 @@ class _SeatInformation extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: colors.outline),
       ),
-    child: Row(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFFEFEEFF),
-            borderRadius: BorderRadius.circular(15),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFEEFF),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: const Icon(
+              Icons.event_seat_outlined,
+              color: Color(0xFF5650C7),
+            ),
           ),
-          child: const Icon(
-            Icons.event_seat_outlined,
-            color: Color(0xFF5650C7),
+          const SizedBox(width: 13),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Seat $number',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Text(
+                  'Occupied - Reserved seating',
+                  style: TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 13),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Seat $number',
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-              ),
-              const Text(
-                'Occupied - Reserved seating',
-                style: TextStyle(fontSize: 10, color: Color(0xFF858B9D)),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
   }
 }
-

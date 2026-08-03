@@ -4,7 +4,7 @@ import '../models/receipt_model.dart';
 import '../repositories/receipts_repository.dart';
 
 final receiptsRepositoryProvider = Provider<BaseReceiptsRepository>((ref) {
-  return ReceiptsRepository();
+  return ReceiptsRepository(ref.watch(firestoreServiceProvider)!);
 });
 
 final receiptsStreamProvider = StreamProvider<List<ReceiptModel>>((ref) {
@@ -13,5 +13,5 @@ final receiptsStreamProvider = StreamProvider<List<ReceiptModel>>((ref) {
     return Stream.value([]);
   }
   final repository = ref.watch(receiptsRepositoryProvider);
-  return repository.watchReceipts(libraryId);
+  return repository.watchReceipts();
 });

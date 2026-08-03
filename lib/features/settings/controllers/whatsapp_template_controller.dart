@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/providers/backend_providers.dart';
 import '../../students/models/student.dart';
 import 'owner_profile_controller.dart';
 
@@ -25,39 +25,26 @@ Thank you.
 
 ━━━━━━━━━━━━━━━━━━━━━━''';
 
-const String _kTemplatePrefKey = 'whatsapp_membership_renewal_template';
-
 class WhatsAppTemplateNotifier extends Notifier<String> {
   @override
   String build() {
-    _loadFromPrefs();
-    return kDefaultRenewalTemplate;
-  }
-
-  Future<void> _loadFromPrefs() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final saved = prefs.getString(_kTemplatePrefKey);
-      if (saved != null && saved.trim().isNotEmpty) {
-        state = saved;
-      }
-    } catch (_) {}
+    final data = ref.watch(templateProvider).value;
+    final saved = data?['membershipRenewal'] as String?;
+    return saved?.trim().isNotEmpty == true ? saved! : kDefaultRenewalTemplate;
   }
 
   Future<void> updateTemplate(String newTemplate) async {
     state = newTemplate;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_kTemplatePrefKey, newTemplate);
-    } catch (_) {}
+    await ref.read(templateRepositoryProvider).updateTemplates({
+      'membershipRenewal': newTemplate,
+    });
   }
 
   Future<void> resetToDefault() async {
     state = kDefaultRenewalTemplate;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_kTemplatePrefKey);
-    } catch (_) {}
+    await ref.read(templateRepositoryProvider).updateTemplates({
+      'membershipRenewal': kDefaultRenewalTemplate,
+    });
   }
 
   /// Formats the template with actual values for student and library name.
@@ -88,7 +75,7 @@ class WhatsAppTemplateNotifier extends Notifier<String> {
     final planName = student.membership == MembershipType.fullTime
         ? 'Full Day (Full Time)'
         : 'Half Day (Half Time)';
-    
+
     // Format fee amount nicely (remove trailing .0 if integer)
     final feeStr = student.fee % 1 == 0
         ? student.fee.toInt().toString()
@@ -112,5 +99,5 @@ class WhatsAppTemplateNotifier extends Notifier<String> {
 
 final whatsappTemplateProvider =
     NotifierProvider<WhatsAppTemplateNotifier, String>(
-  WhatsAppTemplateNotifier.new,
-);
+      WhatsAppTemplateNotifier.new,
+    );

@@ -75,7 +75,11 @@ class SmartInsights extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.auto_awesome_rounded, size: 12, color: colors.primary),
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      size: 12,
+                      color: colors.primary,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'AI Assisted',
@@ -119,10 +123,7 @@ class _InsightRow extends StatelessWidget {
   final SmartInsightItem insight;
   final VoidCallback onAction;
 
-  const _InsightRow({
-    required this.insight,
-    required this.onAction,
-  });
+  const _InsightRow({required this.insight, required this.onAction});
 
   @override
   Widget build(BuildContext context) {

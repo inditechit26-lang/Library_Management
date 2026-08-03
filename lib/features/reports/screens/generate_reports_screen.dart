@@ -18,15 +18,24 @@ class GenerateReportsScreen extends ConsumerStatefulWidget {
       _GenerateReportsScreenState();
 }
 
-class _GenerateReportsScreenState
-    extends ConsumerState<GenerateReportsScreen> {
+class _GenerateReportsScreenState extends ConsumerState<GenerateReportsScreen> {
   int _selectedMonth = DateTime.now().month;
   int _selectedMonthlyYear = DateTime.now().year;
   int _selectedYear = DateTime.now().year;
 
   final List<String> _monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   @override
@@ -89,7 +98,8 @@ class _GenerateReportsScreenState
               icon: Icons.calendar_month_rounded,
               title: 'Monthly Report',
               subtitle: 'Generate a complete report for a selected month.',
-              badgeText: '${_monthNames[_selectedMonth - 1]} $_selectedMonthlyYear',
+              badgeText:
+                  '${_monthNames[_selectedMonth - 1]} $_selectedMonthlyYear',
               accentGradient: const [Color(0xFF6E62FF), Color(0xFF574DEB)],
               onSelectClick: () => _openMonthlyPicker(context),
               onGenerateClick: () => _startGeneration(isMonthly: true),
@@ -133,9 +143,7 @@ class _GenerateReportsScreenState
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
             color: colors.shadow.withValues(alpha: 0.04),
@@ -208,7 +216,9 @@ class _GenerateReportsScreenState
                   right: 8,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 5, vertical: 2),
+                      horizontal: 5,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(6),
@@ -247,9 +257,7 @@ class _GenerateReportsScreenState
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.6),
-        ),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.6)),
         boxShadow: [
           BoxShadow(
             color: colors.shadow.withValues(alpha: 0.05),
@@ -323,7 +331,9 @@ class _GenerateReportsScreenState
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: accentGradient.first.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -361,7 +371,9 @@ class _GenerateReportsScreenState
                         elevation: 4,
                         shadowColor: accentGradient.last.withValues(alpha: 0.4),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 18, vertical: 12),
+                          horizontal: 18,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
                         ),

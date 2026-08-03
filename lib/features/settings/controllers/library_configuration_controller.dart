@@ -25,7 +25,7 @@ class LibraryConfigurationController extends Notifier<LibraryConfiguration> {
         state.seatNumbering.toMap().toString() !=
         value.seatNumbering.toMap().toString();
     state = value;
-    await ref.read(settingsRepositoryProvider).updateLibraryConfig(libraryId, {
+    await ref.read(settingsRepositoryProvider).updateLibraryConfig({
       'libraryConfiguration': value.toMap(),
     });
     if (numberingChanged) {

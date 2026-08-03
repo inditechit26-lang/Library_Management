@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../core/utils/formatters.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../students/providers/students_provider.dart';
+import '../../students/repositories/students_repository.dart';
 import '../../students/services/student_data_service.dart';
 
 enum ExportFormat { excel, csv, json }
@@ -32,7 +33,7 @@ class _StudentDataManagementScreenState
 
     try {
       final repository = ref.read(studentsRepositoryProvider);
-      final students = await repository.getStudents(libraryId, limit: 1000);
+      final students = await repository.getStudents(limit: 1000);
 
       if (students.isEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +61,8 @@ class _StudentDataManagementScreenState
           final xFile = XFile.fromData(
             Uint8List.fromList(bytes),
             name: fileName,
-            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            mimeType:
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           );
           await Share.shareXFiles([xFile], text: 'Student Data Excel Backup');
         } else {
@@ -118,7 +120,9 @@ class _StudentDataManagementScreenState
   void _showSuccessSnackBar(int count, String formatLabel) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Successfully exported $count student records to $formatLabel!'),
+        content: Text(
+          'Successfully exported $count student records to $formatLabel!',
+        ),
         backgroundColor: const Color(0xFF288C68),
         behavior: SnackBarBehavior.floating,
       ),
@@ -201,6 +205,7 @@ class _StudentDataManagementScreenState
         libraryId: libraryId,
         parsedResult: parsedResult,
         service: service,
+        repository: ref.read(studentsRepositoryProvider),
         onImportComplete: () {
           ref.invalidate(studentsProvider);
           if (mounted) {
@@ -245,7 +250,9 @@ class _StudentDataManagementScreenState
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: const Color(0xFF2E7D32).withValues(alpha: 0.3)),
+              border: Border.all(
+                color: const Color(0xFF2E7D32).withValues(alpha: 0.3),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,9 +377,8 @@ class _StudentDataManagementScreenState
                         label: 'CSV File',
                         icon: Icons.table_chart_outlined,
                         selected: _selectedFormat == ExportFormat.csv,
-                        onTap: () => setState(
-                          () => _selectedFormat = ExportFormat.csv,
-                        ),
+                        onTap: () =>
+                            setState(() => _selectedFormat = ExportFormat.csv),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -381,9 +387,8 @@ class _StudentDataManagementScreenState
                         label: 'JSON Data',
                         icon: Icons.code_rounded,
                         selected: _selectedFormat == ExportFormat.json,
-                        onTap: () => setState(
-                          () => _selectedFormat = ExportFormat.json,
-                        ),
+                        onTap: () =>
+                            setState(() => _selectedFormat = ExportFormat.json),
                       ),
                     ),
                   ],
@@ -544,7 +549,9 @@ class _StatBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: colors.surface.withValues(alpha: 0.6),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.5),
+          ),
         ),
         child: Row(
           children: [
@@ -621,7 +628,9 @@ class _FormatChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 16,
-                color: selected ? const Color(0xFF2E7D32) : colors.onSurfaceVariant,
+                color: selected
+                    ? const Color(0xFF2E7D32)
+                    : colors.onSurfaceVariant,
               ),
               const SizedBox(width: 6),
               Text(
@@ -629,7 +638,9 @@ class _FormatChip extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
-                  color: selected ? const Color(0xFF2E7D32) : colors.onSurfaceVariant,
+                  color: selected
+                      ? const Color(0xFF2E7D32)
+                      : colors.onSurfaceVariant,
                 ),
               ),
             ],
@@ -644,12 +655,14 @@ class _ImportPreviewSheet extends StatefulWidget {
   final String libraryId;
   final ParsedImportResult parsedResult;
   final StudentDataService service;
+  final BaseStudentsRepository repository;
   final VoidCallback onImportComplete;
 
   const _ImportPreviewSheet({
     required this.libraryId,
     required this.parsedResult,
     required this.service,
+    required this.repository,
     required this.onImportComplete,
   });
 
@@ -669,13 +682,9 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
     });
 
     try {
-      await widget.service.batchImportStudents(
-        libraryId: widget.libraryId,
-        students: widget.parsedResult.validStudents,
-        onProgress: (processed, total) {
-          if (mounted) setState(() => _processed = processed);
-        },
-      );
+      await widget.repository.importStudents(widget.parsedResult.validStudents);
+      if (mounted)
+        setState(() => _processed = widget.parsedResult.validStudents.length);
 
       if (!mounted) return;
       Navigator.pop(context);
@@ -778,7 +787,9 @@ class _ImportPreviewSheetState extends State<_ImportPreviewSheet> {
                 return ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF2E7D32).withValues(alpha: 0.15),
+                    backgroundColor: const Color(
+                      0xFF2E7D32,
+                    ).withValues(alpha: 0.15),
                     child: Text(
                       student.name.isNotEmpty ? student.name[0] : 'S',
                       style: const TextStyle(

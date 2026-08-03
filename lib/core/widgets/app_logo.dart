@@ -4,11 +4,7 @@ class AppLogo extends StatelessWidget {
   final double size;
   final double borderRadius;
 
-  const AppLogo({
-    super.key,
-    this.size = 44.0,
-    this.borderRadius = 12.0,
-  });
+  const AppLogo({super.key, this.size = 44.0, this.borderRadius = 12.0});
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +23,7 @@ class AppLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: Image.asset(
-        'assets/images/app_logo.png',
-        fit: BoxFit.contain,
-      ),
+      child: Image.asset('assets/images/app_logo.png', fit: BoxFit.contain),
     );
   }
 }

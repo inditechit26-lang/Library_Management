@@ -33,10 +33,9 @@ class _ChangeSeatScreenState extends ConsumerState<ChangeSeatScreen> {
         children: [
           Text(
             'Choose a new seat',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 5),
           Text(
@@ -79,7 +78,10 @@ class _ChangeSeatScreenState extends ConsumerState<ChangeSeatScreen> {
     }
 
     try {
-      final currentSeatModel = ref.watch(seatsStreamProvider).value?.firstWhere(
+      final currentSeatModel = ref
+          .watch(seatsStreamProvider)
+          .value
+          ?.firstWhere(
             (s) => s.seatNumber == widget.currentSeat,
             orElse: () => throw Exception('Current seat missing'),
           );
@@ -87,8 +89,9 @@ class _ChangeSeatScreenState extends ConsumerState<ChangeSeatScreen> {
       final studentId = currentSeatModel?.studentId ?? 'std_1';
       final studentName = currentSeatModel?.studentName ?? 'Student';
 
-      await ref.read(seatsRepositoryProvider).transferSeat(
-            libraryId: libraryId,
+      await ref
+          .read(seatsRepositoryProvider)
+          .transferSeat(
             fromSeatNumber: widget.currentSeat,
             toSeatNumber: nextId,
             studentId: studentId,
@@ -96,7 +99,10 @@ class _ChangeSeatScreenState extends ConsumerState<ChangeSeatScreen> {
           );
 
       if (mounted) {
-        ErrorHandler.showSuccessSnackBar(context, 'Seat transferred to #$nextId');
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Seat transferred to #$nextId',
+        );
         context.replace('/seats/$nextId');
       }
     } catch (e) {

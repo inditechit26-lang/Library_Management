@@ -12,7 +12,8 @@ class NotificationSearchSheet extends StatefulWidget {
   });
 
   @override
-  State<NotificationSearchSheet> createState() => _NotificationSearchSheetState();
+  State<NotificationSearchSheet> createState() =>
+      _NotificationSearchSheetState();
 }
 
 class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
@@ -37,8 +38,14 @@ class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
       final studentMatch = item.studentName?.toLowerCase().contains(q) ?? false;
       final studentIdMatch = item.studentId?.toString().contains(q) ?? false;
       final seatMatch = item.seatNumber?.toLowerCase().contains(q) ?? false;
-      final receiptMatch = item.receiptNumber?.toLowerCase().contains(q) ?? false;
-      return titleMatch || descMatch || studentMatch || studentIdMatch || seatMatch || receiptMatch;
+      final receiptMatch =
+          item.receiptNumber?.toLowerCase().contains(q) ?? false;
+      return titleMatch ||
+          descMatch ||
+          studentMatch ||
+          studentIdMatch ||
+          seatMatch ||
+          receiptMatch;
     }).toList();
 
     return Container(
@@ -79,7 +86,10 @@ class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
                     : null,
                 filled: true,
                 fillColor: colors.surfaceContainerLow,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide(color: colors.outlineVariant),
@@ -111,10 +121,7 @@ class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
                 ),
                 Text(
                   'Search by Name, Seat, Receipt, ID',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: colors.outline,
-                  ),
+                  style: TextStyle(fontSize: 11, color: colors.outline),
                 ),
               ],
             ),
@@ -126,7 +133,11 @@ class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_off_rounded, size: 48, color: colors.outline),
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 48,
+                          color: colors.outline,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'No matching notifications found',
@@ -150,10 +161,23 @@ class _NotificationSearchSheetState extends State<NotificationSearchSheet> {
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundColor: colors.primaryContainer,
-                            child: Icon(Icons.notifications_outlined, color: colors.primary, size: 20),
+                            child: Icon(
+                              Icons.notifications_outlined,
+                              color: colors.primary,
+                              size: 20,
+                            ),
                           ),
-                          title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                          subtitle: Text(item.description, style: const TextStyle(fontSize: 11)),
+                          title: Text(
+                            item.title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          subtitle: Text(
+                            item.description,
+                            style: const TextStyle(fontSize: 11),
+                          ),
                           trailing: action != null
                               ? TextButton(
                                   onPressed: () {

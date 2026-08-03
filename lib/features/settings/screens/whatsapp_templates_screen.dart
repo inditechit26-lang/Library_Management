@@ -79,7 +79,9 @@ class _WhatsappTemplatesScreenState
               decoration: BoxDecoration(
                 color: colors.primaryContainer.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: colors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -101,31 +103,32 @@ class _WhatsappTemplatesScreenState
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: [
-                      '{LibraryName}',
-                      '{StudentName}',
-                      '{SeatNumber}',
-                      '{PlanName}',
-                      '{Amount}',
-                      '{ExpiryDate}',
-                    ]
-                        .map(
-                          (tag) => Chip(
-                            label: Text(
-                              tag,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                    children:
+                        [
+                              '{LibraryName}',
+                              '{StudentName}',
+                              '{SeatNumber}',
+                              '{PlanName}',
+                              '{Amount}',
+                              '{ExpiryDate}',
+                            ]
+                            .map(
+                              (tag) => Chip(
+                                label: Text(
+                                  tag,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                backgroundColor: colors.primary,
+                                padding: EdgeInsets.zero,
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
                               ),
-                            ),
-                            backgroundColor: colors.primary,
-                            padding: EdgeInsets.zero,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                          ),
-                        )
-                        .toList(),
+                            )
+                            .toList(),
                   ),
                 ],
               ),
@@ -135,9 +138,9 @@ class _WhatsappTemplatesScreenState
             // Template Editor Title
             Text(
               'Membership Renewal Reminder Template',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
 
@@ -218,8 +221,8 @@ class _WhatsappTemplatesScreenState
                 Text(
                   'Live WhatsApp Preview',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -275,8 +278,7 @@ class _WhatsappTemplatesScreenState
                     children: [
                       TextButton.icon(
                         onPressed: () {
-                          Clipboard.setData(
-                              ClipboardData(text: samplePreview));
+                          Clipboard.setData(ClipboardData(text: samplePreview));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Preview copied to clipboard!'),

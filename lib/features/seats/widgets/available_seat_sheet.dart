@@ -117,9 +117,8 @@ class AvailableSeatSheet extends ConsumerWidget {
                             top: Radius.circular(28),
                           ),
                         ),
-                        builder: (_) => AdmissionScreen(
-                          initialSeat: seat.seatLabel,
-                        ),
+                        builder: (_) =>
+                            AdmissionScreen(initialSeat: seat.seatLabel),
                       );
                     },
                     icon: const Icon(Icons.person_add_outlined),
@@ -134,7 +133,12 @@ class AvailableSeatSheet extends ConsumerWidget {
                 Expanded(
                   child: isBlocked
                       ? FilledButton.icon(
-                          onPressed: () => _toggleStatus(context, ref, isBlocked, SeatStatus.blocked),
+                          onPressed: () => _toggleStatus(
+                            context,
+                            ref,
+                            isBlocked,
+                            SeatStatus.blocked,
+                          ),
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFFE35353),
                             foregroundColor: Colors.white,
@@ -143,7 +147,12 @@ class AvailableSeatSheet extends ConsumerWidget {
                           label: const Text('Unblock Seat'),
                         )
                       : OutlinedButton.icon(
-                          onPressed: () => _toggleStatus(context, ref, isBlocked, SeatStatus.blocked),
+                          onPressed: () => _toggleStatus(
+                            context,
+                            ref,
+                            isBlocked,
+                            SeatStatus.blocked,
+                          ),
                           icon: const Icon(Icons.block, size: 18),
                           label: const Text('Block'),
                         ),
@@ -152,16 +161,29 @@ class AvailableSeatSheet extends ConsumerWidget {
                 Expanded(
                   child: isMaintenance
                       ? FilledButton.icon(
-                          onPressed: () => _toggleStatus(context, ref, isMaintenance, SeatStatus.maintenance),
+                          onPressed: () => _toggleStatus(
+                            context,
+                            ref,
+                            isMaintenance,
+                            SeatStatus.maintenance,
+                          ),
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFF697080),
                             foregroundColor: Colors.white,
                           ),
-                          icon: const Icon(Icons.check_circle_outline, size: 18),
+                          icon: const Icon(
+                            Icons.check_circle_outline,
+                            size: 18,
+                          ),
                           label: const Text('End Maintenance'),
                         )
                       : OutlinedButton.icon(
-                          onPressed: () => _toggleStatus(context, ref, isMaintenance, SeatStatus.maintenance),
+                          onPressed: () => _toggleStatus(
+                            context,
+                            ref,
+                            isMaintenance,
+                            SeatStatus.maintenance,
+                          ),
                           icon: const Icon(Icons.build_outlined, size: 18),
                           label: const Text('Maintenance'),
                         ),
@@ -183,14 +205,13 @@ class AvailableSeatSheet extends ConsumerWidget {
     final targetStatus = isActive ? SeatStatus.available : status;
     ref.read(seatsProvider.notifier).setStatus(seat.seatId, targetStatus);
     Navigator.pop(context);
-    
+
     final message = targetStatus == SeatStatus.available
         ? 'Seat ${seat.seatLabel} is now Available'
         : 'Seat ${seat.seatLabel} status updated to ${targetStatus.name.toUpperCase()}';
-        
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
     );
   }
 }
-

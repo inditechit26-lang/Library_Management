@@ -20,10 +20,8 @@ class ReceiptPdfViewerScreen extends StatelessWidget {
   }) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ReceiptPdfViewerScreen(
-          student: student,
-          newExpiry: newExpiry,
-        ),
+        builder: (_) =>
+            ReceiptPdfViewerScreen(student: student, newExpiry: newExpiry),
       ),
     );
   }
@@ -35,8 +33,10 @@ class ReceiptPdfViewerScreen extends StatelessWidget {
     return CustomPdfViewerScreen(
       title: 'Receipt Preview',
       subtitle: '$receiptNo • ${student.name}',
-      pdfFileName: 'Receipt_${student.name.replaceAll(' ', '_')}_$receiptNo.pdf',
-      buildPdf: (format) => ReceiptService.generate(student, newExpiry: newExpiry),
+      pdfFileName:
+          'Receipt_${student.name.replaceAll(' ', '_')}_$receiptNo.pdf',
+      buildPdf: (format) =>
+          ReceiptService.generate(student, newExpiry: newExpiry),
     );
   }
 }

@@ -24,11 +24,15 @@ class CustomPdfViewerScreen extends StatelessWidget {
 
     // Native Android PDF Viewer style (Dark Top Header Bar, Dark Canvas background, Clean Android Icons)
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFF323639),
+      backgroundColor: isDark
+          ? const Color(0xFF121212)
+          : const Color(0xFF323639),
       appBar: AppBar(
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFF202124),
+        backgroundColor: isDark
+            ? const Color(0xFF1E1E1E)
+            : const Color(0xFF202124),
         foregroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
@@ -48,28 +52,30 @@ class CustomPdfViewerScreen extends StatelessWidget {
             const SizedBox(height: 1),
             Text(
               subtitle,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF9AA0A6),
-              ),
+              style: const TextStyle(fontSize: 11, color: Color(0xFF9AA0A6)),
             ),
           ],
         ),
         actions: [
           IconButton(
             tooltip: 'Share',
-            icon: const Icon(Icons.share_outlined, color: Colors.white, size: 22),
+            icon: const Icon(
+              Icons.share_outlined,
+              color: Colors.white,
+              size: 22,
+            ),
             onPressed: () async {
               final pdfBytes = await buildPdf(PdfPageFormat.a4);
-              await Printing.sharePdf(
-                bytes: pdfBytes,
-                filename: pdfFileName,
-              );
+              await Printing.sharePdf(bytes: pdfBytes, filename: pdfFileName);
             },
           ),
           IconButton(
             tooltip: 'Print / Download',
-            icon: const Icon(Icons.print_outlined, color: Colors.white, size: 22),
+            icon: const Icon(
+              Icons.print_outlined,
+              color: Colors.white,
+              size: 22,
+            ),
             onPressed: () async {
               final pdfBytes = await buildPdf(PdfPageFormat.a4);
               await Printing.layoutPdf(

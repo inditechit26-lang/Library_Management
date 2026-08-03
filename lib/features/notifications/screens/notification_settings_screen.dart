@@ -33,28 +33,35 @@ class NotificationSettingsScreen extends ConsumerWidget {
             subtitle: 'Instant alerts for fee collection, due dates & receipts',
             icon: Icons.payments_outlined,
             value: settings.paymentAlerts,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(paymentAlerts: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(paymentAlerts: val),
+            ),
           ),
           _SwitchTile(
             title: 'Renewal Alerts',
             subtitle: 'Expirations, upcoming renewals & overdue members',
             icon: Icons.history_toggle_off_rounded,
             value: settings.renewalAlerts,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(renewalAlerts: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(renewalAlerts: val),
+            ),
           ),
           _SwitchTile(
             title: 'Admission Alerts',
             subtitle: 'New student registrations & seat assignments',
             icon: Icons.person_add_alt_1_outlined,
             value: settings.admissionAlerts,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(admissionAlerts: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(admissionAlerts: val),
+            ),
           ),
           _SwitchTile(
             title: 'Seat Alerts',
             subtitle: 'Seat changes, vacancy alerts & shift movements',
             icon: Icons.event_seat_outlined,
             value: settings.seatAlerts,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(seatAlerts: val)),
+            onChanged: (val) =>
+                controller.updateSettings(settings.copyWith(seatAlerts: val)),
           ),
           const SizedBox(height: 16),
           _SectionHeader(title: 'COMMUNICATION & SYSTEM'),
@@ -63,28 +70,37 @@ class NotificationSettingsScreen extends ConsumerWidget {
             subtitle: 'Broadcast alerts & library notice delivery logs',
             icon: Icons.campaign_outlined,
             value: settings.announcements,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(announcements: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(announcements: val),
+            ),
           ),
           _SwitchTile(
             title: 'System Notifications',
             subtitle: 'App updates, backup logs & security alerts',
             icon: Icons.tune_rounded,
             value: settings.systemNotifications,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(systemNotifications: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(systemNotifications: val),
+            ),
           ),
           _SwitchTile(
             title: 'WhatsApp Delivery Reports',
-            subtitle: 'Delivery & read confirmations for automated WhatsApp messages',
+            subtitle:
+                'Delivery & read confirmations for automated WhatsApp messages',
             icon: Icons.chat_bubble_outline_rounded,
             value: settings.whatsappReports,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(whatsappReports: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(whatsappReports: val),
+            ),
           ),
           _SwitchTile(
             title: 'Automation Alerts',
             subtitle: 'Auto-reminder triggers & automated fee follow-up status',
             icon: Icons.smart_toy_outlined,
             value: settings.automationAlerts,
-            onChanged: (val) => controller.updateSettings(settings.copyWith(automationAlerts: val)),
+            onChanged: (val) => controller.updateSettings(
+              settings.copyWith(automationAlerts: val),
+            ),
           ),
         ],
       ),

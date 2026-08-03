@@ -1,84 +1,99 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../core/services/firestore_service.dart';
 import '../../../core/utils/error_handler.dart';
 import '../models/plan_model.dart';
 
 abstract class BaseSettingsRepository {
-  Stream<Map<String, dynamic>> watchLibraryInfo(String libraryId);
-  Stream<Map<String, dynamic>> watchLibraryConfig(String libraryId);
-  Stream<List<PlanModel>> watchPlans(String libraryId);
-  Future<void> updateLibraryInfo(String libraryId, Map<String, dynamic> data);
-  Future<void> updateLibraryConfig(String libraryId, Map<String, dynamic> data);
-  Future<void> addOrUpdatePlan(String libraryId, PlanModel plan);
-  Future<void> deletePlan(String libraryId, String planId);
+  Stream<Map<String, dynamic>> watchLibraryInfo();
+  Stream<Map<String, dynamic>> watchLibraryConfig();
+  Stream<List<PlanModel>> watchPlans();
+  Future<void> updateLibraryInfo(Map<String, dynamic> data);
+  Future<void> updateLibraryConfig(Map<String, dynamic> data);
+  Future<void> addOrUpdatePlan(PlanModel plan);
+  Future<void> deletePlan(String planId);
 }
 
 class SettingsRepository implements BaseSettingsRepository {
-  final FirebaseFirestore _firestore;
+  SettingsRepository(this._service);
+  final FirestoreService _service;
 
-  SettingsRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  DocumentReference _infoRef(String libraryId) {
-    return _firestore.collection('libraries').doc(libraryId).collection('info').doc('general');
-  }
-
-  DocumentReference _configRef(String libraryId) {
-    return _firestore.collection('libraries').doc(libraryId).collection('config').doc('settings');
-  }
-
-  CollectionReference _plansRef(String libraryId) {
-    return _firestore.collection('libraries').doc(libraryId).collection('plans');
-  }
+  Stream<Map<String, dynamic>> _watchMap(String field) =>
+      _service.library.snapshots().map(
+        (snapshot) => Map<String, dynamic>.from(
+          snapshot.data()?[field] as Map? ?? const <String, dynamic>{},
+        ),
+      );
 
   @override
-  Stream<Map<String, dynamic>> watchLibraryInfo(String libraryId) {
-    return _infoRef(libraryId).snapshots().map((doc) => doc.data() as Map<String, dynamic>? ?? {});
-  }
+  Stream<Map<String, dynamic>> watchLibraryInfo() => _watchMap('libraryInfo');
 
   @override
-  Stream<Map<String, dynamic>> watchLibraryConfig(String libraryId) {
-    return _configRef(libraryId).snapshots().map((doc) => doc.data() as Map<String, dynamic>? ?? {});
-  }
+  Stream<Map<String, dynamic>> watchLibraryConfig() =>
+      _watchMap('configuration');
 
   @override
-  Stream<List<PlanModel>> watchPlans(String libraryId) {
-    return _plansRef(libraryId).snapshots().map((snapshot) =>
-        snapshot.docs.map((doc) => PlanModel.fromFirestore(doc)).toList());
-  }
+  Stream<List<PlanModel>> watchPlans() => watchLibraryConfig().map(
+    (configuration) => (configuration['plans'] as List? ?? const [])
+        .whereType<Map>()
+        .map((plan) => PlanModel.fromMap(Map<String, dynamic>.from(plan)))
+        .toList(),
+  );
 
   @override
-  Future<void> updateLibraryInfo(String libraryId, Map<String, dynamic> data) async {
+  Future<void> updateLibraryInfo(Map<String, dynamic> data) =>
+      _updateMap('libraryInfo', data);
+
+  @override
+  Future<void> updateLibraryConfig(Map<String, dynamic> data) =>
+      _updateMap('configuration', data);
+
+  Future<void> _updateMap(String field, Map<String, dynamic> data) async {
     try {
-      await _infoRef(libraryId).set(data, SetOptions(merge: true));
-    } catch (e, stack) {
-      throw ErrorHandler.handle(e, stack);
+      await _service.firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(_service.library);
+        final current = Map<String, dynamic>.from(
+          snapshot.data()?[field] as Map? ?? const <String, dynamic>{},
+        )..addAll(data);
+        current['updatedAt'] = FieldValue.serverTimestamp();
+        transaction.update(_service.library, {field: current});
+      });
+    } catch (error, stackTrace) {
+      throw ErrorHandler.handle(error, stackTrace);
     }
   }
 
   @override
-  Future<void> updateLibraryConfig(String libraryId, Map<String, dynamic> data) async {
-    try {
-      await _configRef(libraryId).set(data, SetOptions(merge: true));
-    } catch (e, stack) {
-      throw ErrorHandler.handle(e, stack);
+  Future<void> addOrUpdatePlan(PlanModel plan) => _mutatePlans((plans) {
+    final index = plans.indexWhere((item) => item['id'] == plan.id);
+    if (index < 0) {
+      plans.add(plan.toFirestore());
+    } else {
+      plans[index] = plan.toFirestore();
     }
-  }
+  });
 
   @override
-  Future<void> addOrUpdatePlan(String libraryId, PlanModel plan) async {
-    try {
-      await _plansRef(libraryId).doc(plan.id).set(plan.toFirestore(), SetOptions(merge: true));
-    } catch (e, stack) {
-      throw ErrorHandler.handle(e, stack);
-    }
-  }
+  Future<void> deletePlan(String planId) => _mutatePlans(
+    (plans) => plans.removeWhere((plan) => plan['id'] == planId),
+  );
 
-  @override
-  Future<void> deletePlan(String libraryId, String planId) async {
-    try {
-      await _plansRef(libraryId).doc(planId).delete();
-    } catch (e, stack) {
-      throw ErrorHandler.handle(e, stack);
-    }
+  Future<void> _mutatePlans(
+    void Function(List<Map<String, dynamic>> plans) mutate,
+  ) async {
+    await _service.firestore.runTransaction((transaction) async {
+      final snapshot = await transaction.get(_service.library);
+      final configuration = Map<String, dynamic>.from(
+        snapshot.data()?['configuration'] as Map? ?? const <String, dynamic>{},
+      );
+      final plans = (configuration['plans'] as List? ?? const [])
+          .whereType<Map>()
+          .map((plan) => Map<String, dynamic>.from(plan))
+          .toList();
+      mutate(plans);
+      configuration['plans'] = plans;
+      configuration['updatedAt'] = FieldValue.serverTimestamp();
+      transaction.update(_service.library, {'configuration': configuration});
+    });
   }
 }

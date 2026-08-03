@@ -4,7 +4,8 @@ import '../services/report_service.dart';
 
 class YearlyReportSheet extends StatefulWidget {
   final String creationDateStr;
-  final Function(DateTime startDate, DateTime endDate, String periodTitle) onGenerate;
+  final Function(DateTime startDate, DateTime endDate, String periodTitle)
+  onGenerate;
 
   const YearlyReportSheet({
     super.key,
@@ -24,7 +25,8 @@ class _YearlyReportSheetState extends State<YearlyReportSheet> {
   void initState() {
     super.initState();
     _selectedYear = DateTime.now().year;
-    _creationDate = ReportService.parseDate(widget.creationDateStr) ?? DateTime(2025, 1, 1);
+    _creationDate =
+        ReportService.parseDate(widget.creationDateStr) ?? DateTime(2025, 1, 1);
   }
 
   bool get _isValidSelection {
@@ -60,7 +62,9 @@ class _YearlyReportSheetState extends State<YearlyReportSheet> {
                 const SizedBox(width: 10),
                 Text(
                   'Yearly Report',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
                 IconButton(
@@ -73,20 +77,24 @@ class _YearlyReportSheetState extends State<YearlyReportSheet> {
 
             Text(
               'Select Year',
-              style: theme.textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<int>(
               initialValue: _selectedYear,
               decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               items: yearsList.map((y) {
-                return DropdownMenuItem<int>(
-                  value: y,
-                  child: Text('Year $y'),
-                );
+                return DropdownMenuItem<int>(value: y, child: Text('Year $y'));
               }).toList(),
               onChanged: (val) {
                 if (val != null) setState(() => _selectedYear = val);
@@ -104,12 +112,19 @@ class _YearlyReportSheetState extends State<YearlyReportSheet> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline_rounded, color: colors.error, size: 20),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: colors.error,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'No data is available because your library was created on $formattedCreation.',
-                        style: TextStyle(fontSize: 12, color: colors.onErrorContainer),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.onErrorContainer,
+                        ),
                       ),
                     ),
                   ],
@@ -133,7 +148,14 @@ class _YearlyReportSheetState extends State<YearlyReportSheet> {
                         ? () {
                             Navigator.pop(context);
                             final startDate = DateTime(_selectedYear, 1, 1);
-                            final endDate = DateTime(_selectedYear, 12, 31, 23, 59, 59);
+                            final endDate = DateTime(
+                              _selectedYear,
+                              12,
+                              31,
+                              23,
+                              59,
+                              59,
+                            );
                             final periodTitle = 'Year $_selectedYear';
                             widget.onGenerate(startDate, endDate, periodTitle);
                           }

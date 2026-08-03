@@ -48,7 +48,9 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
   }
 
   void _saveProfile() {
-    ref.read(ownerProfileProvider.notifier).updateProfile(
+    ref
+        .read(ownerProfileProvider.notifier)
+        .updateProfile(
           name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           phone: _phoneController.text.trim(),
@@ -102,10 +104,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF6E62FF),
-                  const Color(0xFF574DEB),
-                ],
+                colors: [const Color(0xFF6E62FF), const Color(0xFF574DEB)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -135,12 +134,12 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                         child: Text(
                           profile.name.trim().isNotEmpty
                               ? profile.name
-                                  .trim()
-                                  .split(' ')
-                                  .map((e) => e.isNotEmpty ? e[0] : '')
-                                  .take(2)
-                                  .join()
-                                  .toUpperCase()
+                                    .trim()
+                                    .split(' ')
+                                    .map((e) => e.isNotEmpty ? e[0] : '')
+                                    .take(2)
+                                    .join()
+                                    .toUpperCase()
                               : 'OP',
                           style: const TextStyle(
                             color: Colors.white,
@@ -190,7 +189,11 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
           ),
           const SizedBox(height: 24),
           // Section: Owner Details
-          _buildSectionHeader(context, 'Personal Details', Icons.person_outline),
+          _buildSectionHeader(
+            context,
+            'Personal Details',
+            Icons.person_outline,
+          ),
           const SizedBox(height: 12),
           _buildDetailCard(
             context,
@@ -246,7 +249,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
   }
 
   Widget _buildSectionHeader(
-      BuildContext context, String title, IconData icon) {
+    BuildContext context,
+    String title,
+    IconData icon,
+  ) {
     return Row(
       children: [
         Icon(icon, size: 20, color: const Color(0xFF574DEB)),
@@ -263,16 +269,17 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     );
   }
 
-  Widget _buildDetailCard(BuildContext context,
-      {required bool isDark, required List<Widget> children}) {
+  Widget _buildDetailCard(
+    BuildContext context, {
+    required bool isDark,
+    required List<Widget> children,
+  }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-        ),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black26 : const Color(0x081E293B),
@@ -281,9 +288,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
           ),
         ],
       ),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -299,7 +304,9 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
 
     if (!isEditing) {
       return Row(
-        crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        crossAxisAlignment: maxLines > 1
+            ? CrossAxisAlignment.start
+            : CrossAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
@@ -358,7 +365,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
             prefixIcon: Icon(icon, size: 20),
             filled: true,
             fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
