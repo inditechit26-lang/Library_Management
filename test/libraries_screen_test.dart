@@ -35,9 +35,9 @@ void main() {
     // Verify overlay appears during transition
     expect(find.text('Switching Library...'), findsOneWidget);
 
-    // Complete timer
+    // Complete timer and reverse animation
     await tester.pump(const Duration(milliseconds: 1200));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Active'), findsOneWidget);
   });
