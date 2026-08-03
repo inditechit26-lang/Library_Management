@@ -107,18 +107,34 @@ class LibraryConfigurationScreen extends ConsumerWidget {
   }
 }
 
-class _ConfigurationCard extends StatelessWidget {
+class _ConfigurationCard extends StatefulWidget {
   const _ConfigurationCard({
+    super.key,
     required this.icon,
     required this.title,
     required this.description,
     required this.child,
+    this.initiallyExpanded = false,
   });
 
   final IconData icon;
   final String title;
   final String description;
   final Widget child;
+  final bool initiallyExpanded;
+
+  @override
+  State<_ConfigurationCard> createState() => _ConfigurationCardState();
+}
+
+class _ConfigurationCardState extends State<_ConfigurationCard> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = widget.initiallyExpanded;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,55 +150,77 @@ class _ConfigurationCard extends StatelessWidget {
         side: BorderSide(color: colors.outlineVariant),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(22),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: colors.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            borderRadius: BorderRadius.circular(22),
+            child: Padding(
+              padding: const EdgeInsets.all(22),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: colors.secondaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      widget.icon,
+                      size: 21,
+                      color: colors.onSecondaryContainer,
+                    ),
                   ),
-                  child: Icon(
-                    icon,
-                    size: 21,
-                    color: colors.onSecondaryContainer,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        description,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          height: 1.35,
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 3),
+                        Text(
+                          widget.description,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 18),
-            child,
-          ],
-        ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            child: _isExpanded
+                ? Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 0, 22, 22),
+                    child: widget.child,
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }

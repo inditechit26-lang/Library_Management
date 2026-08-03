@@ -134,4 +134,26 @@ void main() {
     expect(find.text('Seat Numbering Style'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('configuration cards are expandable on click', (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pump();
+
+    // Initially, options inside Sections (like 'Plan Rate Configuration') are hidden
+    expect(find.text('Plan Rate Configuration'), findsNothing);
+
+    // Tap on Sections header to expand
+    await tester.tap(find.text('Sections'));
+    await tester.pumpAndSettle();
+
+    // Now options inside Sections are visible
+    expect(find.text('Plan Rate Configuration'), findsOneWidget);
+
+    // Tap on Sections header again to collapse
+    await tester.tap(find.text('Sections'));
+    await tester.pumpAndSettle();
+
+    // Options inside Sections are hidden again
+    expect(find.text('Plan Rate Configuration'), findsNothing);
+  });
 }
