@@ -7,6 +7,7 @@ import '../../../core/settings/app_settings.dart';
 import '../../../core/utils/error_handler.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../controllers/owner_profile_controller.dart';
+import '../providers/active_library_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -14,6 +15,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider);
     final ownerProfile = ref.watch(ownerProfileProvider);
+    final activeLibrary = ref.watch(activeLibraryProvider);
     String tr(String text) => translate(text, settings.language);
     final colors = Theme.of(context).colorScheme;
     final surface = colors.surface;
@@ -171,7 +173,9 @@ class SettingsScreen extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    ownerProfile.branchName,
+                                    activeLibrary.name.isNotEmpty
+                                        ? activeLibrary.name
+                                        : ownerProfile.branchName,
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
@@ -299,6 +303,14 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 14),
+        _SettingsEntry(
+          title: 'Libraries',
+          description: 'Manage all your libraries from one place',
+          icon: Icons.apartment_rounded,
+          colors: const [Color(0xFF574DEB), Color(0xFF7E73FF)],
+          onTap: () => context.push('/settings/libraries'),
         ),
         const SizedBox(height: 14),
         _SettingsEntry(

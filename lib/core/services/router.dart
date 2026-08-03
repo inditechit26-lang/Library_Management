@@ -16,6 +16,7 @@ import '../../features/settings/screens/about_us_screen.dart';
 import '../../features/settings/screens/privacy_policy_screen.dart';
 import '../../features/settings/screens/payment_settings_screen.dart';
 import '../../features/settings/screens/library_configuration_screen.dart';
+import '../../features/settings/screens/libraries_screen.dart';
 import '../../features/settings/screens/student_data_management_screen.dart';
 import '../../features/settings/screens/whatsapp_templates_screen.dart';
 import '../../features/reports/screens/reports_screen.dart';
@@ -106,6 +107,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/seats',
         builder: (context, state) => const SeatSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/libraries',
+        builder: (context, state) => const LibrariesScreen(),
       ),
       GoRoute(
         path: '/settings/library-configuration',
