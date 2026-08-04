@@ -179,7 +179,10 @@ class SeatMap extends StatelessWidget {
                     final seat = seats[index];
                     final student = _studentFor(seat);
                     final secId = seat.sectionId ?? student?.sectionId;
-                    final secName = secId != null ? sectionNames?[secId] : null;
+                    final names = sectionNames;
+                    final secName = secId == null || names == null
+                        ? null
+                        : names[secId];
 
                     return Hero(
                       tag: 'seat-${seat.seatId}',

@@ -307,8 +307,8 @@ class SettingsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'Libraries',
-          description: 'Manage all your libraries from one place',
+          title: 'My Branches',
+          description: 'Manage all your branches from one place',
           icon: Icons.apartment_rounded,
           colors: const [Color(0xFF574DEB), Color(0xFF7E73FF)],
           onTap: () => context.push('/settings/libraries'),
@@ -330,14 +330,25 @@ class SettingsScreen extends ConsumerWidget {
           onTap: () => context.push('/settings/data-management'),
         ),
         const SizedBox(height: 14),
+        _SettingsEntry(
+          title: 'About StudyDesk',
+          description: 'Version 1.0.0 · Learn more about our mission',
+          icon: Icons.info_outline_rounded,
+          colors: const [Color(0xFF3867D6), Color(0xFF5B8DEF)],
+          onTap: () => context.push('/settings/about'),
+        ),
+        const SizedBox(height: 14),
+        _SettingsEntry(
+          title: 'Privacy Policy',
+          description: 'Read data protection and usage policies',
+          icon: Icons.privacy_tip_outlined,
+          colors: const [Color(0xFF7A55C5), Color(0xFF9B72E8)],
+          onTap: () => context.push('/settings/privacy'),
+        ),
+        const SizedBox(height: 14),
         const AnimatedAppUpdateTile(),
         const SizedBox(height: 14),
         const _HelpSupport(),
-        const SizedBox(height: 12),
-        const _About(),
-        const SizedBox(height: 12),
-        const _PrivacyPolicy(),
-
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
@@ -502,65 +513,6 @@ class _HelpSupport extends StatelessWidget {
     }
   }
 
-  void _showContactSheet(BuildContext context) {
-    final theme = Theme.of(context);
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'WhatsApp Support',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Direct line to StudyDesk support team',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 18),
-              ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF25D366).withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const FaIcon(
-                    FontAwesomeIcons.whatsapp,
-                    color: Color(0xFF25D366),
-                  ),
-                ),
-                title: const Text(
-                  'WhatsApp Chat',
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-                subtitle: const Text('Tap to start conversation'),
-                trailing: const Icon(Icons.open_in_new_rounded, size: 18),
-                onTap: () {
-                  Navigator.pop(context);
-                  _openWhatsApp(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -575,8 +527,8 @@ class _HelpSupport extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? Colors.black.withOpacity(0.3)
-                : const Color(0xFF1E2238).withOpacity(0.04),
+                ? Colors.black.withValues(alpha: 0.3)
+                : const Color(0xFF1E2238).withValues(alpha: 0.04),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -591,7 +543,7 @@ class _HelpSupport extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF25D366).withOpacity(0.14),
+                  color: const Color(0xFF25D366).withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Center(
@@ -624,7 +576,9 @@ class _HelpSupport extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF25D366).withOpacity(0.15),
+                            color: const Color(
+                              0xFF25D366,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Text(
@@ -665,7 +619,7 @@ class _HelpSupport extends StatelessWidget {
                 backgroundColor: const Color(0xFF25D366),
                 foregroundColor: Colors.white,
                 elevation: 2,
-                shadowColor: const Color(0xFF25D366).withOpacity(0.35),
+                shadowColor: const Color(0xFF25D366).withValues(alpha: 0.35),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -695,116 +649,4 @@ class _HelpSupport extends StatelessWidget {
       ),
     );
   }
-}
-
-class _About extends StatelessWidget {
-  const _About();
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
-    borderRadius: BorderRadius.circular(20),
-    child: InkWell(
-      onTap: () => context.push('/settings/about'),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.info_outline,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'About StudyDesk',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    'Version 1.0.0 · Learn more about our mission',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-class _PrivacyPolicy extends StatelessWidget {
-  const _PrivacyPolicy();
-  @override
-  Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surface,
-    borderRadius: BorderRadius.circular(20),
-    child: InkWell(
-      onTap: () => context.push('/settings/privacy'),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.privacy_tip_outlined,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Privacy Policy',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    'Read data protection & usage policies',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
