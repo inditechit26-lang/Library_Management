@@ -1,8 +1,7 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/app_logo.dart';
 import '../providers/active_library_provider.dart';
 
 class LibrariesScreen extends ConsumerStatefulWidget {
@@ -485,45 +484,35 @@ class _SwitchOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FadeTransition(
     opacity: CurvedAnimation(parent: controller, curve: Curves.easeOut),
-    child: BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-      child: ColoredBox(
-        color: const Color(0xFF071025).withValues(alpha: .72),
-        child: Center(
-          child: ScaleTransition(
-            scale: Tween<double>(begin: .9, end: 1).animate(
-              CurvedAnimation(parent: controller, curve: Curves.easeOutBack),
-            ),
-            child: Container(
-              width: 270,
-              padding: const EdgeInsets.all(28),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(28),
+    child: ColoredBox(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Center(
+        child: ScaleTransition(
+          scale: Tween<double>(begin: .94, end: 1).animate(
+            CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const AppLogo(size: 84, borderRadius: 24),
+              const SizedBox(height: 20),
+              Text(
+                'Dashboard',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(strokeWidth: 3),
-                  const SizedBox(height: 22),
-                  const Text(
-                    'SWITCHING LIBRARY',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.25,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    library?.name ?? '',
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              const SizedBox(height: 8),
+              Text(
+                library?.name ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
