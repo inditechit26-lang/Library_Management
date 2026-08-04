@@ -32,11 +32,11 @@ class ReceiptService {
     final paidToName = billingDetails.businessName.trim().isNotEmpty
         ? billingDetails.businessName.trim()
         : AppConstants.libraryName;
-    final primaryColor = PdfColor.fromHex('#4F46E5'); // Modern Indigo Accent
-    final darkHeader = PdfColor.fromHex('#0F172A'); // Slate 900
-    final lightBg = PdfColor.fromHex('#F8FAFC'); // Slate 50
-    final borderColor = PdfColor.fromHex('#E2E8F0'); // Slate 200
-    final textMuted = PdfColor.fromHex('#64748B'); // Slate 500
+    final primaryColor = PdfColor.fromHex('#08244D');
+    final accentColor = PdfColor.fromHex('#4D9A34');
+    final lightBg = PdfColor.fromHex('#F8FAFC');
+    final borderColor = PdfColor.fromHex('#CBD5E1');
+    final textMuted = PdfColor.fromHex('#475569');
 
     document.addPage(
       pw.Page(
@@ -48,42 +48,46 @@ class ReceiptService {
             children: [
               // --- HEADER SECTION ---
               pw.Container(
-                padding: const pw.EdgeInsets.all(20),
+                padding: const pw.EdgeInsets.only(bottom: 16),
                 decoration: pw.BoxDecoration(
-                  color: darkHeader,
-                  borderRadius: pw.BorderRadius.circular(12),
+                  border: pw.Border(bottom: pw.BorderSide(color: borderColor)),
                 ),
                 child: pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
                   children: [
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    pw.Row(
                       children: [
-                        pw.Text(
-                          paidToName.toUpperCase(),
-                          style: pw.TextStyle(
-                            color: PdfColors.white,
-                            fontSize: 20,
-                            fontWeight: pw.FontWeight.bold,
-                            letterSpacing: 1.2,
+                        pw.Container(
+                          width: 44,
+                          height: 44,
+                          alignment: pw.Alignment.center,
+                          decoration: pw.BoxDecoration(
+                            color: primaryColor,
+                            borderRadius: pw.BorderRadius.circular(12),
+                          ),
+                          child: pw.Text(
+                            paidToName.isEmpty ? 'L' : paidToName[0].toUpperCase(),
+                            style: pw.TextStyle(
+                              color: PdfColors.white,
+                              fontSize: 22,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                           ),
                         ),
-                        pw.SizedBox(height: 4),
+                        pw.SizedBox(width: 10),
                         pw.Text(
-                          'Premium Study Lounge & Library Desk Services',
-                          style: const pw.TextStyle(
-                            color: PdfColors.grey400,
-                            fontSize: 9,
+                          paidToName,
+                          style: pw.TextStyle(
+                            color: primaryColor,
+                            fontSize: 23,
+                            fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                     pw.Container(
-                      padding: const pw.EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       decoration: pw.BoxDecoration(
                         color: primaryColor,
                         borderRadius: pw.BorderRadius.circular(8),
@@ -92,9 +96,9 @@ class ReceiptService {
                         'PAYMENT RECEIPT',
                         style: pw.TextStyle(
                           color: PdfColors.white,
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: pw.FontWeight.bold,
-                          letterSpacing: 1.0,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
@@ -125,7 +129,7 @@ class ReceiptService {
                       payment?.paymentMode ?? student.paymentMode.fullLabel,
                       null,
                     ),
-                    _metaItem('Status', 'SUCCESSFUL', PdfColors.green700),
+                    _metaItem('Status', 'SUCCESSFUL', accentColor),
                   ],
                 ),
               ),
