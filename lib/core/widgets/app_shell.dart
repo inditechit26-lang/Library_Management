@@ -5,6 +5,7 @@ import '../../features/students/screens/students_screen.dart';
 import '../../features/seats/screens/seat_management_screen.dart';
 import '../../features/receipts/screens/receipt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/settings/providers/active_library_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_logo.dart';
 import '../settings/app_settings.dart';
@@ -15,9 +16,11 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell>
+    with SingleTickerProviderStateMixin {
   int index = 0;
   late final PageController _pageController;
+  late final AnimationController _librarySwitchController;
   static const labels = ['Dashboard', 'Students', 'Seats', 'Fees', 'Settings'];
   static const icons = [
     Icons.home_outlined,
@@ -31,17 +34,29 @@ class _AppShellState extends ConsumerState<AppShell> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: index);
+    _librarySwitchController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+      value: 1,
+    );
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _librarySwitchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final language = ref.watch(appSettingsProvider).language;
+    final activeLibrary = ref.watch(activeLibraryProvider);
+    ref.listen<LibraryModel>(activeLibraryProvider, (previous, next) {
+      if (previous != null && previous.id != next.id) {
+        _librarySwitchController.forward(from: 0);
+      }
+    });
     final translatedLabels = labels
         .map((label) => translate(label, language))
         .toList();
@@ -67,12 +82,29 @@ class _AppShellState extends ConsumerState<AppShell> {
           bottom: false,
           child: Column(
             children: [
-              _Header(title: translatedLabels[index]),
+              _Header(title: translatedLabels[index], libraryName: activeLibrary.name),
               Expanded(
-                child: PageView(
-                  controller: _pageController,
-                  onPageChanged: (value) => setState(() => index = value),
-                  children: screens,
+                child: FadeTransition(
+                  opacity: CurvedAnimation(
+                    parent: _librarySwitchController,
+                    curve: Curves.easeOutCubic,
+                  ).drive(Tween<double>(begin: .72, end: 1)),
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, .018),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _librarySwitchController,
+                        curve: Curves.easeOutCubic,
+                      ),
+                    ),
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (value) => setState(() => index = value),
+                      children: screens,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -163,7 +195,8 @@ class _AppShellState extends ConsumerState<AppShell> {
 
 class _Header extends StatelessWidget {
   final String title;
-  const _Header({required this.title});
+  final String libraryName;
+  const _Header({required this.title, required this.libraryName});
   @override
   Widget build(BuildContext context) => Container(
     height: 86,
@@ -191,6 +224,33 @@ class _Header extends StatelessWidget {
                   fontWeight: FontWeight.w900,
                   letterSpacing: -0.5,
                   color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 3),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 280),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0, .25),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  ),
+                ),
+                child: Text(
+                  libraryName,
+                  key: ValueKey(libraryName),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ],
