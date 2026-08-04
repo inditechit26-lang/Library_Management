@@ -68,7 +68,11 @@ class MembershipCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 18),
-        if (student.hasRenewedPlan)
+        // `hasRenewedPlan` is only an in-memory legacy UI flag and is not
+        // persisted with the student record. A successful admission payment
+        // or renewal is represented by the paid status, so use that durable
+        // value when deciding whether a receipt can be viewed.
+        if (student.payment == PaymentStatus.paid)
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
