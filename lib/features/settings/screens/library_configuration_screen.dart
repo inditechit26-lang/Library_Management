@@ -1085,27 +1085,19 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
             child: Row(
               children: [
                 for (final section in sections) ...[
-                  GestureDetector(
-                    onLongPress: () => _confirmDeleteSection(context, section),
-                    child: ChoiceChip(
-                      avatar: CircleAvatar(radius: 5, backgroundColor: section.color),
-                      label: Text(section.name),
-                      selected: _selectedSectionId == section.id,
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedSectionId = section.id;
-                          _updateFieldsForSelectedSection();
-                        });
-                      },
-                    ),
+                  ChoiceChip(
+                    avatar: CircleAvatar(radius: 5, backgroundColor: section.color),
+                    label: Text(section.name),
+                    selected: _selectedSectionId == section.id,
+                    onSelected: (_) {
+                      setState(() {
+                        _selectedSectionId = section.id;
+                        _updateFieldsForSelectedSection();
+                      });
+                    },
                   ),
                   const SizedBox(width: 8),
                 ],
-                ActionChip(
-                  avatar: const Icon(Icons.add_rounded, size: 16),
-                  label: const Text('Add Section'),
-                  onPressed: () => _addSection(context),
-                ),
               ],
             ),
           ),
@@ -1354,119 +1346,6 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Section seat numbering saved & generated successfully!')),
       );
-    }
-  }
-
-  Future<void> _addSection(BuildContext context) async {
-    final textController = TextEditingController();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Hall Section'),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Section Name',
-            hintText: 'e.g. Girls Section, Boys Section',
-          ),
-          onSubmitted: (val) {
-            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = textController.text.trim();
-              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
-            },
-            child: const Text('Add Section'),
-          ),
-        ],
-      ),
-    );
-    textController.dispose();
-    if (name == null || name.trim().isEmpty) return;
-    final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
-    if (widget.configuration.sections.any((s) => s.id == id)) return;
-
-    final colors = [
-      0xFFE91E63, // Pink (Girls)
-      0xFF2196F3, // Blue (Boys)
-      0xFF4CAF50, // Green (General)
-      0xFFFF9800, // Orange
-      0xFF9C27B0, // Purple
-    ];
-    final color = colors[widget.configuration.sections.length % colors.length];
-
-    final newSection = LibrarySection(
-      id: id,
-      name: name.trim(),
-      colorValue: color,
-    );
-
-    final updatedSections = [...widget.configuration.sections, newSection];
-    await ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(widget.configuration.copyWith(sections: updatedSections));
-    if (mounted) {
-      setState(() {
-        _selectedSectionId = id;
-        _updateFieldsForSelectedSection();
-      });
-    }
-  }
-
-  Future<void> _confirmDeleteSection(
-    BuildContext context,
-    LibrarySection section,
-  ) async {
-    if (widget.configuration.sections.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least one section must remain enabled.')),
-      );
-      return;
-    }
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Delete ${section.name}?'),
-        content: const Text(
-          'This will remove this section from configuration. Seats assigned to this section will remain intact.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true || !context.mounted) return;
-
-    final updatedSections = widget.configuration.sections
-        .where((s) => s.id != section.id)
-        .toList();
-    await ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(widget.configuration.copyWith(sections: updatedSections));
-
-    if (mounted) {
-      setState(() {
-        _selectedSectionId = updatedSections.first.id;
-        _updateFieldsForSelectedSection();
-      });
     }
   }
 }
