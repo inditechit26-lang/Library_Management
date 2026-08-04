@@ -639,7 +639,10 @@ class _FeeCard extends StatelessWidget {
             color: isDark ? const Color(0xFF262C40) : const Color(0xFFE2E8F0),
           ),
           const SizedBox(height: 16),
-          if (student.hasRenewedPlan)
+          // `hasRenewedPlan` is not persisted, so it is false after a
+          // Firestore refresh. Paid status is the durable indicator that a
+          // completed admission payment or renewal has a receipt to view.
+          if (student.payment == PaymentStatus.paid)
             SizedBox(
               width: double.infinity,
               height: 44,
