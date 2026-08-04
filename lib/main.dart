@@ -5,12 +5,9 @@ import 'core/services/router.dart';
 import 'core/settings/app_settings.dart';
 import 'core/theme/app_theme.dart';
 
-import 'features/update/services/seed_update_doc.dart';
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FirebaseService().initialize();
-  await seedAppUpdateDocument();
   runApp(const ProviderScope(child: ShelfApp()));
 }
 

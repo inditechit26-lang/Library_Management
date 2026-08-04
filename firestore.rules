@@ -21,7 +21,11 @@ service cloud.firestore {
     }
 
     match /appUpdate/{document=**} {
-      allow read, write: if true;
+      // Update metadata must be readable before sign-in so mandatory updates
+      // can be shown on the launch screen. Only trusted server/Admin SDK code
+      // may change it; Admin SDK access bypasses Firestore security rules.
+      allow read: if true;
+      allow write: if false;
     }
   }
 }
