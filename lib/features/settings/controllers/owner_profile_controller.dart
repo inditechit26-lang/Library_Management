@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../models/billing_details.dart';
 import '../providers/settings_provider.dart';
 
 class OwnerProfile {
@@ -16,6 +17,7 @@ class OwnerProfile {
   final int totalSeats;
   final String subscriptionPlan;
   final String joinDate;
+  final BillingDetails billingDetails;
 
   const OwnerProfile({
     required this.name,
@@ -29,6 +31,7 @@ class OwnerProfile {
     required this.totalSeats,
     required this.subscriptionPlan,
     required this.joinDate,
+    this.billingDetails = const BillingDetails(),
   });
 
   OwnerProfile copyWith({
@@ -43,6 +46,7 @@ class OwnerProfile {
     int? totalSeats,
     String? subscriptionPlan,
     String? joinDate,
+    BillingDetails? billingDetails,
   }) {
     return OwnerProfile(
       name: name ?? this.name,
@@ -56,6 +60,7 @@ class OwnerProfile {
       totalSeats: totalSeats ?? this.totalSeats,
       subscriptionPlan: subscriptionPlan ?? this.subscriptionPlan,
       joinDate: joinDate ?? this.joinDate,
+      billingDetails: billingDetails ?? this.billingDetails,
     );
   }
 }
@@ -78,6 +83,16 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
       totalSeats: (config['totalSeats'] as num?)?.toInt() ?? 0,
       subscriptionPlan: (config['subscriptionPlan'] as String?) ?? '',
       joinDate: '',
+      billingDetails: BillingDetails(
+        businessName:
+            (info['billingName'] as String?) ?? (info['name'] as String?) ?? '',
+        address:
+            (info['billingAddress'] as String?) ??
+            (info['address'] as String?) ??
+            '',
+        phone: (info['billingPhone'] as String?) ?? (info['phone'] as String?) ?? '',
+        email: (info['billingEmail'] as String?) ?? (info['email'] as String?) ?? '',
+      ),
     );
   }
 
@@ -90,6 +105,7 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
     String? address,
     String? openingTime,
     String? closingTime,
+    BillingDetails? billingDetails,
   }) {
     final libraryId = ref.read(currentLibraryIdProvider);
     if (libraryId == null || libraryId.isEmpty) return;
@@ -102,6 +118,12 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
       if (address != null) 'address': address.trim(),
       if (openingTime != null) 'openingTime': openingTime.trim(),
       if (closingTime != null) 'closingTime': closingTime.trim(),
+      if (billingDetails != null) ...{
+        'billingName': billingDetails.businessName.trim(),
+        'billingAddress': billingDetails.address.trim(),
+        'billingPhone': billingDetails.phone.trim(),
+        'billingEmail': billingDetails.email.trim(),
+      },
     };
     if (updates.isEmpty) return;
     unawaited(ref.read(settingsRepositoryProvider).updateLibraryInfo(updates));

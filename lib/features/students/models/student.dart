@@ -20,6 +20,7 @@ extension PaymentModeX on PaymentMode {
 class Student {
   final int id;
   final String name, phone, seat, joined, expiry, initials;
+  final String email;
   final String gender;
   final String? seatId;
   final String? photoPath;
@@ -34,11 +35,13 @@ class Student {
   final String? sectionId;
   final String? seatType;
   final String? membershipPeriod;
+  final String? sourceId;
 
   const Student({
     required this.id,
     required this.name,
     required this.phone,
+    this.email = '',
     required this.seat,
     required this.joined,
     required this.expiry,
@@ -58,11 +61,13 @@ class Student {
     this.sectionId,
     this.seatType,
     this.membershipPeriod,
+    this.sourceId,
   });
 
   Student copyWith({
     String? name,
     String? phone,
+    String? email,
     String? gender,
     String? seat,
     String? seatId,
@@ -80,10 +85,12 @@ class Student {
     String? sectionId,
     String? seatType,
     String? membershipPeriod,
+    String? sourceId,
   }) => Student(
     id: id,
     name: name ?? this.name,
     phone: phone ?? this.phone,
+    email: email ?? this.email,
     gender: gender ?? this.gender,
     seat: seat ?? this.seat,
     seatId: seatId ?? this.seatId,
@@ -102,6 +109,7 @@ class Student {
     sectionId: sectionId ?? this.sectionId,
     seatType: seatType ?? this.seatType,
     membershipPeriod: membershipPeriod ?? this.membershipPeriod,
+    sourceId: sourceId ?? this.sourceId,
     initials: name == null
         ? initials
         : name

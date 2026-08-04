@@ -44,6 +44,7 @@ class StudentsController extends Notifier<List<Student>> {
       id: _legacyId(model.id),
       name: model.name,
       phone: model.phone,
+      email: model.email,
       gender: model.gender,
       seat: model.assignedSeat ?? 'Flexible',
       seatId: model.assignedSeat,
@@ -62,6 +63,7 @@ class StudentsController extends Notifier<List<Student>> {
       sectionId: model.sectionId,
       seatType: model.seatType,
       membershipPeriod: model.membershipPeriod,
+      sourceId: model.id,
     );
   }
 

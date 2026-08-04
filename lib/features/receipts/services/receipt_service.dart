@@ -4,11 +4,15 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../payments/models/payment_model.dart';
+import '../../settings/models/billing_details.dart';
 import '../../students/models/student.dart';
 
 class ReceiptService {
   static Future<Uint8List> generate(
     Student student, {
+    PaymentModel? payment,
+    BillingDetails billingDetails = const BillingDetails(),
     String? newExpiry,
   }) async {
     final document = pw.Document(
@@ -16,8 +20,18 @@ class ReceiptService {
       author: AppConstants.libraryName,
     );
 
-    final receiptNo = 'SR-2026-${student.id.toString().padLeft(4, '0')}';
-    final issueDate = DateFormat('dd MMM yyyy, hh:mm a').format(DateTime.now());
+    final receiptNo = payment?.receiptNumber.isNotEmpty == true
+        ? payment!.receiptNumber
+        : 'SR-2026-${student.id.toString().padLeft(4, '0')}';
+    final paidAt = payment?.paymentDate ?? DateTime.now();
+    final issueDate = DateFormat('dd MMM yyyy, hh:mm a').format(paidAt);
+    final subtotal = payment?.amount ?? student.fee;
+    final discount = payment?.discount ?? 0;
+    final fine = payment?.fine ?? 0;
+    final totalPaid = payment?.netAmount ?? student.fee;
+    final paidToName = billingDetails.businessName.trim().isNotEmpty
+        ? billingDetails.businessName.trim()
+        : AppConstants.libraryName;
     final primaryColor = PdfColor.fromHex('#4F46E5'); // Modern Indigo Accent
     final darkHeader = PdfColor.fromHex('#0F172A'); // Slate 900
     final lightBg = PdfColor.fromHex('#F8FAFC'); // Slate 50
@@ -47,7 +61,7 @@ class ReceiptService {
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
                         pw.Text(
-                          AppConstants.libraryName.toUpperCase(),
+                          paidToName.toUpperCase(),
                           style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 20,
@@ -108,7 +122,7 @@ class ReceiptService {
                     _metaItem('Date & Time', issueDate, null),
                     _metaItem(
                       'Payment Mode',
-                      student.paymentMode.fullLabel,
+                      payment?.paymentMode ?? student.paymentMode.fullLabel,
                       null,
                     ),
                     _metaItem('Status', 'SUCCESSFUL', PdfColors.green700),
@@ -117,6 +131,52 @@ class ReceiptService {
               ),
 
               pw.SizedBox(height: 24),
+
+              // --- BILLING / PAID TO ---
+              pw.Container(
+                padding: const pw.EdgeInsets.all(16),
+                decoration: pw.BoxDecoration(
+                  color: lightBg,
+                  borderRadius: pw.BorderRadius.circular(10),
+                  border: pw.Border.all(color: borderColor),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'PAID TO',
+                      style: pw.TextStyle(
+                        fontSize: 10,
+                        fontWeight: pw.FontWeight.bold,
+                        color: primaryColor,
+                        letterSpacing: .7,
+                      ),
+                    ),
+                    pw.SizedBox(height: 7),
+                    pw.Text(
+                      paidToName,
+                      style: pw.TextStyle(
+                        fontSize: 13,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+                    if (billingDetails.address.trim().isNotEmpty) ...[
+                      pw.SizedBox(height: 3),
+                      pw.Text(billingDetails.address.trim(), style: const pw.TextStyle(fontSize: 9)),
+                    ],
+                    if (billingDetails.phone.trim().isNotEmpty) ...[
+                      pw.SizedBox(height: 3),
+                      pw.Text('Phone: ${billingDetails.phone.trim()}', style: const pw.TextStyle(fontSize: 9)),
+                    ],
+                    if (billingDetails.email.trim().isNotEmpty) ...[
+                      pw.SizedBox(height: 3),
+                      pw.Text('Email: ${billingDetails.email.trim()}', style: const pw.TextStyle(fontSize: 9)),
+                    ],
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 16),
 
               // --- STUDENT & MEMBERSHIP DETAILS GRID ---
               pw.Row(
@@ -145,6 +205,8 @@ class ReceiptService {
                           pw.SizedBox(height: 10),
                           _infoRow('Full Name', student.name, isBold: true),
                           _infoRow('Phone Number', student.phone),
+                          if (student.email.trim().isNotEmpty)
+                            _infoRow('Email ID', student.email),
                           _infoRow(
                             'Student ID',
                             'STU-${student.id.toString().padLeft(4, '0')}',
@@ -197,6 +259,7 @@ class ReceiptService {
                             'Previous Expiry',
                             student.previousExpiry ?? student.expiry,
                           ),
+                          _infoRow('Valid From', student.joined),
                           _infoRow(
                             'Valid Until',
                             newExpiry ?? student.expiry,
@@ -313,7 +376,7 @@ class ReceiptService {
                           pw.Expanded(
                             flex: 2,
                             child: pw.Text(
-                              'Rs. ${student.fee}',
+                              'Rs. ${totalPaid.toStringAsFixed(2)}',
                               textAlign: pw.TextAlign.right,
                               style: pw.TextStyle(
                                 fontSize: 11,
@@ -328,7 +391,21 @@ class ReceiptService {
                 ),
               ),
 
-              pw.SizedBox(height: 20),
+              pw.SizedBox(height: 14),
+
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    _amountRow('Subtotal', subtotal),
+                    if (discount > 0) _amountRow('Discount', -discount),
+                    if (fine > 0) _amountRow('Late fee', fine),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 12),
 
               // --- TOTAL AMOUNT BANNER ---
               pw.Row(
@@ -374,7 +451,7 @@ class ReceiptService {
                           ),
                         ),
                         pw.Text(
-                          'Rs. ${student.fee}',
+                          'Rs. ${totalPaid.toStringAsFixed(2)}',
                           style: pw.TextStyle(
                             color: PdfColors.white,
                             fontSize: 16,
@@ -459,6 +536,20 @@ class ReceiptService {
       filename: 'receipt-${student.id}.pdf',
     );
   }
+
+  static pw.Widget _amountRow(String label, double amount) => pw.Padding(
+    padding: const pw.EdgeInsets.only(bottom: 3),
+    child: pw.Row(
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        pw.Text('$label: ', style: const pw.TextStyle(fontSize: 9)),
+        pw.Text(
+          'Rs. ${amount.toStringAsFixed(2)}',
+          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+        ),
+      ],
+    ),
+  );
 
   static pw.Widget _metaItem(String label, String value, PdfColor? valColor) {
     return pw.Column(

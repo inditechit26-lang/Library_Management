@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../controllers/owner_profile_controller.dart';
+import '../models/billing_details.dart';
 
 class OwnerProfileScreen extends ConsumerStatefulWidget {
   const OwnerProfileScreen({super.key});
@@ -19,6 +20,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
   late TextEditingController _addressController;
   late TextEditingController _openingController;
   late TextEditingController _closingController;
+  late TextEditingController _billingNameController;
+  late TextEditingController _billingAddressController;
+  late TextEditingController _billingPhoneController;
+  late TextEditingController _billingEmailController;
 
   @override
   void initState() {
@@ -32,6 +37,18 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     _addressController = TextEditingController(text: profile.address);
     _openingController = TextEditingController(text: profile.openingTime);
     _closingController = TextEditingController(text: profile.closingTime);
+    _billingNameController = TextEditingController(
+      text: profile.billingDetails.businessName,
+    );
+    _billingAddressController = TextEditingController(
+      text: profile.billingDetails.address,
+    );
+    _billingPhoneController = TextEditingController(
+      text: profile.billingDetails.phone,
+    );
+    _billingEmailController = TextEditingController(
+      text: profile.billingDetails.email,
+    );
   }
 
   @override
@@ -44,6 +61,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     _addressController.dispose();
     _openingController.dispose();
     _closingController.dispose();
+    _billingNameController.dispose();
+    _billingAddressController.dispose();
+    _billingPhoneController.dispose();
+    _billingEmailController.dispose();
     super.dispose();
   }
 
@@ -59,6 +80,12 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
           address: _addressController.text.trim(),
           openingTime: _openingController.text.trim(),
           closingTime: _closingController.text.trim(),
+          billingDetails: BillingDetails(
+            businessName: _billingNameController.text.trim(),
+            address: _billingAddressController.text.trim(),
+            phone: _billingPhoneController.text.trim(),
+            email: _billingEmailController.text.trim(),
+          ),
         );
     setState(() => _isEditing = false);
     ScaffoldMessenger.of(context).showSnackBar(
@@ -220,6 +247,59 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                 label: 'Phone Number',
                 controller: _phoneController,
                 icon: Icons.phone_rounded,
+                isEditing: _isEditing,
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            context,
+            'Billing Details',
+            Icons.receipt_long_outlined,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Shown in the “Paid To” section of payment receipts.',
+            style: TextStyle(
+              fontSize: 12,
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildDetailCard(
+            context,
+            isDark: isDark,
+            children: [
+              _buildField(
+                context,
+                label: 'Library / Business Name',
+                controller: _billingNameController,
+                icon: Icons.business_rounded,
+                isEditing: _isEditing,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'Billing Address',
+                controller: _billingAddressController,
+                icon: Icons.location_on_outlined,
+                isEditing: _isEditing,
+                maxLines: 2,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'Billing Phone',
+                controller: _billingPhoneController,
+                icon: Icons.phone_outlined,
+                isEditing: _isEditing,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'Billing Email',
+                controller: _billingEmailController,
+                icon: Icons.email_outlined,
                 isEditing: _isEditing,
               ),
             ],
