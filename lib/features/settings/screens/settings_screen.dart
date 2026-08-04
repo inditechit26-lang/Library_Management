@@ -8,6 +8,7 @@ import '../../../core/utils/error_handler.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../controllers/owner_profile_controller.dart';
 import '../providers/active_library_provider.dart';
+import '../../update/widgets/animated_app_update_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -328,6 +329,8 @@ class SettingsScreen extends ConsumerWidget {
           colors: const [Color(0xFF288C68), Color(0xFF3AB080)],
           onTap: () => context.push('/settings/data-management'),
         ),
+        const SizedBox(height: 14),
+        const AnimatedAppUpdateTile(),
         const SizedBox(height: 14),
         const _HelpSupport(),
         const SizedBox(height: 12),

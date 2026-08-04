@@ -22,6 +22,8 @@ import '../../features/settings/screens/whatsapp_templates_screen.dart';
 import '../../features/reports/screens/reports_screen.dart';
 import '../widgets/app_shell.dart';
 
+import '../../features/update/screens/update_center_screen.dart';
+
 class GoRouterRefreshStream extends ChangeNotifier {
   late final StreamSubscription<dynamic> _subscription;
 
@@ -131,6 +133,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/profile',
         builder: (context, state) => const OwnerProfileScreen(),
+      ),
+      GoRoute(
+        path: '/settings/update',
+        builder: (context, state) => const UpdateCenterScreen(),
       ),
       GoRoute(
         path: '/settings/about',

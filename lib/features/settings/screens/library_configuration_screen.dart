@@ -1085,19 +1085,16 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
             child: Row(
               children: [
                 for (final section in sections) ...[
-                  GestureDetector(
-                    onLongPress: () => _confirmDeleteSection(context, section),
-                    child: ChoiceChip(
-                      avatar: CircleAvatar(radius: 5, backgroundColor: section.color),
-                      label: Text(section.name),
-                      selected: _selectedSectionId == section.id,
-                      onSelected: (_) {
-                        setState(() {
-                          _selectedSectionId = section.id;
-                          _updateFieldsForSelectedSection();
-                        });
-                      },
-                    ),
+                  ChoiceChip(
+                    avatar: CircleAvatar(radius: 5, backgroundColor: section.color),
+                    label: Text(section.name),
+                    selected: _selectedSectionId == section.id,
+                    onSelected: (_) {
+                      setState(() {
+                        _selectedSectionId = section.id;
+                        _updateFieldsForSelectedSection();
+                      });
+                    },
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -1417,54 +1414,6 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
     if (mounted) {
       setState(() {
         _selectedSectionId = id;
-        _updateFieldsForSelectedSection();
-      });
-    }
-  }
-
-  Future<void> _confirmDeleteSection(
-    BuildContext context,
-    LibrarySection section,
-  ) async {
-    if (widget.configuration.sections.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least one section must remain enabled.')),
-      );
-      return;
-    }
-
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('Delete ${section.name}?'),
-        content: const Text(
-          'This will remove this section from configuration. Seats assigned to this section will remain intact.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true || !context.mounted) return;
-
-    final updatedSections = widget.configuration.sections
-        .where((s) => s.id != section.id)
-        .toList();
-    await ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(widget.configuration.copyWith(sections: updatedSections));
-
-    if (mounted) {
-      setState(() {
-        _selectedSectionId = updatedSections.first.id;
         _updateFieldsForSelectedSection();
       });
     }
