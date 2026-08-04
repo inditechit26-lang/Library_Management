@@ -9,7 +9,7 @@ class UpdateCenterScreen extends ConsumerWidget {
   const UpdateCenterScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final updateState = ref.watch(appUpdateProvider);
     final updateInfo = updateState.updateInfo;
     final downloadState = updateState.downloadState;
