@@ -123,7 +123,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
               scrollDirection: Axis.horizontal,
               children: [
                 ChoiceChip(
-                  label: const Text('All Sections'),
+                  label: Text('All Sections (${all.length})'),
                   selected: selectedSectionId == null,
                   onSelected: (_) => setState(() => selectedSectionId = null),
                   labelStyle: TextStyle(
@@ -137,6 +137,12 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                 const SizedBox(width: 8),
                 ...configuration.enabledSections.map((section) {
                   final active = selectedSectionId == section.id;
+                  final count = all.where((s) {
+                    final st = _student(s, students);
+                    return (s.sectionId != null && s.sectionId == section.id) ||
+                        (st?.sectionId != null && st?.sectionId == section.id) ||
+                        (s.sectionId == null && st?.sectionId == null && section.id == configuration.enabledSections.first.id);
+                  }).length;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
@@ -144,7 +150,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                         radius: 5,
                         backgroundColor: section.color,
                       ),
-                      label: Text(section.name),
+                      label: Text('${section.name} ($count)'),
                       selected: active,
                       onSelected: (_) => setState(() => selectedSectionId = section.id),
                       labelStyle: TextStyle(
