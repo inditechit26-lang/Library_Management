@@ -1,9 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../models/update_info.dart';
 import '../repositories/update_repository.dart';
-import 'version_comparator.dart';
-import 'download_manager.dart';
+import '../services/version_comparator.dart';
+import '../services/download_manager.dart';
 
 final updateRepositoryProvider = Provider<UpdateRepository>((ref) {
   return UpdateRepository();
