@@ -29,18 +29,26 @@ class _SeatCardState extends State<SeatCard> {
   Color get statusColor {
     if (widget.student?.payment == PaymentStatus.pending ||
         widget.student?.payment == PaymentStatus.expired) {
-      return const Color(0xFFE35353);
+      return const Color(0xFFDC2626);
+    }
+    if (widget.seat.status == SeatStatus.occupied && widget.student != null) {
+      final isFemale = widget.student!.gender.toLowerCase() == 'female';
+      return isFemale ? const Color(0xFFDB2777) : const Color(0xFF2563EB);
     }
     return switch (widget.seat.status) {
-      SeatStatus.available => const Color(0xFFD9DCE3),
-      SeatStatus.occupied => const Color(0xFF28A176),
-      SeatStatus.reserved => const Color(0xFFF19A38),
-      SeatStatus.maintenance => const Color(0xFF697080),
-      SeatStatus.blocked => const Color(0xFF353A46),
+      SeatStatus.available => const Color(0xFF10B981),
+      SeatStatus.occupied => const Color(0xFF2563EB),
+      SeatStatus.reserved => const Color(0xFFD97706),
+      SeatStatus.maintenance => const Color(0xFF6B7280),
+      SeatStatus.blocked => const Color(0xFF475569),
     };
   }
 
-  String get displayNumber => widget.seat.seatLabel;
+  String get displayNumber {
+    final raw = widget.seat.seatLabel;
+    final digitsOnly = raw.replaceAll(RegExp(r'\D'), '');
+    return digitsOnly.isNotEmpty ? digitsOnly : raw;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,13 +57,13 @@ class _SeatCardState extends State<SeatCard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Theme accents per status
+    // Light pastel colors per status and gender
     final Color cardBg;
     final Color borderColor;
     final List<BoxShadow> cardShadows;
 
     if (widget.selected) {
-      cardBg = isDark ? const Color(0xFF2C2454) : const Color(0xFFF0ECFE);
+      cardBg = isDark ? const Color(0xFF2E2452) : const Color(0xFFEEF2FF);
       borderColor = const Color(0xFF6366F1);
       cardShadows = [
         BoxShadow(
@@ -67,10 +75,10 @@ class _SeatCardState extends State<SeatCard> {
     } else if (widget.seat.status == SeatStatus.occupied) {
       if (widget.student?.payment == PaymentStatus.pending ||
           widget.student?.payment == PaymentStatus.expired) {
-        cardBg = isDark ? const Color(0xFF2A1C20) : const Color(0xFFFFF5F5);
+        cardBg = isDark ? const Color(0xFF2D1B20) : const Color(0xFFFEF2F2);
         borderColor = isDark
-            ? const Color(0xFF4A252B)
-            : const Color(0xFFFEE2E2);
+            ? const Color(0xFF5A232A)
+            : const Color(0xFFFCA5A5);
         cardShadows = [
           BoxShadow(
             color: const Color(0xFFEF4444).withOpacity(0.12),
@@ -79,41 +87,58 @@ class _SeatCardState extends State<SeatCard> {
           ),
         ];
       } else {
-        cardBg = isDark ? const Color(0xFF192523) : const Color(0xFFF0FDF4);
-        borderColor = isDark
-            ? const Color(0xFF1E3A34)
-            : const Color(0xFFDCFCE7);
-        cardShadows = [
-          BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ];
+        final isFemale = widget.student?.gender.toLowerCase() == 'female';
+        if (isFemale) {
+          // Soft Light Pink for Female/Girls
+          cardBg = isDark ? const Color(0xFF2E1A24) : const Color(0xFFFDF2F8);
+          borderColor = isDark
+              ? const Color(0xFF5B2138)
+              : const Color(0xFFFBCFE8);
+          cardShadows = [
+            BoxShadow(
+              color: const Color(0xFFEC4899).withOpacity(0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ];
+        } else {
+          // Soft Light Blue for Male/Boys
+          cardBg = isDark ? const Color(0xFF1B2436) : const Color(0xFFEFF6FF);
+          borderColor = isDark
+              ? const Color(0xFF233554)
+              : const Color(0xFFBFDBFE);
+          cardShadows = [
+            BoxShadow(
+              color: const Color(0xFF3B82F6).withOpacity(0.12),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ];
+        }
       }
     } else if (widget.seat.status == SeatStatus.blocked) {
-      cardBg = isDark ? const Color(0xFF1F2128) : const Color(0xFFF1F5F9);
-      borderColor = isDark ? const Color(0xFF2A2D38) : const Color(0xFFE2E8F0);
+      cardBg = isDark ? const Color(0xFF1E212B) : const Color(0xFFF1F5F9);
+      borderColor = isDark ? const Color(0xFF2A2E3D) : const Color(0xFFE2E8F0);
       cardShadows = [];
     } else if (widget.seat.status == SeatStatus.maintenance) {
-      cardBg = isDark ? const Color(0xFF22242E) : const Color(0xFFF8FAFC);
-      borderColor = isDark ? const Color(0xFF2E3242) : const Color(0xFFE2E8F0);
+      cardBg = isDark ? const Color(0xFF222533) : const Color(0xFFF8FAFC);
+      borderColor = isDark ? const Color(0xFF2E3345) : const Color(0xFFE2E8F0);
       cardShadows = [];
     } else {
-      // Available seat
-      cardBg = isDark ? const Color(0xFF1C2030) : Colors.white;
+      // Available seat: Soft light emerald/mint tint
+      cardBg = isDark ? const Color(0xFF172421) : const Color(0xFFF0FDF4);
       borderColor = hovered
-          ? const Color(0xFF6366F1).withOpacity(0.5)
+          ? const Color(0xFF10B981)
           : isDark
-          ? const Color(0xFF2A2F45)
-          : const Color(0xFFE2E8F0);
+          ? const Color(0xFF1E3A34)
+          : const Color(0xFFBBF7D0);
       cardShadows = [
         BoxShadow(
           color: hovered
-              ? const Color(0xFF6366F1).withOpacity(0.18)
+              ? const Color(0xFF10B981).withOpacity(0.18)
               : isDark
-              ? Colors.black.withOpacity(0.3)
-              : const Color(0xFF1E2238).withOpacity(0.05),
+              ? Colors.black.withOpacity(0.2)
+              : const Color(0xFF10B981).withOpacity(0.06),
           blurRadius: hovered ? 18 : 10,
           offset: Offset(0, hovered ? 6 : 4),
         ),
