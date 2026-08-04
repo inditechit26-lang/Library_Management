@@ -65,7 +65,17 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        SeatSummaryCards(seats: all, students: students),
+        SeatSummaryCards(
+          seats: selectedSectionId == null
+              ? all
+              : all.where((s) {
+                  final st = _student(s, students);
+                  return (s.sectionId != null && s.sectionId == selectedSectionId) ||
+                      (st?.sectionId != null && st?.sectionId == selectedSectionId) ||
+                      (s.sectionId == null && st?.sectionId == null && selectedSectionId == configuration.enabledSections.firstOrNull?.id);
+                }).toList(),
+          students: students,
+        ),
         const SizedBox(height: 24),
         Row(
           children: [
@@ -179,6 +189,9 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
             key: ValueKey('$selectedSectionId-$filter-$query-${visible.length}'),
             seats: visible,
             students: students,
+            sectionNames: {
+              for (final sec in configuration.enabledSections) sec.id: sec.name,
+            },
             onTap: _open,
           ),
         ),

@@ -5,14 +5,16 @@ import '../models/seat.dart';
 class SeatCard extends StatefulWidget {
   final Seat seat;
   final Student? student;
+  final String? sectionName;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool compact, selected, disabled;
   const SeatCard({
     super.key,
     required this.seat,
-    this.onTap,
     this.student,
+    this.sectionName,
+    this.onTap,
     this.onLongPress,
     this.compact = false,
     this.selected = false,
@@ -224,6 +226,26 @@ class _SeatCardState extends State<SeatCard> {
                           ),
                         ],
                       ),
+                      if (widget.sectionName != null && widget.sectionName!.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            widget.sectionName!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w800,
+                              color: statusColor,
+                            ),
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       if (occupied)
                         Row(

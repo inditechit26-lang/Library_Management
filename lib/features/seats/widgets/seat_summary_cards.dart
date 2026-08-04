@@ -13,8 +13,8 @@ class SeatSummaryCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final acCount = seats.where((s) => s.category == SeatCategory.ac).length;
-    final nonAcCount = seats.where((s) => s.category == SeatCategory.nonAc).length;
+    final occupiedCount = seats.where((s) => s.status == SeatStatus.occupied).length;
+    final availableCount = seats.where((s) => s.status == SeatStatus.available).length;
 
     final items = [
       _Metric(
@@ -24,16 +24,16 @@ class SeatSummaryCards extends StatelessWidget {
         const Color(0xFF625CDB),
       ),
       _Metric(
-        'AC Section',
-        acCount,
-        Icons.ac_unit_rounded,
-        const Color(0xFF0284C7),
+        'Occupied',
+        occupiedCount,
+        Icons.person_rounded,
+        const Color(0xFF2563EB),
       ),
       _Metric(
-        'Non-AC Section',
-        nonAcCount,
-        Icons.wb_sunny_rounded,
-        const Color(0xFFD97706),
+        'Available',
+        availableCount,
+        Icons.check_circle_outline_rounded,
+        const Color(0xFF10B981),
       ),
     ];
     return Container(

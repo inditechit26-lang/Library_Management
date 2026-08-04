@@ -8,6 +8,7 @@ import 'seat_card.dart';
 class SeatMap extends StatelessWidget {
   final List<Seat> seats;
   final List<Student> students;
+  final Map<String, String>? sectionNames;
   final ValueChanged<Seat> onTap;
   final ValueChanged<Seat>? onLongPress;
   final String? selectedSeat;
@@ -17,6 +18,7 @@ class SeatMap extends StatelessWidget {
     super.key,
     required this.seats,
     required this.students,
+    this.sectionNames,
     required this.onTap,
     this.onLongPress,
     this.selectedSeat,
@@ -175,13 +177,18 @@ class SeatMap extends StatelessWidget {
                   ),
                   itemBuilder: (context, index) {
                     final seat = seats[index];
+                    final student = _studentFor(seat);
+                    final secId = seat.sectionId ?? student?.sectionId;
+                    final secName = secId != null ? sectionNames?[secId] : null;
+
                     return Hero(
                       tag: 'seat-${seat.seatId}',
                       child: Material(
                         color: Colors.transparent,
                         child: SeatCard(
                           seat: seat,
-                          student: _studentFor(seat),
+                          student: student,
+                          sectionName: secName,
                           compact: true,
                           selected: seat.seatId == selectedSeat,
                           disabled:
