@@ -20,15 +20,12 @@ class UpdateCenterScreen extends ConsumerWidget {
     final releaseDate = updateInfo?.releaseDate.isNotEmpty == true
         ? updateInfo!.releaseDate
         : 'Recent Release';
-    final apkSize = updateInfo?.apkSize.isNotEmpty == true ? updateInfo!.apkSize : 'Standard';
-    final updateType = updateInfo?.updateType ?? 'Flexible';
-    final changelog = updateInfo?.changelog ?? [];
+    final apkSize = updateInfo?.apkSize.isNotEmpty == true
+        ? updateInfo!.apkSize
+        : 'Standard';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Update Center'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('Update Center'), centerTitle: false),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
         children: [
@@ -40,9 +37,7 @@ class UpdateCenterScreen extends ConsumerWidget {
                   ? colors.primaryContainer.withValues(alpha: 0.3)
                   : colors.primaryContainer.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.2),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -148,85 +143,21 @@ class UpdateCenterScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _InfoTile(
-                  label: 'Update Priority',
-                  value: updateType,
-                  icon: Icons.security_rounded,
-                ),
               ],
             ),
           ),
 
           const SizedBox(height: 16),
 
-          // What's New / Changelog Card
-          if (changelog.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: colors.outlineVariant),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.notes_rounded, size: 18, color: colors.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        "What's New in $latestVersion",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: colors.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  for (final item in changelog) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '• ',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: colors.primary,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              item.replaceAll(RegExp(r'^[•\-\*]\s*'), ''),
-                              style: TextStyle(
-                                fontSize: 13,
-                                height: 1.4,
-                                color: colors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
           // Download & Progress Section
           _DownloadSection(
             downloadState: downloadState,
-            onStartDownload: () => ref.read(appUpdateProvider.notifier).startDownload(),
-            onCancelDownload: () => ref.read(appUpdateProvider.notifier).cancelDownload(),
-            onResetDownload: () => ref.read(appUpdateProvider.notifier).resetDownload(),
+            onStartDownload: () =>
+                ref.read(appUpdateProvider.notifier).startDownload(),
+            onCancelDownload: () =>
+                ref.read(appUpdateProvider.notifier).cancelDownload(),
+            onResetDownload: () =>
+                ref.read(appUpdateProvider.notifier).resetDownload(),
           ),
         ],
       ),
@@ -326,7 +257,8 @@ class _DownloadSection extends StatelessWidget {
 
     if (downloadState.status == DownloadStatus.downloading) {
       final percentage = (downloadState.progress * 100).toStringAsFixed(1);
-      final downloadedMb = (downloadState.downloadedBytes / (1024 * 1024)).toStringAsFixed(1);
+      final downloadedMb = (downloadState.downloadedBytes / (1024 * 1024))
+          .toStringAsFixed(1);
       final totalMb = downloadState.totalBytes > 0
           ? (downloadState.totalBytes / (1024 * 1024)).toStringAsFixed(1)
           : 'Unknown';
@@ -434,7 +366,11 @@ class _DownloadSection extends StatelessWidget {
         ),
         child: Column(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Color(0xFF3AB080), size: 48),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Color(0xFF3AB080),
+              size: 48,
+            ),
             const SizedBox(height: 10),
             Text(
               '✓ Update Ready',
@@ -448,10 +384,7 @@ class _DownloadSection extends StatelessWidget {
             Text(
               'The update APK has been downloaded successfully.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: colors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
             ),
             const SizedBox(height: 18),
             Row(
@@ -524,10 +457,7 @@ class _DownloadSection extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               downloadState.errorMessage,
-              style: TextStyle(
-                fontSize: 12,
-                color: colors.onSurfaceVariant,
-              ),
+              style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
             ),
           ],
           const SizedBox(height: 14),
