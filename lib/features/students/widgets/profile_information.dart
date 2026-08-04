@@ -21,6 +21,7 @@ class StudentInformationCard extends StatelessWidget {
     children: [
       _Row('Student Name', student.name),
       _Row('Phone Number', student.phone),
+      _Row('Gender', student.gender),
       if (student.emergencyContact.isNotEmpty)
         _Row('Emergency Contact', student.emergencyContact),
       _Row('Joining Date', student.joined),

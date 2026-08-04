@@ -12,6 +12,7 @@ class Seat {
   final SeatStatus status;
   final SeatCategory category;
   final int? studentId;
+  final String? sectionId;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -23,6 +24,7 @@ class Seat {
     required this.createdAt,
     required this.updatedAt,
     this.studentId,
+    this.sectionId,
   });
 
   Seat copyWith({
@@ -30,6 +32,7 @@ class Seat {
     SeatStatus? status,
     SeatCategory? category,
     int? studentId,
+    String? sectionId,
     bool clearStudent = false,
     DateTime? updatedAt,
   }) => Seat(
@@ -38,6 +41,7 @@ class Seat {
     status: status ?? this.status,
     category: category ?? this.category,
     studentId: clearStudent ? null : studentId ?? this.studentId,
+    sectionId: sectionId ?? this.sectionId,
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );

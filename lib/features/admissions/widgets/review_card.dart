@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import '../../../core/utils/formatters.dart';
 
 class AdmissionReviewCard extends StatelessWidget {
-  final String student, membership, seat, joining, expiry, payment;
+  final String student, gender, membership, seat, joining, expiry, payment;
   final double fee;
   const AdmissionReviewCard({
     super.key,
     required this.student,
+    required this.gender,
     required this.membership,
     required this.seat,
     required this.fee,
@@ -34,6 +35,7 @@ class AdmissionReviewCard extends StatelessWidget {
       child: Column(
         children: [
           _Row('Student', student),
+          _Row('Gender', gender),
           _Row('Membership', membership),
           _Row('Seat', seat),
           _Row('Fee', money(fee)),

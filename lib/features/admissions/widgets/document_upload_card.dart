@@ -78,6 +78,7 @@ class DocumentUploadCard extends StatelessWidget {
                     icon: item.$2,
                     selected: uploaded.contains(item.$1),
                     onTap: () => _chooseSource(context, item.$1),
+                    onDelete: () => onToggle(item.$1),
                   ),
                 )
                 .toList(),
@@ -88,6 +89,7 @@ class DocumentUploadCard extends StatelessWidget {
   }
 
   Future<void> _chooseSource(BuildContext context, String label) async {
+    final isUploaded = uploaded.contains(label);
     final source = await showModalBottomSheet<String>(
       context: context,
       builder: (sheetContext) => SafeArea(
@@ -105,7 +107,15 @@ class DocumentUploadCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              ...const [
+              if (isUploaded) ...[
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.red),
+                  title: const Text('Delete / Remove Document', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                  onTap: () => Navigator.pop(sheetContext, 'delete'),
+                ),
+                const Divider(),
+              ],
+              ...[
                 ('Camera', Icons.photo_camera_outlined, 'camera'),
                 ('Gallery', Icons.photo_library_outlined, 'gallery'),
                 ('PDF', Icons.picture_as_pdf_outlined, 'pdf'),
@@ -113,7 +123,7 @@ class DocumentUploadCard extends StatelessWidget {
               ].map(
                 (item) => ListTile(
                   leading: Icon(item.$2),
-                  title: Text(item.$1),
+                  title: Text(isUploaded ? 'Replace with ${item.$1}' : item.$1),
                   onTap: () => Navigator.pop(sheetContext, item.$3),
                 ),
               ),
@@ -123,6 +133,12 @@ class DocumentUploadCard extends StatelessWidget {
       ),
     );
     if (source == null) return;
+    if (source == 'delete') {
+      if (uploaded.contains(label)) {
+        onToggle(label);
+      }
+      return;
+    }
     bool selected = false;
     if (source == 'camera' || source == 'gallery') {
       final file = await ImagePicker().pickImage(
@@ -145,12 +161,16 @@ class _Document extends StatelessWidget {
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onDelete;
+
   const _Document({
     required this.label,
     required this.icon,
     required this.selected,
     required this.onTap,
+    required this.onDelete,
   });
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -174,7 +194,7 @@ class _Document extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.only(left: 10, right: 4),
           decoration: BoxDecoration(
             border: Border.all(color: border),
             borderRadius: BorderRadius.circular(14),
@@ -186,10 +206,12 @@ class _Document extends StatelessWidget {
                 size: 19,
                 color: selected ? colors.primary : colors.onSurfaceVariant,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -197,6 +219,18 @@ class _Document extends StatelessWidget {
                   ),
                 ),
               ),
+              if (selected)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  color: colors.error,
+                  tooltip: 'Delete document',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 26,
+                    minHeight: 26,
+                  ),
+                  onPressed: onDelete,
+                ),
             ],
           ),
         ),
@@ -204,3 +238,4 @@ class _Document extends StatelessWidget {
     );
   }
 }
+

@@ -11,6 +11,7 @@ import '../controllers/library_configuration_controller.dart';
 import '../controllers/payment_settings_controller.dart';
 import '../models/library_configuration.dart';
 import '../models/pricing_settings.dart';
+import '../../seats/controllers/seats_controller.dart';
 
 class LibraryConfigurationScreen extends ConsumerWidget {
   const LibraryConfigurationScreen({super.key});
@@ -718,20 +719,29 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
           ),
         ),
         const SizedBox(height: 14),
-        SegmentedButton<String>(
-          segments: [
-            for (final item in widget.configuration.sections)
-              ButtonSegment(
-                value: item.id,
-                icon: Icon(Icons.circle, size: 12, color: item.color),
-                label: Text(item.name),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final item in widget.configuration.sections) ...[
+                GestureDetector(
+                  onLongPress: () => _confirmDeleteSection(context, item),
+                  child: ChoiceChip(
+                    avatar: CircleAvatar(radius: 5, backgroundColor: item.color),
+                    label: Text(item.name),
+                    selected: _selectedSectionId == item.id,
+                    onSelected: (_) => setState(() => _selectedSectionId = item.id),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              ActionChip(
+                avatar: const Icon(Icons.add_rounded, size: 16),
+                label: const Text('Add Section'),
+                onPressed: () => _addSection(context),
               ),
-          ],
-          selected: {_selectedSectionId},
-          showSelectedIcon: false,
-          onSelectionChanged: (value) {
-            setState(() => _selectedSectionId = value.first);
-          },
+            ],
+          ),
         ),
         const SizedBox(height: 14),
         SegmentedButton<bool>(
@@ -791,6 +801,117 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
     return ref
         .read(libraryConfigurationProvider.notifier)
         .save(widget.configuration.copyWith(sections: sections));
+  }
+
+  Future<void> _addSection(BuildContext context) async {
+    final textController = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Add Hall Section'),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Section Name',
+            hintText: 'e.g. Girls Section, Boys Section',
+          ),
+          onSubmitted: (val) {
+            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
+            },
+            child: const Text('Add Section'),
+          ),
+        ],
+      ),
+    );
+    textController.dispose();
+    if (name == null || name.trim().isEmpty) return;
+    final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
+    if (widget.configuration.sections.any((s) => s.id == id)) return;
+
+    final colors = [
+      0xFFE91E63, // Pink (Girls)
+      0xFF2196F3, // Blue (Boys)
+      0xFF4CAF50, // Green (General)
+      0xFFFF9800, // Orange
+      0xFF9C27B0, // Purple
+    ];
+    final color = colors[widget.configuration.sections.length % colors.length];
+
+    final newSection = LibrarySection(
+      id: id,
+      name: name.trim(),
+      colorValue: color,
+    );
+
+    final updatedSections = [...widget.configuration.sections, newSection];
+    await ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(sections: updatedSections));
+    if (mounted) {
+      setState(() => _selectedSectionId = id);
+    }
+  }
+
+  Future<void> _confirmDeleteSection(
+    BuildContext context,
+    LibrarySection section,
+  ) async {
+    if (widget.configuration.sections.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least one section must remain enabled.')),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Delete ${section.name}?'),
+        content: Text(
+          'Are you sure you want to delete "${section.name}"? This section will be removed from library settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete Section'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    final updatedSections = widget.configuration.sections
+        .where((s) => s.id != section.id)
+        .toList();
+
+    await ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(sections: updatedSections));
+
+    if (mounted) {
+      setState(() {
+        _selectedSectionId = updatedSections.first.id;
+      });
+    }
   }
 }
 
@@ -909,77 +1030,128 @@ class _SeatNumbering extends ConsumerStatefulWidget {
 }
 
 class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
+  String? _selectedSectionId;
   late int startingNumber;
   late int endingNumber;
   late String prefix;
   late String endingPrefix;
   late int numbersPerPrefix;
 
+  void _updateFieldsForSelectedSection() {
+    final sections = widget.configuration.enabledSections;
+    _selectedSectionId ??= sections.isEmpty ? null : sections.first.id;
+    final section = sections.firstWhere(
+      (s) => s.id == _selectedSectionId,
+      orElse: () => sections.first,
+    );
+    final numbering = section.seatNumbering ?? widget.configuration.seatNumbering;
+    startingNumber = numbering.startingNumber;
+    endingNumber = numbering.endingNumber;
+    prefix = numbering.prefix;
+    endingPrefix = numbering.endingPrefix;
+    numbersPerPrefix = numbering.numbersPerPrefix;
+  }
+
   @override
   void initState() {
     super.initState();
-    startingNumber = widget.configuration.seatNumbering.startingNumber;
-    endingNumber = widget.configuration.seatNumbering.endingNumber;
-    prefix = widget.configuration.seatNumbering.prefix;
-    endingPrefix = widget.configuration.seatNumbering.endingPrefix;
-    numbersPerPrefix = widget.configuration.seatNumbering.numbersPerPrefix;
+    _updateFieldsForSelectedSection();
   }
 
   @override
   void didUpdateWidget(covariant _SeatNumbering oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.configuration.seatNumbering !=
-        widget.configuration.seatNumbering) {
-      startingNumber = widget.configuration.seatNumbering.startingNumber;
-      endingNumber = widget.configuration.seatNumbering.endingNumber;
-      prefix = widget.configuration.seatNumbering.prefix;
-      endingPrefix = widget.configuration.seatNumbering.endingPrefix;
-      numbersPerPrefix = widget.configuration.seatNumbering.numbersPerPrefix;
-    }
+    _updateFieldsForSelectedSection();
   }
 
   @override
-  Widget build(BuildContext context) => RadioGroup<SeatNumberingStyle>(
-    groupValue: widget.configuration.seatNumbering.style,
-    onChanged: (value) => ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(
-          widget.configuration.copyWith(
-            seatNumbering: widget.configuration.seatNumbering.copyWith(
-              style: value,
+  Widget build(BuildContext context) {
+    final sections = widget.configuration.enabledSections;
+    _selectedSectionId ??= sections.isEmpty ? null : sections.first.id;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (sections.isNotEmpty) ...[
+          Text(
+            'Select Hall Section to Configure',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ),
-    child: Column(
-      children: SeatNumberingStyle.values
-          .map(
-            (style) => AnimatedSize(
-              duration: const Duration(milliseconds: 220),
-              curve: Curves.easeOutCubic,
-              alignment: Alignment.topCenter,
-              child: Column(
-                children: [
-                  _SettingRow(
-                    icon: _numberingIcon(style),
-                    title: _numberingTitle(style),
-                    description: _numberingExample(style),
-                    trailing: Radio<SeatNumberingStyle>(value: style),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final section in sections) ...[
+                  ChoiceChip(
+                    avatar: CircleAvatar(radius: 5, backgroundColor: section.color),
+                    label: Text(section.name),
+                    selected: _selectedSectionId == section.id,
+                    onSelected: (_) {
+                      setState(() {
+                        _selectedSectionId = section.id;
+                        _updateFieldsForSelectedSection();
+                      });
+                    },
                   ),
-                  if (widget.configuration.seatNumbering.style == style)
-                    _numberingFields(style),
+                  const SizedBox(width: 8),
                 ],
-              ),
+              ],
             ),
-          )
-          .toList(),
-    ),
-  );
+          ),
+          const SizedBox(height: 14),
+        ],
+        RadioGroup<SeatNumberingStyle>(
+          groupValue: widget.configuration.seatNumbering.style,
+          onChanged: (value) => ref
+              .read(libraryConfigurationProvider.notifier)
+              .save(
+                widget.configuration.copyWith(
+                  seatNumbering: widget.configuration.seatNumbering.copyWith(
+                    style: value,
+                  ),
+                ),
+              ),
+          child: Column(
+            children: SeatNumberingStyle.values
+                .map(
+                  (style) => AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      children: [
+                        _SettingRow(
+                          icon: _numberingIcon(style),
+                          title: _numberingTitle(style),
+                          description: _numberingExample(style),
+                          trailing: Radio<SeatNumberingStyle>(value: style),
+                        ),
+                        if (widget.configuration.seatNumbering.style == style)
+                          _numberingFields(style),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _numberingFields(SeatNumberingStyle style) {
     final showPrefix = style == SeatNumberingStyle.alphabetic;
     const showStartingNumber = true;
     final colors = Theme.of(context).colorScheme;
+    final currentSectionName = _selectedSectionId != null
+        ? widget.configuration.sections.firstWhere((s) => s.id == _selectedSectionId, orElse: () => widget.configuration.sections.first).name
+        : 'All Sections';
+
     return Container(
+      key: ValueKey('numbering-fields-container-$_selectedSectionId'),
       width: double.infinity,
       margin: const EdgeInsets.fromLTRB(34, 2, 0, 10),
       padding: const EdgeInsets.all(14),
@@ -995,7 +1167,7 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
               children: [
                 Expanded(
                   child: TextFormField(
-                    key: const ValueKey('numbering-prefix'),
+                    key: ValueKey('numbering-prefix-$_selectedSectionId-$prefix'),
                     initialValue: prefix,
                     textCapitalization: TextCapitalization.characters,
                     maxLength: 1,
@@ -1011,7 +1183,7 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
-                    key: const ValueKey('numbering-ending-prefix'),
+                    key: ValueKey('numbering-ending-prefix-$_selectedSectionId-$endingPrefix'),
                     initialValue: endingPrefix,
                     textCapitalization: TextCapitalization.characters,
                     maxLength: 1,
@@ -1030,7 +1202,7 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
           if (showPrefix) ...[
             const SizedBox(height: 10),
             TextFormField(
-              key: const ValueKey('numbering-per-prefix'),
+              key: ValueKey('numbering-per-prefix-$_selectedSectionId-$numbersPerPrefix'),
               initialValue: numbersPerPrefix.toString(),
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
@@ -1047,7 +1219,7 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
               children: [
                 Expanded(
                   child: TextFormField(
-                    key: const ValueKey('numbering-start'),
+                    key: ValueKey('numbering-start-$_selectedSectionId-$startingNumber'),
                     initialValue: startingNumber.toString(),
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
@@ -1063,7 +1235,7 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
-                      key: const ValueKey('numbering-end'),
+                      key: ValueKey('numbering-end-$_selectedSectionId-$endingNumber'),
                       initialValue: endingNumber.toString(),
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
@@ -1080,12 +1252,12 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
             ),
           const SizedBox(height: 12),
           Text(
-            'Preview',
+            'Preview for $currentSectionName',
             style: Theme.of(
               context,
             ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Wrap(
             spacing: 7,
             runSpacing: 7,
@@ -1093,12 +1265,13 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
               style,
             ).map((label) => Chip(label: Text(label))).toList(),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
-            child: FilledButton.tonal(
+            child: FilledButton.icon(
+              icon: const Icon(Icons.save_rounded, size: 18),
               onPressed: _saveNumbering,
-              child: const Text('Save numbering'),
+              label: Text('Save $currentSectionName Numbering'),
             ),
           ),
         ],
@@ -1132,26 +1305,48 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
     return labels;
   }
 
-  Future<void> _saveNumbering() {
+  Future<void> _saveNumbering() async {
     final cleanPrefix = prefix.trim().toUpperCase();
     final cleanEndingPrefix = endingPrefix.trim().toUpperCase();
-    return ref
+    final newNumbering = widget.configuration.seatNumbering.copyWith(
+      startingNumber: startingNumber < 1 ? 1 : startingNumber,
+      endingNumber: endingNumber < startingNumber
+          ? startingNumber
+          : endingNumber,
+      prefix: cleanPrefix.isEmpty ? 'A' : cleanPrefix,
+      endingPrefix: cleanEndingPrefix.isEmpty
+          ? (cleanPrefix.isEmpty ? 'A' : cleanPrefix)
+          : cleanEndingPrefix,
+      numbersPerPrefix: numbersPerPrefix < 1 ? 1 : numbersPerPrefix,
+    );
+
+    final sections = widget.configuration.sections.map((section) {
+      if (section.id == _selectedSectionId) {
+        return section.copyWith(seatNumbering: newNumbering);
+      }
+      return section;
+    }).toList();
+
+    await ref
         .read(libraryConfigurationProvider.notifier)
         .save(
           widget.configuration.copyWith(
-            seatNumbering: widget.configuration.seatNumbering.copyWith(
-              startingNumber: startingNumber < 1 ? 1 : startingNumber,
-              endingNumber: endingNumber < startingNumber
-                  ? startingNumber
-                  : endingNumber,
-              prefix: cleanPrefix.isEmpty ? 'A' : cleanPrefix,
-              endingPrefix: cleanEndingPrefix.isEmpty
-                  ? (cleanPrefix.isEmpty ? 'A' : cleanPrefix)
-                  : cleanEndingPrefix,
-              numbersPerPrefix: numbersPerPrefix < 1 ? 1 : numbersPerPrefix,
-            ),
+            sections: sections,
+            seatNumbering: newNumbering,
           ),
         );
+
+    if (_selectedSectionId != null) {
+      await ref
+          .read(seatsProvider.notifier)
+          .applySectionNumbering(_selectedSectionId!, newNumbering);
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Section seat numbering saved & generated successfully!')),
+      );
+    }
   }
 }
 

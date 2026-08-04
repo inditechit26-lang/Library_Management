@@ -4,6 +4,9 @@ import 'package:flutter/services.dart';
 class StudentInformationCard extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController name, phone, emergency, notes;
+  final String selectedGender;
+  final ValueChanged<String> onGenderChanged;
+
   const StudentInformationCard({
     super.key,
     required this.formKey,
@@ -11,6 +14,8 @@ class StudentInformationCard extends StatelessWidget {
     required this.phone,
     required this.emergency,
     required this.notes,
+    required this.selectedGender,
+    required this.onGenderChanged,
   });
 
   @override
@@ -33,6 +38,7 @@ class StudentInformationCard extends StatelessWidget {
           ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             TextFormField(
               controller: name,
@@ -64,6 +70,46 @@ class StudentInformationCard extends StatelessWidget {
                   : null,
             ),
             const SizedBox(height: 13),
+            Text(
+              'Gender',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 6),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment<String>(
+                  value: 'Male',
+                  label: Text('Male'),
+                  icon: Icon(Icons.male, size: 18),
+                ),
+                ButtonSegment<String>(
+                  value: 'Female',
+                  label: Text('Female'),
+                  icon: Icon(Icons.female, size: 18),
+                ),
+                ButtonSegment<String>(
+                  value: 'Other',
+                  label: Text('Other'),
+                  icon: Icon(Icons.transgender, size: 18),
+                ),
+              ],
+              selected: {selectedGender},
+              onSelectionChanged: (newSelection) {
+                if (newSelection.isNotEmpty) {
+                  onGenderChanged(newSelection.first);
+                }
+              },
+              showSelectedIcon: false,
+              style: ButtonStyle(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            const SizedBox(height: 13),
             TextFormField(
               controller: emergency,
               keyboardType: TextInputType.phone,
@@ -91,3 +137,4 @@ class StudentInformationCard extends StatelessWidget {
     );
   }
 }
+

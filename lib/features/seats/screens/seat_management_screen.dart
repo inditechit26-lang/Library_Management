@@ -22,6 +22,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
   final searchController = TextEditingController();
   final searchFocus = FocusNode();
   String filter = 'All', query = '';
+  String? selectedSectionId;
   bool showSearch = false;
 
   @override
@@ -108,13 +109,59 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                 final label = configuration.nextSeatLabel(
                   all.map((seat) => seat.seatLabel),
                 );
-                ref.read(seatsProvider.notifier).add(label);
+                ref.read(seatsProvider.notifier).add(label, sectionId: selectedSectionId);
               },
               icon: const Icon(Icons.add_rounded, size: 20),
             ),
           ],
         ),
         const SizedBox(height: 14),
+        if (configuration.enabledSections.isNotEmpty) ...[
+          SizedBox(
+            height: 38,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                ChoiceChip(
+                  label: const Text('All Sections'),
+                  selected: selectedSectionId == null,
+                  onSelected: (_) => setState(() => selectedSectionId = null),
+                  labelStyle: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: selectedSectionId == null
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ...configuration.enabledSections.map((section) {
+                  final active = selectedSectionId == section.id;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: section.color,
+                      ),
+                      label: Text(section.name),
+                      selected: active,
+                      onSelected: (_) => setState(() => selectedSectionId = section.id),
+                      labelStyle: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: active
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
         SeatFilterBar(
           selected: filter,
           onSelected: (value) => setState(() => filter = value),
@@ -123,7 +170,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: SeatMap(
-            key: ValueKey('$filter-$query-${visible.length}'),
+            key: ValueKey('$selectedSectionId-$filter-$query-${visible.length}'),
             seats: visible,
             students: students,
             onTap: _open,
@@ -143,19 +190,31 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
   }
 
   bool _matches(Seat seat, List<Student> students) {
-    final student = _student(seat, students), q = query.trim().toLowerCase();
-    final searched =
-        q.isEmpty ||
+    final student = _student(seat, students);
+    final q = query.trim().toLowerCase();
+
+    final searched = q.isEmpty ||
         '${seat.seatLabel} ${student?.name ?? ''} ${student?.phone ?? ''}'
             .toLowerCase()
             .contains(q);
+
     final filtered = switch (filter) {
       'Available' => seat.status == SeatStatus.available,
       'Occupied' => seat.status == SeatStatus.occupied,
       'Pending' => student != null && student.payment != PaymentStatus.paid,
       _ => true,
     };
-    return searched && filtered;
+
+    if (selectedSectionId == null) return searched && filtered;
+
+    final seatSec = seat.sectionId;
+    final studentSec = student?.sectionId;
+
+    final sectionMatch = (seatSec != null && seatSec == selectedSectionId) ||
+        (studentSec != null && studentSec == selectedSectionId) ||
+        (seatSec == null && studentSec == null);
+
+    return searched && filtered && sectionMatch;
   }
 
   Student? _student(Seat seat, List<Student> students) {

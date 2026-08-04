@@ -43,6 +43,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
   final phone = TextEditingController();
   final emergency = TextEditingController();
   final notes = TextEditingController();
+  String _selectedGender = 'Male';
   Student? created;
   bool _isSubmitting = false;
   static const titles = [
@@ -163,6 +164,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
           phone: phone,
           emergency: emergency,
           notes: notes,
+          selectedGender: _selectedGender,
+          onGenderChanged: (gender) => setState(() => _selectedGender = gender),
         ),
         const SizedBox(height: 14),
         if (ref
@@ -182,6 +185,8 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     2 => AdmissionSeatSelector(
       category: admission.category,
       membership: admission.membership,
+      sections: ref.watch(libraryConfigurationProvider).enabledSections,
+      selectedSectionId: admission.selectedSectionId,
       seats: ref.watch(sc.seatsProvider),
       selected: admission.selectedSeat,
       selectedShift: admission.selectedHalfTimeShift,
@@ -210,6 +215,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     ),
     _ => AdmissionReviewCard(
       student: name.text.trim(),
+      gender: _selectedGender,
       membership: _membership,
       seat: _seat,
       fee: admission.fee,
@@ -232,9 +238,10 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
     admission.selectedSectionId ??= enabledSections.isEmpty
         ? null
         : enabledSections.first.id;
-    final enabledPeriods = configuration.membershipPeriodsForSection(
-      admission.selectedSectionId,
-    );
+    final enabledPeriods = {
+      ...configuration.membershipPeriodsForSection(admission.selectedSectionId),
+      MembershipPeriod.custom,
+    };
     if (admission.period != null &&
         !enabledPeriods.contains(admission.period)) {
       admission.choosePeriod(enabledPeriods.first);
@@ -426,7 +433,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       name: name.text.trim(),
       email: '',
       phone: phone.text.trim(),
-      gender: 'Male',
+      gender: _selectedGender,
       assignedSeat: admission.selectedSeat,
       shift: admission.selectedHalfTimeShift ?? 'Full Day',
       planName: _membership,

@@ -29,6 +29,7 @@ class SeatsController extends Notifier<List<Seat>> {
             studentId: seat.studentId == null
                 ? null
                 : _legacyId(seat.studentId!),
+            sectionId: seat.sectionId,
             createdAt: seat.assignedDate ?? now,
             updatedAt: now,
           ),
@@ -130,12 +131,13 @@ class SeatsController extends Notifier<List<Seat>> {
     );
   }
 
-  Seat add(String label) {
+  Seat add(String label, {String? sectionId}) {
     final now = DateTime.now();
     final seat = Seat(
       seatId: label.trim(),
       seatLabel: label.trim(),
       status: SeatStatus.available,
+      sectionId: sectionId,
       createdAt: now,
       updatedAt: now,
     );
@@ -170,51 +172,69 @@ class SeatsController extends Notifier<List<Seat>> {
   ]);
 
   Future<void> applyNumbering(SeatNumberingConfiguration numbering) async {
-    final fixed = state
-        .where((seat) => seat.status == SeatStatus.occupied)
+    final defaultSectionId = state.isNotEmpty && state.first.sectionId != null
+        ? state.first.sectionId!
+        : 'default';
+    await applySectionNumbering(defaultSectionId, numbering);
+  }
+
+  Future<void> applySectionNumbering(
+    String sectionId,
+    SeatNumberingConfiguration numbering,
+  ) async {
+    final otherSectionSeats = state
+        .where((seat) => seat.sectionId != sectionId)
         .toList();
-    final mutable = state
-        .where((seat) => seat.status != SeatStatus.occupied)
+    final thisSectionOccupied = state
+        .where((seat) => seat.sectionId == sectionId && seat.status == SeatStatus.occupied)
         .toList();
+    final thisSectionMutable = state
+        .where((seat) => seat.sectionId == sectionId && seat.status != SeatStatus.occupied)
+        .toList();
+
     final labels = _numberingLabels(
       numbering,
-      fixed.map((seat) => seat.seatLabel).toSet(),
+      thisSectionOccupied.map((seat) => seat.seatLabel).toSet(),
     );
+
     final now = DateTime.now();
-    final renamed = [
+    final newSectionSeats = [
       for (var index = 0; index < labels.length; index++)
         Seat(
-          seatId: labels[index],
+          seatId: '${sectionId}_${labels[index]}',
           seatLabel: labels[index],
-          status: index < mutable.length
-              ? mutable[index].status
+          status: index < thisSectionMutable.length
+              ? thisSectionMutable[index].status
               : SeatStatus.available,
-          category: index < mutable.length
-              ? mutable[index].category
-              : SeatCategory.ac,
-          createdAt: index < mutable.length ? mutable[index].createdAt : now,
+          sectionId: sectionId,
+          createdAt: index < thisSectionMutable.length
+              ? thisSectionMutable[index].createdAt
+              : now,
           updatedAt: now,
         ),
     ];
-    state = [...fixed, ...renamed]
+
+    state = [...otherSectionSeats, ...thisSectionOccupied, ...newSectionSeats]
       ..sort((a, b) => _compareLabels(a.seatLabel, b.seatLabel));
 
     final sourceData = await _repository.getSeatData();
     final replacements = <String, Map<String, dynamic>>{};
-    for (var index = 0; index < renamed.length; index++) {
-      final newSeat = renamed[index];
+    for (var index = 0; index < newSectionSeats.length; index++) {
+      final newSeat = newSectionSeats[index];
       final data = Map<String, dynamic>.from(
-        index < mutable.length
-            ? sourceData[mutable[index].seatId] ?? const <String, dynamic>{}
+        index < thisSectionMutable.length
+            ? sourceData[thisSectionMutable[index].seatId] ?? const <String, dynamic>{}
             : const <String, dynamic>{},
       );
       data['seatNumber'] = newSeat.seatLabel;
       data['status'] = newSeat.status.name;
+      data['sectionId'] = sectionId;
       data['updatedAt'] = DateTime.now();
       replacements[newSeat.seatId] = data;
     }
+
     await _repository.replaceSeats(
-      deleteIds: mutable.map((seat) => seat.seatId),
+      deleteIds: thisSectionMutable.map((seat) => seat.seatId),
       seats: replacements,
     );
   }
@@ -331,6 +351,7 @@ class SeatsController extends Notifier<List<Seat>> {
       'studentPhone': student?.phone,
       'shift': student?.shift,
       'expiryDate': student?.validUntil,
+      'sectionId': seat.sectionId ?? student?.sectionId,
       'updatedAt': DateTime.now(),
     };
   }

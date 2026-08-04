@@ -81,6 +81,9 @@ class AdmissionController extends ChangeNotifier {
         pricing.halfTimeShifts.isNotEmpty) {
       selectedHalfTimeShift = pricing.halfTimeShifts.first;
     }
+    if (period == MembershipPeriod.custom && customEnd != null) {
+      customAmount = _calculatedCustomFee;
+    }
   }
 
   void chooseCategory(SeatCategory value) {
@@ -98,6 +101,9 @@ class AdmissionController extends ChangeNotifier {
       }
     } else {
       selectedHalfTimeShift = null;
+    }
+    if (period == MembershipPeriod.custom && customEnd != null) {
+      customAmount = _calculatedCustomFee;
     }
     notifyListeners();
   }
@@ -120,8 +126,17 @@ class AdmissionController extends ChangeNotifier {
   void choosePeriod(MembershipPeriod value) {
     period = value;
     manualAmount = null;
-    if (value == MembershipPeriod.custom && customAmount == null) {
-      customAmount = customDefaultPrice;
+    if (value == MembershipPeriod.custom) {
+      if (customEnd != null) {
+        customAmount = _calculatedCustomFee;
+      } else if (customDays != null && customDays! > 0) {
+        customEnd = customStart.add(Duration(days: customDays!));
+        customAmount = _calculatedCustomFee;
+      } else {
+        customEnd = customStart.add(const Duration(days: 30));
+        customDays = 30;
+        customAmount = _calculatedCustomFee;
+      }
     }
     paymentConfirmed = false;
     notifyListeners();
@@ -141,7 +156,7 @@ class AdmissionController extends ChangeNotifier {
       customAmount = null;
     } else if (customEnd != null) {
       customDays = customEnd!.difference(customStart).inDays;
-      customAmount ??= _calculatedCustomFee;
+      customAmount = _calculatedCustomFee;
     }
     notifyListeners();
   }
@@ -150,7 +165,7 @@ class AdmissionController extends ChangeNotifier {
     if (value.isBefore(customStart)) return;
     customEnd = value;
     customDays = value.difference(customStart).inDays;
-    customAmount ??= _calculatedCustomFee;
+    customAmount = _calculatedCustomFee;
     notifyListeners();
   }
 
@@ -158,7 +173,7 @@ class AdmissionController extends ChangeNotifier {
     customDays = value;
     if (value != null && value > 0) {
       customEnd = customStart.add(Duration(days: value));
-      customAmount ??= _calculatedCustomFee;
+      customAmount = _calculatedCustomFee;
     } else {
       customEnd = null;
       customAmount = null;

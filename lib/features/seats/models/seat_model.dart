@@ -12,6 +12,7 @@ class SeatModel {
   final DateTime? assignedDate;
   final DateTime? expiryDate;
   final String? blockReason;
+  final String? sectionId;
 
   const SeatModel({
     required this.seatNumber,
@@ -23,6 +24,7 @@ class SeatModel {
     this.assignedDate,
     this.expiryDate,
     this.blockReason,
+    this.sectionId,
   });
 
   factory SeatModel.fromFirestore(DocumentSnapshot doc) {
@@ -43,6 +45,7 @@ class SeatModel {
       assignedDate: (data['assignedDate'] as Timestamp?)?.toDate(),
       expiryDate: (data['expiryDate'] as Timestamp?)?.toDate(),
       blockReason: data['blockReason'],
+      sectionId: data['sectionId'],
     );
   }
 
@@ -59,6 +62,7 @@ class SeatModel {
           : null,
       'expiryDate': expiryDate != null ? Timestamp.fromDate(expiryDate!) : null,
       'blockReason': blockReason,
+      'sectionId': sectionId,
     };
   }
 

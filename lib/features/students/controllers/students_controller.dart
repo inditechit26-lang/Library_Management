@@ -44,6 +44,7 @@ class StudentsController extends Notifier<List<Student>> {
       id: _legacyId(model.id),
       name: model.name,
       phone: model.phone,
+      gender: model.gender,
       seat: model.assignedSeat ?? 'Flexible',
       seatId: model.assignedSeat,
       joined: DateFormat('dd MMM yyyy').format(model.joiningDate),
@@ -168,7 +169,7 @@ class StudentsController extends Notifier<List<Student>> {
       name: value.name,
       email: '',
       phone: value.phone,
-      gender: '',
+      gender: value.gender,
       assignedSeat: value.seatId ?? value.seat,
       shift: value.membership == MembershipType.fullTime
           ? 'Full Day'
@@ -206,6 +207,7 @@ class StudentsController extends Notifier<List<Student>> {
             model.copyWith(
               name: value.name,
               phone: value.phone,
+              gender: value.gender,
               assignedSeat: value.seatId ?? value.seat,
               monthlyFee: value.fee,
               validUntil: expiry,

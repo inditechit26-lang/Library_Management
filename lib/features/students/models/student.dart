@@ -20,6 +20,7 @@ extension PaymentModeX on PaymentMode {
 class Student {
   final int id;
   final String name, phone, seat, joined, expiry, initials;
+  final String gender;
   final String? seatId;
   final String? photoPath;
   final String emergencyContact, notes;
@@ -44,6 +45,7 @@ class Student {
     required this.fee,
     required this.payment,
     required this.membership,
+    this.gender = 'Male',
     this.category = SeatCategory.ac,
     this.paymentMode = PaymentMode.upi,
     required this.initials,
@@ -61,6 +63,7 @@ class Student {
   Student copyWith({
     String? name,
     String? phone,
+    String? gender,
     String? seat,
     String? seatId,
     String? photoPath,
@@ -81,6 +84,7 @@ class Student {
     id: id,
     name: name ?? this.name,
     phone: phone ?? this.phone,
+    gender: gender ?? this.gender,
     seat: seat ?? this.seat,
     seatId: seatId ?? this.seatId,
     photoPath: photoPath ?? this.photoPath,

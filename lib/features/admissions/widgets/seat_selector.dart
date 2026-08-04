@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../seats/models/seat.dart';
 import '../../students/models/student.dart';
+import '../../settings/models/library_configuration.dart';
 
-class AdmissionSeatSelector extends StatelessWidget {
+class AdmissionSeatSelector extends StatefulWidget {
   final SeatCategory category;
   final MembershipType membership;
+  final List<LibrarySection> sections;
+  final String? selectedSectionId;
   final List<Seat> seats;
   final String? selected;
   final String? selectedShift;
@@ -16,6 +19,8 @@ class AdmissionSeatSelector extends StatelessWidget {
     super.key,
     required this.category,
     required this.membership,
+    this.sections = const [],
+    this.selectedSectionId,
     required this.seats,
     required this.selected,
     this.selectedShift,
@@ -25,12 +30,25 @@ class AdmissionSeatSelector extends StatelessWidget {
   });
 
   @override
+  State<AdmissionSeatSelector> createState() => _AdmissionSeatSelectorState();
+}
+
+class _AdmissionSeatSelectorState extends State<AdmissionSeatSelector> {
+  late String? activeSectionId;
+
+  @override
+  void initState() {
+    super.initState();
+    activeSectionId = widget.selectedSectionId;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
 
-    if (!requiresSeat) {
+    if (!widget.requiresSeat) {
       return Container(
         padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
@@ -43,21 +61,21 @@ class AdmissionSeatSelector extends StatelessWidget {
             const _IconBox(icon: Icons.access_time_rounded, size: 52),
             const SizedBox(height: 14),
             Text(
-              'Flexible Seating (${category.label})',
+              'Flexible Seating (${widget.category.label})',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 5),
             Text(
-              selectedShift != null
-                  ? 'Assigned Shift: $selectedShift'
+              widget.selectedShift != null
+                  ? 'Assigned Shift: ${widget.selectedShift}'
                   : 'No permanent seat required.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: selectedShift != null
+                fontWeight: widget.selectedShift != null
                     ? FontWeight.w700
                     : FontWeight.w500,
-                color: selectedShift != null
+                color: widget.selectedShift != null
                     ? colors.primary
                     : colors.onSurfaceVariant,
               ),
@@ -67,8 +85,13 @@ class AdmissionSeatSelector extends StatelessWidget {
       );
     }
 
-    final categorySeats = seats.where((s) => s.category == category).toList();
-    final displaySeats = categorySeats.isNotEmpty ? categorySeats : seats;
+    final sectionFiltered = widget.seats.where((seat) {
+      if (activeSectionId == null) return true;
+      return seat.sectionId == activeSectionId;
+    }).toList();
+
+    final categorySeats = sectionFiltered.where((s) => s.category == widget.category).toList();
+    final displaySeats = categorySeats.isNotEmpty ? categorySeats : sectionFiltered;
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -92,7 +115,7 @@ class AdmissionSeatSelector extends StatelessWidget {
           Row(
             children: [
               Icon(
-                category == SeatCategory.ac
+                widget.category == SeatCategory.ac
                     ? Icons.ac_unit_rounded
                     : Icons.air_rounded,
                 size: 18,
@@ -100,7 +123,7 @@ class AdmissionSeatSelector extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Select ${category.label} Seat',
+                'Select ${widget.category.label} Seat',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
@@ -128,6 +151,48 @@ class AdmissionSeatSelector extends StatelessWidget {
               ),
             ],
           ),
+          if (widget.sections.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  ChoiceChip(
+                    label: const Text('All Sections'),
+                    selected: activeSectionId == null,
+                    onSelected: (_) => setState(() => activeSectionId = null),
+                    labelStyle: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: activeSectionId == null
+                          ? colors.onPrimary
+                          : colors.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  for (final section in widget.sections) ...[
+                    ChoiceChip(
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: section.color,
+                      ),
+                      label: Text(section.name),
+                      selected: activeSectionId == section.id,
+                      onSelected: (_) => setState(() => activeSectionId = section.id),
+                      labelStyle: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: activeSectionId == section.id
+                            ? colors.onPrimary
+                            : colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           GridView.builder(
             shrinkWrap: true,
@@ -142,17 +207,17 @@ class AdmissionSeatSelector extends StatelessWidget {
             itemBuilder: (_, index) {
               final seat = displaySeats[index];
               final available = seat.status == SeatStatus.available;
-              final isSelected = selected == seat.seatLabel;
+              final isSelected = widget.selected == seat.seatLabel;
               return _Seat(
                 seat: seat,
                 enabled: available,
                 selected: isSelected,
                 isDark: isDark,
-                onTap: available ? () => onSelected(seat.seatLabel) : null,
+                onTap: available ? () => widget.onSelected(seat.seatLabel) : null,
               );
             },
           ),
-          if (selected != null) ...[
+          if (widget.selected != null) ...[
             const SizedBox(height: 16),
             AnimatedContainer(
               duration: const Duration(milliseconds: 240),
@@ -172,12 +237,12 @@ class AdmissionSeatSelector extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      studentName.isEmpty ? 'Student' : studentName,
+                      widget.studentName.isEmpty ? 'Student' : widget.studentName,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
                   Text(
-                    'Selected: $selected (${category.shortLabel})',
+                    'Selected: ${widget.selected} (${widget.category.shortLabel})',
                     style: TextStyle(
                       color: colors.primary,
                       fontWeight: FontWeight.w800,

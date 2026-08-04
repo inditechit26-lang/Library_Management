@@ -266,45 +266,60 @@ class _Details extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          student.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            fontSize: compact ? 7 : 13,
-            fontWeight: FontWeight.w900,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              student.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: compact ? 7 : 13,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            SizedBox(height: compact ? 1 : 2),
+            Text(
+              student.membership == MembershipType.fullTime
+                  ? 'Full Time Member'
+                  : 'Half Time Member',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: compact ? 5 : 9,
+                color: colors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: compact ? 2 : 5),
-        Text(
-          student.membership == MembershipType.fullTime
-              ? 'Full Time Member'
-              : 'Half Time Member',
-          maxLines: 1,
-          style: TextStyle(
-            fontSize: compact ? 5 : 9,
-            color: colors.primary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          'SEAT  ${student.seat}',
-          maxLines: 1,
-          style: TextStyle(
-            fontSize: compact ? 6 : 10,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        SizedBox(height: compact ? 2 : 4),
-        Text(
-          'JOINED  ${student.joined}',
-          maxLines: 1,
-          style: TextStyle(
-            fontSize: compact ? 4.5 : 8,
-            color: colors.onSurfaceVariant,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'SEAT  ${student.seat}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: compact ? 6 : 10,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: compact ? 1 : 2),
+            Text(
+              'JOINED  ${student.joined}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: compact ? 4.5 : 8,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ],
     );

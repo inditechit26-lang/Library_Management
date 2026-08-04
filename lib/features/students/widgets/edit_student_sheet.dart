@@ -22,6 +22,7 @@ class _State extends ConsumerState<EditStudentSheet> {
   late final TextEditingController name, phone, seat, fee, emergency, notes;
   late MembershipType membership;
   late SeatCategory category;
+  late String gender;
   String? photoPath;
   String? selectedShift;
 
@@ -36,6 +37,7 @@ class _State extends ConsumerState<EditStudentSheet> {
     notes = TextEditingController(text: widget.student.notes);
     membership = widget.student.membership;
     category = widget.student.category;
+    gender = widget.student.gender;
     photoPath = widget.student.photoPath;
 
     if (widget.student.seat.startsWith('Flexible (') &&
@@ -167,6 +169,42 @@ class _State extends ConsumerState<EditStudentSheet> {
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
                 validator: _required,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Gender',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 6),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment<String>(
+                    value: 'Male',
+                    label: Text('Male'),
+                    icon: Icon(Icons.male, size: 16),
+                  ),
+                  ButtonSegment<String>(
+                    value: 'Female',
+                    label: Text('Female'),
+                    icon: Icon(Icons.female, size: 16),
+                  ),
+                  ButtonSegment<String>(
+                    value: 'Other',
+                    label: Text('Other'),
+                    icon: Icon(Icons.transgender, size: 16),
+                  ),
+                ],
+                selected: {gender},
+                onSelectionChanged: (selection) {
+                  if (selection.isNotEmpty) {
+                    setState(() => gender = selection.first);
+                  }
+                },
+                showSelectedIcon: false,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -319,6 +357,7 @@ class _State extends ConsumerState<EditStudentSheet> {
       widget.student.copyWith(
         name: name.text.trim(),
         phone: phone.text.trim(),
+        gender: gender,
         seat: finalSeat,
         fee: double.tryParse(fee.text) ?? widget.student.fee,
         membership: membership,

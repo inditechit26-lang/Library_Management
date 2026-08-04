@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'pricing_settings.dart';
 
+T? enumValue<T extends Enum>(Iterable<T> values, Object? name) {
+  for (final item in values) {
+    if (item.name == name) return item;
+  }
+  return null;
+}
+
 enum LibrarySeatType { fullTimeReserved, halfTimeOpenSeating, halfTimeReserved }
 
 enum SeatNumberingStyle { numeric, alphabetic }
@@ -30,6 +37,7 @@ class LibrarySection {
     },
     this.fullTimePlanPrices,
     this.halfTimePlanPrices,
+    this.seatNumbering,
   });
 
   final String id;
@@ -40,6 +48,7 @@ class LibrarySection {
   final Map<MembershipPeriod, double> planPrices;
   final Map<MembershipPeriod, double>? fullTimePlanPrices;
   final Map<MembershipPeriod, double>? halfTimePlanPrices;
+  final SeatNumberingConfiguration? seatNumbering;
 
   Color get color => Color(colorValue);
 
@@ -51,6 +60,7 @@ class LibrarySection {
     Map<MembershipPeriod, double>? planPrices,
     Map<MembershipPeriod, double>? fullTimePlanPrices,
     Map<MembershipPeriod, double>? halfTimePlanPrices,
+    SeatNumberingConfiguration? seatNumbering,
   }) => LibrarySection(
     id: id,
     name: name ?? this.name,
@@ -60,6 +70,7 @@ class LibrarySection {
     planPrices: planPrices ?? this.planPrices,
     fullTimePlanPrices: fullTimePlanPrices ?? this.fullTimePlanPrices,
     halfTimePlanPrices: halfTimePlanPrices ?? this.halfTimePlanPrices,
+    seatNumbering: seatNumbering ?? this.seatNumbering,
   );
 
   Map<MembershipPeriod, double> pricesFor({required bool isFullTime}) =>
@@ -84,6 +95,7 @@ class LibrarySection {
       for (final entry in pricesFor(isFullTime: false).entries)
         entry.key.name: entry.value,
     },
+    if (seatNumbering != null) 'seatNumbering': seatNumbering!.toMap(),
   };
 
   factory LibrarySection.fromMap(
@@ -117,6 +129,27 @@ class LibrarySection {
     }
 
     final legacyPlanPrices = parsePrices(value['membershipPlanPrices']);
+    final numberingRaw = value['seatNumbering'] is Map
+        ? Map<String, dynamic>.from(value['seatNumbering'] as Map)
+        : null;
+    final sectionNumbering = numberingRaw == null
+        ? null
+        : SeatNumberingConfiguration(
+            style: enumValue(SeatNumberingStyle.values, numberingRaw['style']) ?? SeatNumberingStyle.numeric,
+            startingNumber:
+                (numberingRaw['startingNumber'] as num?)?.toInt() ?? 1,
+            endingNumber: (numberingRaw['endingNumber'] as num?)?.toInt() ?? 100,
+            prefix: (numberingRaw['prefix'] as String?)?.trim().isNotEmpty == true
+                ? (numberingRaw['prefix'] as String).trim().toUpperCase()
+                : 'A',
+            endingPrefix:
+                (numberingRaw['endingPrefix'] as String?)?.trim().isNotEmpty == true
+                    ? (numberingRaw['endingPrefix'] as String).trim().toUpperCase()
+                    : 'A',
+            numbersPerPrefix:
+                (numberingRaw['numbersPerPrefix'] as num?)?.toInt() ?? 10,
+          );
+
     return LibrarySection(
       id: value['id'] as String? ?? '',
       name: value['name'] as String? ?? '',
@@ -133,6 +166,7 @@ class LibrarySection {
       halfTimePlanPrices: value['halfTimePlanPrices'] is Map
           ? parsePrices(value['halfTimePlanPrices'])
           : legacyPlanPrices,
+      seatNumbering: sectionNumbering,
     );
   }
 }
@@ -260,11 +294,10 @@ class LibraryConfiguration {
     seatTypes: {LibrarySeatType.fullTimeReserved},
     sections: [
       LibrarySection(id: 'ac', name: 'AC Section', colorValue: 0xFF4F6BED),
-      LibrarySection(
-        id: 'non_ac',
-        name: 'Non-AC Section',
-        colorValue: 0xFF5F6B7A,
-      ),
+      LibrarySection(id: 'non_ac', name: 'Non-AC Section', colorValue: 0xFF5F6B7A),
+      LibrarySection(id: 'girls', name: 'Girls Section', colorValue: 0xFFE91E63),
+      LibrarySection(id: 'boys', name: 'Boys Section', colorValue: 0xFF2196F3),
+      LibrarySection(id: 'general', name: 'General Section', colorValue: 0xFF4CAF50),
     ],
     requiredDocuments: {},
     seatNumbering: SeatNumberingConfiguration(),
