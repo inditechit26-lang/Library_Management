@@ -70,9 +70,14 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
               ? all
               : all.where((s) {
                   final st = _student(s, students);
-                  return (s.sectionId != null && s.sectionId == selectedSectionId) ||
-                      (st?.sectionId != null && st?.sectionId == selectedSectionId) ||
-                      (s.sectionId == null && st?.sectionId == null && selectedSectionId == configuration.enabledSections.firstOrNull?.id);
+                  return (s.sectionId != null &&
+                          s.sectionId == selectedSectionId) ||
+                      (st?.sectionId != null &&
+                          st?.sectionId == selectedSectionId) ||
+                      (s.sectionId == null &&
+                          st?.sectionId == null &&
+                          selectedSectionId ==
+                              configuration.rooms.firstOrNull?.id);
                 }).toList(),
           students: students,
         ),
@@ -119,21 +124,23 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                 final label = configuration.nextSeatLabel(
                   all.map((seat) => seat.seatLabel),
                 );
-                ref.read(seatsProvider.notifier).add(label, sectionId: selectedSectionId);
+                ref
+                    .read(seatsProvider.notifier)
+                    .add(label, sectionId: selectedSectionId);
               },
               icon: const Icon(Icons.add_rounded, size: 20),
             ),
           ],
         ),
         const SizedBox(height: 14),
-        if (configuration.enabledSections.isNotEmpty) ...[
+        if (configuration.rooms.isNotEmpty) ...[
           SizedBox(
             height: 38,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
                 ChoiceChip(
-                  label: Text('All Sections (${all.length})'),
+                  label: Text('All Rooms (${all.length})'),
                   selected: selectedSectionId == null,
                   onSelected: (_) => setState(() => selectedSectionId = null),
                   labelStyle: TextStyle(
@@ -145,24 +152,27 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ...configuration.enabledSections.map((section) {
-                  final active = selectedSectionId == section.id;
+                ...configuration.rooms.map((room) {
+                  final active = selectedSectionId == room.id;
                   final count = all.where((s) {
                     final st = _student(s, students);
-                    return (s.sectionId != null && s.sectionId == section.id) ||
-                        (st?.sectionId != null && st?.sectionId == section.id) ||
-                        (s.sectionId == null && st?.sectionId == null && section.id == configuration.enabledSections.first.id);
+                    return (s.sectionId != null && s.sectionId == room.id) ||
+                        (st?.sectionId != null && st?.sectionId == room.id) ||
+                        (s.sectionId == null &&
+                            st?.sectionId == null &&
+                            room.id == configuration.rooms.first.id);
                   }).length;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ChoiceChip(
                       avatar: CircleAvatar(
                         radius: 5,
-                        backgroundColor: section.color,
+                        backgroundColor: room.color,
                       ),
-                      label: Text('${section.name} ($count)'),
+                      label: Text('${room.name} ($count)'),
                       selected: active,
-                      onSelected: (_) => setState(() => selectedSectionId = section.id),
+                      onSelected: (_) =>
+                          setState(() => selectedSectionId = room.id),
                       labelStyle: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -186,11 +196,13 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: SeatMap(
-            key: ValueKey('$selectedSectionId-$filter-$query-${visible.length}'),
+            key: ValueKey(
+              '$selectedSectionId-$filter-$query-${visible.length}',
+            ),
             seats: visible,
             students: students,
             sectionNames: {
-              for (final sec in configuration.enabledSections) sec.id: sec.name,
+              for (final room in configuration.rooms) room.id: room.name,
             },
             onTap: _open,
           ),
@@ -212,7 +224,8 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
     final student = _student(seat, students);
     final q = query.trim().toLowerCase();
 
-    final searched = q.isEmpty ||
+    final searched =
+        q.isEmpty ||
         '${seat.seatLabel} ${student?.name ?? ''} ${student?.phone ?? ''}'
             .toLowerCase()
             .contains(q);
@@ -229,7 +242,8 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
     final seatSec = seat.sectionId;
     final studentSec = student?.sectionId;
 
-    final sectionMatch = (seatSec != null && seatSec == selectedSectionId) ||
+    final sectionMatch =
+        (seatSec != null && seatSec == selectedSectionId) ||
         (studentSec != null && studentSec == selectedSectionId) ||
         (seatSec == null && studentSec == null);
 
