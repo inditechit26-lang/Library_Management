@@ -135,17 +135,22 @@ class LibrarySection {
     final sectionNumbering = numberingRaw == null
         ? null
         : SeatNumberingConfiguration(
-            style: enumValue(SeatNumberingStyle.values, numberingRaw['style']) ?? SeatNumberingStyle.numeric,
+            style:
+                enumValue(SeatNumberingStyle.values, numberingRaw['style']) ??
+                SeatNumberingStyle.numeric,
             startingNumber:
                 (numberingRaw['startingNumber'] as num?)?.toInt() ?? 1,
-            endingNumber: (numberingRaw['endingNumber'] as num?)?.toInt() ?? 100,
-            prefix: (numberingRaw['prefix'] as String?)?.trim().isNotEmpty == true
+            endingNumber:
+                (numberingRaw['endingNumber'] as num?)?.toInt() ?? 100,
+            prefix:
+                (numberingRaw['prefix'] as String?)?.trim().isNotEmpty == true
                 ? (numberingRaw['prefix'] as String).trim().toUpperCase()
                 : 'A',
             endingPrefix:
-                (numberingRaw['endingPrefix'] as String?)?.trim().isNotEmpty == true
-                    ? (numberingRaw['endingPrefix'] as String).trim().toUpperCase()
-                    : 'A',
+                (numberingRaw['endingPrefix'] as String?)?.trim().isNotEmpty ==
+                    true
+                ? (numberingRaw['endingPrefix'] as String).trim().toUpperCase()
+                : 'A',
             numbersPerPrefix:
                 (numberingRaw['numbersPerPrefix'] as num?)?.toInt() ?? 10,
           );
@@ -215,6 +220,77 @@ class SeatNumberingConfiguration {
   };
 }
 
+/// A physical room whose seats are configured independently of membership
+/// sections and their admission settings.
+@immutable
+class LibraryRoom {
+  const LibraryRoom({
+    required this.id,
+    required this.name,
+    required this.colorValue,
+    this.seatNumbering,
+  });
+
+  final String id;
+  final String name;
+  final int colorValue;
+  final SeatNumberingConfiguration? seatNumbering;
+
+  Color get color => Color(colorValue);
+
+  LibraryRoom copyWith({
+    String? name,
+    int? colorValue,
+    SeatNumberingConfiguration? seatNumbering,
+  }) => LibraryRoom(
+    id: id,
+    name: name ?? this.name,
+    colorValue: colorValue ?? this.colorValue,
+    seatNumbering: seatNumbering ?? this.seatNumbering,
+  );
+
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'name': name,
+    'color': colorValue,
+    if (seatNumbering != null) 'seatNumbering': seatNumbering!.toMap(),
+  };
+
+  factory LibraryRoom.fromMap(Map<String, dynamic> value) {
+    final numberingRaw = value['seatNumbering'] is Map
+        ? Map<String, dynamic>.from(value['seatNumbering'] as Map)
+        : null;
+    return LibraryRoom(
+      id: value['id'] as String? ?? '',
+      name: value['name'] as String? ?? '',
+      colorValue:
+          (value['color'] as num?)?.toInt() ??
+          const Color(0xFF625CDB).toARGB32(),
+      seatNumbering: numberingRaw == null
+          ? null
+          : SeatNumberingConfiguration(
+              style:
+                  enumValue(SeatNumberingStyle.values, numberingRaw['style']) ??
+                  SeatNumberingStyle.numeric,
+              startingNumber:
+                  (numberingRaw['startingNumber'] as num?)?.toInt() ?? 1,
+              endingNumber:
+                  (numberingRaw['endingNumber'] as num?)?.toInt() ?? 100,
+              prefix:
+                  (numberingRaw['prefix'] as String?)?.trim().toUpperCase() ??
+                  'A',
+              endingPrefix:
+                  (numberingRaw['endingPrefix'] as String?)
+                      ?.trim()
+                      .toUpperCase() ??
+                  'A',
+              numbersPerPrefix:
+                  (numberingRaw['numbersPerPrefix'] as num?)?.toInt() ?? 10,
+            ),
+    );
+  }
+}
+
 @immutable
 class ShiftTimingConfiguration {
   const ShiftTimingConfiguration({
@@ -269,6 +345,7 @@ class LibraryConfiguration {
     required this.planPrices,
     required this.seatTypes,
     required this.sections,
+    required this.rooms,
     required this.requiredDocuments,
     required this.seatNumbering,
     required this.shiftTimings,
@@ -278,6 +355,7 @@ class LibraryConfiguration {
   final Map<MembershipPeriod, double> planPrices;
   final Set<LibrarySeatType> seatTypes;
   final List<LibrarySection> sections;
+  final List<LibraryRoom> rooms;
   final Set<StudentDocumentRequirement> requiredDocuments;
   final SeatNumberingConfiguration seatNumbering;
   final ShiftTimingConfiguration shiftTimings;
@@ -294,10 +372,25 @@ class LibraryConfiguration {
     seatTypes: {LibrarySeatType.fullTimeReserved},
     sections: [
       LibrarySection(id: 'ac', name: 'AC Section', colorValue: 0xFF4F6BED),
-      LibrarySection(id: 'non_ac', name: 'Non-AC Section', colorValue: 0xFF5F6B7A),
-      LibrarySection(id: 'girls', name: 'Girls Section', colorValue: 0xFFE91E63),
+      LibrarySection(
+        id: 'non_ac',
+        name: 'Non-AC Section',
+        colorValue: 0xFF5F6B7A,
+      ),
+      LibrarySection(
+        id: 'girls',
+        name: 'Girls Section',
+        colorValue: 0xFFE91E63,
+      ),
       LibrarySection(id: 'boys', name: 'Boys Section', colorValue: 0xFF2196F3),
-      LibrarySection(id: 'general', name: 'General Section', colorValue: 0xFF4CAF50),
+      LibrarySection(
+        id: 'general',
+        name: 'General Section',
+        colorValue: 0xFF4CAF50,
+      ),
+    ],
+    rooms: [
+      LibraryRoom(id: 'main_hall', name: 'Main Hall', colorValue: 0xFF625CDB),
     ],
     requiredDocuments: {},
     seatNumbering: SeatNumberingConfiguration(),
@@ -393,6 +486,7 @@ class LibraryConfiguration {
     Map<MembershipPeriod, double>? planPrices,
     Set<LibrarySeatType>? seatTypes,
     List<LibrarySection>? sections,
+    List<LibraryRoom>? rooms,
     Set<StudentDocumentRequirement>? requiredDocuments,
     SeatNumberingConfiguration? seatNumbering,
     ShiftTimingConfiguration? shiftTimings,
@@ -401,6 +495,7 @@ class LibraryConfiguration {
     planPrices: planPrices ?? this.planPrices,
     seatTypes: seatTypes ?? this.seatTypes,
     sections: sections ?? this.sections,
+    rooms: rooms ?? this.rooms,
     requiredDocuments: requiredDocuments ?? this.requiredDocuments,
     seatNumbering: seatNumbering ?? this.seatNumbering,
     shiftTimings: shiftTimings ?? this.shiftTimings,
@@ -409,6 +504,7 @@ class LibraryConfiguration {
   Map<String, dynamic> toMap() => {
     'seatTypes': seatTypes.map((item) => item.name).toList(),
     'sections': sections.map((item) => item.toMap()).toList(),
+    'seatNumberingRooms': rooms.map((item) => item.toMap()).toList(),
     'enabledStudentDocuments': requiredDocuments
         .map((item) => item.name)
         .toList(),
@@ -475,6 +571,23 @@ class LibraryConfiguration {
             ? SeatNumberingStyle.alphabetic
             : enumValue(SeatNumberingStyle.values, storedNumberingStyle)) ??
         defaults.seatNumbering.style;
+    final roomValues = (value['seatNumberingRooms'] as List<dynamic>?)
+        ?.whereType<Map>()
+        .map((item) => LibraryRoom.fromMap(Map<String, dynamic>.from(item)))
+        .where((item) => item.id.isNotEmpty && item.name.isNotEmpty)
+        .toList();
+    // Existing libraries stored a room's numbering under its section. Preserve
+    // those seat mappings once, then keep future room edits independent.
+    final legacyRooms = sectionValues
+        ?.map(
+          (section) => LibraryRoom(
+            id: section.id,
+            name: section.name,
+            colorValue: section.colorValue,
+            seatNumbering: section.seatNumbering,
+          ),
+        )
+        .toList();
 
     return LibraryConfiguration(
       membershipPeriods: effectiveMembership,
@@ -485,6 +598,11 @@ class LibraryConfiguration {
       sections: sectionValues == null || sectionValues.isEmpty
           ? defaults.sections
           : sectionValues,
+      rooms: roomValues == null || roomValues.isEmpty
+          ? (legacyRooms == null || legacyRooms.isEmpty
+                ? defaults.rooms
+                : legacyRooms)
+          : roomValues,
       requiredDocuments: documents ?? defaults.requiredDocuments,
       seatNumbering: SeatNumberingConfiguration(
         style: numberingStyle,
