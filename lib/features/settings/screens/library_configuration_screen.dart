@@ -443,39 +443,37 @@ class _PaymentConfiguration extends ConsumerWidget {
             ignoring: usesCustomQr,
             child: Opacity(
               opacity: usesCustomQr ? 0.5 : 1,
-              child: Column(
-                children: [
-                  for (final upiId in settings.upiIds)
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Radio<String>(
-                        value: upiId,
-                        groupValue: settings.activeUpiId,
-                        onChanged: usesCustomQr
+              child: RadioGroup<String>(
+                groupValue: settings.activeUpiId,
+                onChanged: (value) {
+                  if (value != null) controller.setActiveUpiId(value);
+                },
+                child: Column(
+                  children: [
+                    for (final upiId in settings.upiIds)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Radio<String>(value: upiId),
+                        title: Text(
+                          upiId,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        trailing: settings.upiIds.length > 1
+                            ? IconButton(
+                                tooltip: 'Delete',
+                                icon: const Icon(Icons.delete_outline_rounded),
+                                onPressed: usesCustomQr
+                                    ? null
+                                    : () => controller.removeUpiId(upiId),
+                              )
+                            : null,
+                        onTap: usesCustomQr
                             ? null
-                            : (value) {
-                                if (value != null) controller.setActiveUpiId(value);
-                              },
+                            : () => controller.setActiveUpiId(upiId),
                       ),
-                      title: Text(
-                        upiId,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      trailing: settings.upiIds.length > 1
-                          ? IconButton(
-                              tooltip: 'Delete',
-                              icon: const Icon(Icons.delete_outline_rounded),
-                              onPressed: usesCustomQr
-                                  ? null
-                                  : () => controller.removeUpiId(upiId),
-                            )
-                          : null,
-                      onTap: usesCustomQr
-                          ? null
-                          : () => controller.setActiveUpiId(upiId),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -642,7 +640,6 @@ class _SectionsEditor extends ConsumerStatefulWidget {
 
 class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   late String _selectedSectionId;
-  bool _isFullTime = true;
 
   @override
   void initState() {
@@ -663,18 +660,6 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final section = widget.configuration.sections.firstWhere(
-      (item) => item.id == _selectedSectionId,
-    );
-    final periods = [
-      MembershipPeriod.monthly,
-      MembershipPeriod.quarterly,
-      MembershipPeriod.halfYearly,
-      MembershipPeriod.annual,
-      if (section.membershipPeriods.contains(MembershipPeriod.custom))
-        MembershipPeriod.custom,
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -694,7 +679,7 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                   color: colors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.sell_outlined, color: colors.onPrimary),
+                child: Icon(Icons.category_outlined, color: colors.onPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -702,14 +687,14 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Plan Rate Configuration',
+                      'Library Sections',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Set separate full-time and half-time rates for each section.',
+                      'Add and manage library sections. Seat rooms and numbering are configured separately below.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -729,10 +714,14 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                 GestureDetector(
                   onLongPress: () => _confirmDeleteSection(context, item),
                   child: ChoiceChip(
-                    avatar: CircleAvatar(radius: 5, backgroundColor: item.color),
+                    avatar: CircleAvatar(
+                      radius: 5,
+                      backgroundColor: item.color,
+                    ),
                     label: Text(item.name),
                     selected: _selectedSectionId == item.id,
-                    onSelected: (_) => setState(() => _selectedSectionId = item.id),
+                    onSelected: (_) =>
+                        setState(() => _selectedSectionId = item.id),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -745,77 +734,44 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        SegmentedButton<bool>(
-          segments: const [
-            ButtonSegment(
-              value: true,
-              icon: Icon(Icons.wb_sunny_outlined),
-              label: Text('Full Time (24 Hours)'),
-            ),
-            ButtonSegment(
-              value: false,
-              icon: Icon(Icons.schedule_outlined),
-              label: Text('Half Time (12 Hours)'),
-            ),
-          ],
-          selected: {_isFullTime},
-          showSelectedIcon: false,
-          onSelectionChanged: (value) {
-            setState(() => _isFullTime = value.first);
-          },
-        ),
-        const SizedBox(height: 14),
-        for (final period in periods) ...[
-          _SectionPlanCard(
-            key: ValueKey('${section.id}-${_isFullTime}-${period.name}'),
-            section: section,
-            period: period,
-            isFullTime: _isFullTime,
-            onSaved: (price) =>
-                _savePlan(section, period, price, isFullTime: _isFullTime),
-          ),
-          const SizedBox(height: 12),
-        ],
       ],
     );
   }
 
-  Future<void> _savePlan(
-    LibrarySection section,
-    MembershipPeriod period,
-    double price, {
-    required bool isFullTime,
-  }) {
-    final prices = {
-      ...section.pricesFor(isFullTime: isFullTime),
-      period: price,
-    };
-    final updated = section.copyWith(
-      membershipPeriods: {...section.membershipPeriods, period},
-      fullTimePlanPrices: isFullTime ? prices : section.fullTimePlanPrices,
-      halfTimePlanPrices: isFullTime ? section.halfTimePlanPrices : prices,
-    );
-    final sections = [
-      for (final item in widget.configuration.sections)
-        if (item.id == updated.id) updated else item,
-    ];
-    return ref
-        .read(libraryConfigurationProvider.notifier)
-        .save(widget.configuration.copyWith(sections: sections));
-  }
-
   Future<void> _addSection(BuildContext context) async {
+    final textController = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return _AddSectionDialog(onSubmitted: (val) => Navigator.pop(dialogContext, val));
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Add Hall Section'),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Section Name',
+            hintText: 'e.g. Girls Section, Boys Section',
+          ),
+          onSubmitted: (val) {
+            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
           },
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
+            },
+            child: const Text('Add Section'),
+          ),
+        ],
+      ),
     );
+    textController.dispose();
     if (name == null || name.trim().isEmpty) return;
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
     if (widget.configuration.sections.any((s) => s.id == id)) return;
@@ -850,7 +806,9 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   ) async {
     if (widget.configuration.sections.length <= 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('At least one section must remain enabled.')),
+        const SnackBar(
+          content: Text('At least one section must remain enabled.'),
+        ),
       );
       return;
     }
@@ -891,85 +849,6 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
         _selectedSectionId = updatedSections.first.id;
       });
     }
-  }
-}
-
-class _SectionPlanCard extends StatelessWidget {
-  const _SectionPlanCard({
-    super.key,
-    required this.section,
-    required this.period,
-    required this.isFullTime,
-    required this.onSaved,
-  });
-
-  final LibrarySection section;
-  final MembershipPeriod period;
-  final bool isFullTime;
-  final Future<void> Function(double price) onSaved;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final title = period == MembershipPeriod.annual
-        ? 'Yearly Plan'
-        : '${period.label} Plan';
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: section.color.withValues(alpha: .14),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(_planIcon(period), color: section.color, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    Text(
-                      period.duration,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _MoneyField(
-            label: 'Price Amount',
-            value: section.pricesFor(isFullTime: isFullTime)[period] ?? 0,
-            helperText: period == MembershipPeriod.custom
-                ? 'This amount can be overridden during admission.'
-                : null,
-            onSaved: onSaved,
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -1017,22 +896,13 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
   late int numbersPerPrefix;
 
   void _updateFieldsForSelectedSection() {
-    final sections = widget.configuration.enabledSections;
-    if (sections.isEmpty) {
-      final numbering = widget.configuration.seatNumbering;
-      startingNumber = numbering.startingNumber;
-      endingNumber = numbering.endingNumber;
-      prefix = numbering.prefix;
-      endingPrefix = numbering.endingPrefix;
-      numbersPerPrefix = numbering.numbersPerPrefix;
-      return;
-    }
-    _selectedSectionId ??= sections.first.id;
-    final section = sections.firstWhere(
-      (s) => s.id == _selectedSectionId,
-      orElse: () => sections.first,
+    final rooms = widget.configuration.rooms;
+    _selectedSectionId ??= rooms.isEmpty ? null : rooms.first.id;
+    final room = rooms.firstWhere(
+      (item) => item.id == _selectedSectionId,
+      orElse: () => rooms.first,
     );
-    final numbering = section.seatNumbering ?? widget.configuration.seatNumbering;
+    final numbering = room.seatNumbering ?? widget.configuration.seatNumbering;
     startingNumber = numbering.startingNumber;
     endingNumber = numbering.endingNumber;
     prefix = numbering.prefix;
@@ -1054,32 +924,41 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
 
   @override
   Widget build(BuildContext context) {
-    final sections = widget.configuration.enabledSections;
-    _selectedSectionId ??= sections.isEmpty ? null : sections.first.id;
+    final rooms = widget.configuration.rooms;
+    _selectedSectionId ??= rooms.isEmpty ? null : rooms.first.id;
+    final selectedRoom = rooms.firstWhere(
+      (room) => room.id == _selectedSectionId,
+      orElse: () => rooms.first,
+    );
+    final selectedNumbering =
+        selectedRoom.seatNumbering ?? widget.configuration.seatNumbering;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (sections.isNotEmpty) ...[
+        if (rooms.isNotEmpty) ...[
           Text(
-            'Select Hall Section to Configure',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-            ),
+            'Select Room to Configure',
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                for (final section in sections) ...[
+                for (final room in rooms) ...[
                   ChoiceChip(
-                    avatar: CircleAvatar(radius: 5, backgroundColor: section.color),
-                    label: Text(section.name),
-                    selected: _selectedSectionId == section.id,
+                    avatar: CircleAvatar(
+                      radius: 5,
+                      backgroundColor: room.color,
+                    ),
+                    label: Text(room.name),
+                    selected: _selectedSectionId == room.id,
                     onSelected: (_) {
                       setState(() {
-                        _selectedSectionId = section.id;
+                        _selectedSectionId = room.id;
                         _updateFieldsForSelectedSection();
                       });
                     },
@@ -1088,52 +967,56 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
                 ],
                 ActionChip(
                   avatar: const Icon(Icons.add_rounded, size: 16),
-                  label: const Text('Add Section'),
-                  onPressed: () => _addSection(context),
+                  label: const Text('Add Room'),
+                  onPressed: () => _addRoom(context),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 14),
         ],
-        Column(
-          children: SeatNumberingStyle.values
-              .map(
-                (style) => AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  alignment: Alignment.topCenter,
-                  child: Column(
-                    children: [
-                      _SettingRow(
-                        icon: _numberingIcon(style),
-                        title: _numberingTitle(style),
-                        description: _numberingExample(style),
-                        trailing: Radio<SeatNumberingStyle>(
-                          value: style,
-                          groupValue: widget.configuration.seatNumbering.style,
-                          onChanged: (value) {
-                            if (value != null) {
-                              ref
-                                  .read(libraryConfigurationProvider.notifier)
-                                  .save(
-                                    widget.configuration.copyWith(
-                                      seatNumbering: widget.configuration
-                                          .seatNumbering
-                                          .copyWith(style: value),
-                                    ),
-                                  );
-                            }
-                          },
-                        ),
-                      ),
-                      if (widget.configuration.seatNumbering.style == style)
-                        _numberingFields(style),
-                    ],
-                  ),
+        RadioGroup<SeatNumberingStyle>(
+          groupValue: selectedNumbering.style,
+          onChanged: (value) => ref
+              .read(libraryConfigurationProvider.notifier)
+              .save(
+                widget.configuration.copyWith(
+                  rooms: widget.configuration.rooms
+                      .map(
+                        (room) => room.id == _selectedSectionId
+                            ? room.copyWith(
+                                seatNumbering: selectedNumbering.copyWith(
+                                  style: value,
+                                ),
+                              )
+                            : room,
+                      )
+                      .toList(),
                 ),
-              )
-              .toList(),
+              ),
+          child: Column(
+            children: SeatNumberingStyle.values
+                .map(
+                  (style) => AnimatedSize(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      children: [
+                        _SettingRow(
+                          icon: _numberingIcon(style),
+                          title: _numberingTitle(style),
+                          description: _numberingExample(style),
+                          trailing: Radio<SeatNumberingStyle>(value: style),
+                        ),
+                        if (selectedNumbering.style == style)
+                          _numberingFields(style),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
         ),
       ],
     );
@@ -1144,8 +1027,13 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
     const showStartingNumber = true;
     final colors = Theme.of(context).colorScheme;
     final currentSectionName = _selectedSectionId != null
-        ? widget.configuration.sections.firstWhere((s) => s.id == _selectedSectionId, orElse: () => widget.configuration.sections.first).name
-        : 'All Sections';
+        ? widget.configuration.rooms
+              .firstWhere(
+                (room) => room.id == _selectedSectionId,
+                orElse: () => widget.configuration.rooms.first,
+              )
+              .name
+        : 'Room';
 
     return Container(
       key: ValueKey('numbering-fields-container-$_selectedSectionId'),
@@ -1164,7 +1052,9 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
               children: [
                 Expanded(
                   child: TextFormField(
-                    key: ValueKey('numbering-prefix-$_selectedSectionId-$prefix'),
+                    key: ValueKey(
+                      'numbering-prefix-$_selectedSectionId-$prefix',
+                    ),
                     initialValue: prefix,
                     textCapitalization: TextCapitalization.characters,
                     maxLength: 1,
@@ -1180,7 +1070,9 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
-                    key: ValueKey('numbering-ending-prefix-$_selectedSectionId-$endingPrefix'),
+                    key: ValueKey(
+                      'numbering-ending-prefix-$_selectedSectionId-$endingPrefix',
+                    ),
                     initialValue: endingPrefix,
                     textCapitalization: TextCapitalization.characters,
                     maxLength: 1,
@@ -1199,7 +1091,9 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
           if (showPrefix) ...[
             const SizedBox(height: 10),
             TextFormField(
-              key: ValueKey('numbering-per-prefix-$_selectedSectionId-$numbersPerPrefix'),
+              key: ValueKey(
+                'numbering-per-prefix-$_selectedSectionId-$numbersPerPrefix',
+              ),
               initialValue: numbersPerPrefix.toString(),
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
@@ -1216,7 +1110,9 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
               children: [
                 Expanded(
                   child: TextFormField(
-                    key: ValueKey('numbering-start-$_selectedSectionId-$startingNumber'),
+                    key: ValueKey(
+                      'numbering-start-$_selectedSectionId-$startingNumber',
+                    ),
                     initialValue: startingNumber.toString(),
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
@@ -1232,7 +1128,9 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
-                      key: ValueKey('numbering-end-$_selectedSectionId-$endingNumber'),
+                      key: ValueKey(
+                        'numbering-end-$_selectedSectionId-$endingNumber',
+                      ),
                       initialValue: endingNumber.toString(),
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
@@ -1305,33 +1203,34 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
   Future<void> _saveNumbering() async {
     final cleanPrefix = prefix.trim().toUpperCase();
     final cleanEndingPrefix = endingPrefix.trim().toUpperCase();
-    final newNumbering = widget.configuration.seatNumbering.copyWith(
-      startingNumber: startingNumber < 1 ? 1 : startingNumber,
-      endingNumber: endingNumber < startingNumber
-          ? startingNumber
-          : endingNumber,
-      prefix: cleanPrefix.isEmpty ? 'A' : cleanPrefix,
-      endingPrefix: cleanEndingPrefix.isEmpty
-          ? (cleanPrefix.isEmpty ? 'A' : cleanPrefix)
-          : cleanEndingPrefix,
-      numbersPerPrefix: numbersPerPrefix < 1 ? 1 : numbersPerPrefix,
+    final currentRoom = widget.configuration.rooms.firstWhere(
+      (room) => room.id == _selectedSectionId,
+      orElse: () => widget.configuration.rooms.first,
     );
+    final newNumbering =
+        (currentRoom.seatNumbering ?? widget.configuration.seatNumbering)
+            .copyWith(
+              startingNumber: startingNumber < 1 ? 1 : startingNumber,
+              endingNumber: endingNumber < startingNumber
+                  ? startingNumber
+                  : endingNumber,
+              prefix: cleanPrefix.isEmpty ? 'A' : cleanPrefix,
+              endingPrefix: cleanEndingPrefix.isEmpty
+                  ? (cleanPrefix.isEmpty ? 'A' : cleanPrefix)
+                  : cleanEndingPrefix,
+              numbersPerPrefix: numbersPerPrefix < 1 ? 1 : numbersPerPrefix,
+            );
 
-    final sections = widget.configuration.sections.map((section) {
-      if (section.id == _selectedSectionId) {
-        return section.copyWith(seatNumbering: newNumbering);
+    final rooms = widget.configuration.rooms.map((room) {
+      if (room.id == _selectedSectionId) {
+        return room.copyWith(seatNumbering: newNumbering);
       }
-      return section;
+      return room;
     }).toList();
 
     await ref
         .read(libraryConfigurationProvider.notifier)
-        .save(
-          widget.configuration.copyWith(
-            sections: sections,
-            seatNumbering: newNumbering,
-          ),
-        );
+        .save(widget.configuration.copyWith(rooms: rooms));
 
     if (_selectedSectionId != null) {
       await ref
@@ -1341,21 +1240,50 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Section seat numbering saved & generated successfully!')),
+        const SnackBar(
+          content: Text('Room seat numbering saved & generated successfully!'),
+        ),
       );
     }
   }
 
-  Future<void> _addSection(BuildContext context) async {
+  Future<void> _addRoom(BuildContext context) async {
+    final textController = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => _AddSectionDialog(
-        onSubmitted: (val) => Navigator.pop(dialogContext, val),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Add Room'),
+        content: TextField(
+          controller: textController,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: const InputDecoration(
+            labelText: 'Room Name',
+            hintText: 'e.g. Reading Hall, First Floor',
+          ),
+          onSubmitted: (val) {
+            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
+            },
+            child: const Text('Add Room'),
+          ),
+        ],
       ),
     );
+    textController.dispose();
     if (name == null || name.trim().isEmpty) return;
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
-    if (widget.configuration.sections.any((s) => s.id == id)) return;
+    if (widget.configuration.rooms.any((room) => room.id == id)) return;
 
     final colors = [
       0xFFE91E63, // Pink (Girls)
@@ -1364,18 +1292,14 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
       0xFFFF9800, // Orange
       0xFF9C27B0, // Purple
     ];
-    final color = colors[widget.configuration.sections.length % colors.length];
+    final color = colors[widget.configuration.rooms.length % colors.length];
 
-    final newSection = LibrarySection(
-      id: id,
-      name: name.trim(),
-      colorValue: color,
-    );
+    final newRoom = LibraryRoom(id: id, name: name.trim(), colorValue: color);
 
-    final updatedSections = [...widget.configuration.sections, newSection];
+    final updatedRooms = [...widget.configuration.rooms, newRoom];
     await ref
         .read(libraryConfigurationProvider.notifier)
-        .save(widget.configuration.copyWith(sections: updatedSections));
+        .save(widget.configuration.copyWith(rooms: updatedRooms));
     if (mounted) {
       setState(() {
         _selectedSectionId = id;
@@ -1438,14 +1362,6 @@ IconData _documentIcon(StudentDocumentRequirement value) => switch (value) {
   StudentDocumentRequirement.addressProof => Icons.home_outlined,
   StudentDocumentRequirement.parentId => Icons.family_restroom_outlined,
   StudentDocumentRequirement.collegeId => Icons.school_outlined,
-};
-
-IconData _planIcon(MembershipPeriod value) => switch (value) {
-  MembershipPeriod.monthly => Icons.calendar_today_outlined,
-  MembershipPeriod.quarterly => Icons.date_range_outlined,
-  MembershipPeriod.halfYearly => Icons.calendar_month_outlined,
-  MembershipPeriod.annual => Icons.event_available_outlined,
-  MembershipPeriod.custom => Icons.edit_calendar_outlined,
 };
 
 IconData _numberingIcon(SeatNumberingStyle value) => switch (value) {
@@ -1522,7 +1438,7 @@ class _MoneyFieldState extends State<_MoneyField> {
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
     decoration: InputDecoration(
       labelText: widget.label,
-      prefixText: '₹ ',
+      prefixText: 'â‚¹ ',
       helperText: widget.helperText,
     ),
     onFieldSubmitted: (_) => _save(),
@@ -1585,62 +1501,4 @@ Future<bool> _confirmIfUsed(
         ),
       ) ??
       false;
-}
-
-class _AddSectionDialog extends StatefulWidget {
-  const _AddSectionDialog({required this.onSubmitted});
-  final void Function(String? value) onSubmitted;
-
-  @override
-  State<_AddSectionDialog> createState() => _AddSectionDialogState();
-}
-
-class _AddSectionDialogState extends State<_AddSectionDialog> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final val = _controller.text.trim();
-    if (val.isNotEmpty) widget.onSubmitted(val);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Hall Section'),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(
-          labelText: 'Section Name',
-          hintText: 'e.g. Girls Section, Boys Section',
-        ),
-        onSubmitted: (val) {
-          if (val.trim().isNotEmpty) widget.onSubmitted(val.trim());
-        },
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => widget.onSubmitted(null),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _submit,
-          child: const Text('Add Section'),
-        ),
-      ],
-    );
-  }
 }
