@@ -307,40 +307,40 @@ class SettingsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'My Branches',
-          description: 'Manage all your branches from one place',
+          title: tr('My Branches'),
+          description: tr('Manage all your branches from one place'),
           icon: Icons.apartment_rounded,
           colors: const [Color(0xFF574DEB), Color(0xFF7E73FF)],
           onTap: () => context.push('/settings/libraries'),
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'Library Configuration',
-          description: 'Configure plans, seating, sections and documents',
+          title: tr('Library Configuration'),
+          description: tr('Configure sections, rooms, seating and documents'),
           icon: Icons.tune_rounded,
           colors: const [Color(0xFF4F566B), Color(0xFF697187)],
           onTap: () => context.push('/settings/library-configuration'),
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'Student Data Backup & Import',
-          description: 'Export CSV/JSON backups or bulk import student records',
+          title: tr('Student Data Backup & Import'),
+          description: tr('Export backups or bulk import student records'),
           icon: Icons.cloud_sync_rounded,
           colors: const [Color(0xFF288C68), Color(0xFF3AB080)],
           onTap: () => context.push('/settings/data-management'),
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'About StudyDesk',
-          description: 'Version 1.0.0 · Learn more about our mission',
+          title: tr('About StudyDesk'),
+          description: 'Version 1.0.0 Â· Learn more about our mission',
           icon: Icons.info_outline_rounded,
           colors: const [Color(0xFF3867D6), Color(0xFF5B8DEF)],
           onTap: () => context.push('/settings/about'),
         ),
         const SizedBox(height: 14),
         _SettingsEntry(
-          title: 'Privacy Policy',
-          description: 'Read data protection and usage policies',
+          title: tr('Privacy Policy'),
+          description: tr('Read data protection and usage policies'),
           icon: Icons.privacy_tip_outlined,
           colors: const [Color(0xFF7A55C5), Color(0xFF9B72E8)],
           onTap: () => context.push('/settings/privacy'),
@@ -365,14 +365,14 @@ class SettingsScreen extends ConsumerWidget {
               final shouldLogout = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Log Out'),
-                  content: const Text(
-                    'Are you sure you want to log out of your session?',
+                  title: Text(tr('Log Out')),
+                  content: Text(
+                    tr('Are you sure you want to log out of your session?'),
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
+                      child: Text(tr('Cancel')),
                     ),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -380,7 +380,7 @@ class SettingsScreen extends ConsumerWidget {
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Log Out'),
+                      child: Text(tr('Log Out')),
                     ),
                   ],
                 ),
@@ -398,8 +398,8 @@ class SettingsScreen extends ConsumerWidget {
               }
             },
             icon: const Icon(Icons.logout),
-            label: const Text(
-              'Log Out',
+            label: Text(
+              tr('Log Out'),
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -501,7 +501,7 @@ class _HelpSupport extends StatelessWidget {
     if (!launched && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Connecting to WhatsApp support...'),
+          content: Text(context.tr('Connecting to WhatsApp support...')),
           backgroundColor: const Color(0xFF25D366),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -562,7 +562,7 @@ class _HelpSupport extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          'WhatsApp Support',
+                          context.tr('WhatsApp Support'),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w900,
@@ -595,7 +595,7 @@ class _HelpSupport extends StatelessWidget {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Direct chat with support team',
+                      context.tr('Direct chat with support team'),
                       style: TextStyle(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
@@ -626,16 +626,16 @@ class _HelpSupport extends StatelessWidget {
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  FaIcon(
+                children: [
+                  const FaIcon(
                     FontAwesomeIcons.whatsapp,
                     size: 20,
                     color: Colors.white,
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Text(
-                    'Chat on WhatsApp',
-                    style: TextStyle(
+                    context.tr('Chat on WhatsApp'),
+                    style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.2,
