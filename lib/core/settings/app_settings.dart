@@ -220,8 +220,71 @@ final _translations = <String, Map<AppLanguage, String>>{
   },
 };
 
+final _settingsTranslations = <String, Map<AppLanguage, String>>{
+  'My Branches': {
+    AppLanguage.hindi: 'मेरी शाखाएँ',
+    AppLanguage.marathi: 'माझ्या शाखा',
+  },
+  'Manage all your branches from one place': {
+    AppLanguage.hindi: 'अपनी सभी शाखाओं को एक जगह से प्रबंधित करें',
+    AppLanguage.marathi: 'सर्व शाखा एकाच ठिकाणाहून व्यवस्थापित करा',
+  },
+  'Library Configuration': {
+    AppLanguage.hindi: 'लाइब्रेरी कॉन्फ़िगरेशन',
+    AppLanguage.marathi: 'ग्रंथालय सेटिंग्ज',
+  },
+  'Configure sections, rooms, seating and documents': {
+    AppLanguage.hindi: 'सेक्शन, कमरे, सीटिंग और दस्तावेज़ कॉन्फ़िगर करें',
+    AppLanguage.marathi: 'विभाग, खोल्या, आसने आणि कागदपत्रे सेट करा',
+  },
+  'Student Data Backup & Import': {
+    AppLanguage.hindi: 'छात्र डेटा बैकअप और इंपोर्ट',
+    AppLanguage.marathi: 'विद्यार्थी डेटा बॅकअप आणि आयात',
+  },
+  'Export backups or bulk import student records': {
+    AppLanguage.hindi: 'बैकअप एक्सपोर्ट करें या छात्र रिकॉर्ड इंपोर्ट करें',
+    AppLanguage.marathi: 'बॅकअप एक्सपोर्ट करा किंवा विद्यार्थी नोंदी आयात करा',
+  },
+  'About StudyDesk': {
+    AppLanguage.hindi: 'StudyDesk के बारे में',
+    AppLanguage.marathi: 'StudyDesk बद्दल',
+  },
+  'Privacy Policy': {
+    AppLanguage.hindi: 'गोपनीयता नीति',
+    AppLanguage.marathi: 'गोपनीयता धोरण',
+  },
+  'Read data protection and usage policies': {
+    AppLanguage.hindi: 'डेटा सुरक्षा और उपयोग नीतियाँ पढ़ें',
+    AppLanguage.marathi: 'डेटा सुरक्षा आणि वापर धोरणे वाचा',
+  },
+  'Log Out': {AppLanguage.hindi: 'लॉग आउट', AppLanguage.marathi: 'लॉग आउट'},
+  'Cancel': {AppLanguage.hindi: 'रद्द करें', AppLanguage.marathi: 'रद्द करा'},
+  'Are you sure you want to log out of your session?': {
+    AppLanguage.hindi: 'क्या आप अपनी सत्र से लॉग आउट करना चाहते हैं?',
+    AppLanguage.marathi: 'तुम्हाला सत्रातून लॉग आउट करायचे आहे का?',
+  },
+  'WhatsApp Support': {
+    AppLanguage.hindi: 'WhatsApp सहायता',
+    AppLanguage.marathi: 'WhatsApp सहाय्य',
+  },
+  'Direct chat with support team': {
+    AppLanguage.hindi: 'सहायता टीम से सीधे चैट करें',
+    AppLanguage.marathi: 'सहाय्य टीमशी थेट चॅट करा',
+  },
+  'Chat on WhatsApp': {
+    AppLanguage.hindi: 'WhatsApp पर चैट करें',
+    AppLanguage.marathi: 'WhatsApp वर चॅट करा',
+  },
+  'Connecting to WhatsApp support...': {
+    AppLanguage.hindi: 'WhatsApp सहायता से जुड़ रहे हैं...',
+    AppLanguage.marathi: 'WhatsApp सहाय्याशी जोडत आहोत...',
+  },
+};
+
 String translate(String text, AppLanguage language) =>
-    _translations[text]?[language] ?? text;
+    _translations[text]?[language] ??
+    _settingsTranslations[text]?[language] ??
+    text;
 
 extension AppTranslations on BuildContext {
   String tr(String text) {
