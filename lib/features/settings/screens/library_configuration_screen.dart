@@ -443,37 +443,39 @@ class _PaymentConfiguration extends ConsumerWidget {
             ignoring: usesCustomQr,
             child: Opacity(
               opacity: usesCustomQr ? 0.5 : 1,
-              child: RadioGroup<String>(
-                groupValue: settings.activeUpiId,
-                onChanged: (value) {
-                  if (value != null) controller.setActiveUpiId(value);
-                },
-                child: Column(
-                  children: [
-                    for (final upiId in settings.upiIds)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Radio<String>(value: upiId),
-                        title: Text(
-                          upiId,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
-                        trailing: settings.upiIds.length > 1
-                            ? IconButton(
-                                tooltip: 'Delete',
-                                icon: const Icon(Icons.delete_outline_rounded),
-                                onPressed: usesCustomQr
-                                    ? null
-                                    : () => controller.removeUpiId(upiId),
-                              )
-                            : null,
-                        onTap: usesCustomQr
+              child: Column(
+                children: [
+                  for (final upiId in settings.upiIds)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Radio<String>(
+                        value: upiId,
+                        groupValue: settings.activeUpiId,
+                        onChanged: usesCustomQr
                             ? null
-                            : () => controller.setActiveUpiId(upiId),
+                            : (value) {
+                                if (value != null) controller.setActiveUpiId(value);
+                              },
                       ),
-                  ],
-                ),
+                      title: Text(
+                        upiId,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      trailing: settings.upiIds.length > 1
+                          ? IconButton(
+                              tooltip: 'Delete',
+                              icon: const Icon(Icons.delete_outline_rounded),
+                              onPressed: usesCustomQr
+                                  ? null
+                                  : () => controller.removeUpiId(upiId),
+                            )
+                          : null,
+                      onTap: usesCustomQr
+                          ? null
+                          : () => controller.setActiveUpiId(upiId),
+                    ),
+                ],
               ),
             ),
           ),
@@ -804,39 +806,16 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   }
 
   Future<void> _addSection(BuildContext context) async {
-    final textController = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Hall Section'),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Section Name',
-            hintText: 'e.g. Girls Section, Boys Section',
-          ),
-          onSubmitted: (val) {
-            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return _AddSectionDialog(onSubmitted: (val) => Navigator.pop(dialogContext, val));
           },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = textController.text.trim();
-              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
-            },
-            child: const Text('Add Section'),
-          ),
-        ],
-      ),
+        );
+      },
     );
-    textController.dispose();
     if (name == null || name.trim().isEmpty) return;
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
     if (widget.configuration.sections.any((s) => s.id == id)) return;
@@ -1039,7 +1018,16 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
 
   void _updateFieldsForSelectedSection() {
     final sections = widget.configuration.enabledSections;
-    _selectedSectionId ??= sections.isEmpty ? null : sections.first.id;
+    if (sections.isEmpty) {
+      final numbering = widget.configuration.seatNumbering;
+      startingNumber = numbering.startingNumber;
+      endingNumber = numbering.endingNumber;
+      prefix = numbering.prefix;
+      endingPrefix = numbering.endingPrefix;
+      numbersPerPrefix = numbering.numbersPerPrefix;
+      return;
+    }
+    _selectedSectionId ??= sections.first.id;
     final section = sections.firstWhere(
       (s) => s.id == _selectedSectionId,
       orElse: () => sections.first,
@@ -1108,40 +1096,44 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
           ),
           const SizedBox(height: 14),
         ],
-        RadioGroup<SeatNumberingStyle>(
-          groupValue: widget.configuration.seatNumbering.style,
-          onChanged: (value) => ref
-              .read(libraryConfigurationProvider.notifier)
-              .save(
-                widget.configuration.copyWith(
-                  seatNumbering: widget.configuration.seatNumbering.copyWith(
-                    style: value,
+        Column(
+          children: SeatNumberingStyle.values
+              .map(
+                (style) => AnimatedSize(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  child: Column(
+                    children: [
+                      _SettingRow(
+                        icon: _numberingIcon(style),
+                        title: _numberingTitle(style),
+                        description: _numberingExample(style),
+                        trailing: Radio<SeatNumberingStyle>(
+                          value: style,
+                          groupValue: widget.configuration.seatNumbering.style,
+                          onChanged: (value) {
+                            if (value != null) {
+                              ref
+                                  .read(libraryConfigurationProvider.notifier)
+                                  .save(
+                                    widget.configuration.copyWith(
+                                      seatNumbering: widget.configuration
+                                          .seatNumbering
+                                          .copyWith(style: value),
+                                    ),
+                                  );
+                            }
+                          },
+                        ),
+                      ),
+                      if (widget.configuration.seatNumbering.style == style)
+                        _numberingFields(style),
+                    ],
                   ),
                 ),
-              ),
-          child: Column(
-            children: SeatNumberingStyle.values
-                .map(
-                  (style) => AnimatedSize(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: Column(
-                      children: [
-                        _SettingRow(
-                          icon: _numberingIcon(style),
-                          title: _numberingTitle(style),
-                          description: _numberingExample(style),
-                          trailing: Radio<SeatNumberingStyle>(value: style),
-                        ),
-                        if (widget.configuration.seatNumbering.style == style)
-                          _numberingFields(style),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -1355,39 +1347,12 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
   }
 
   Future<void> _addSection(BuildContext context) async {
-    final textController = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Hall Section'),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Section Name',
-            hintText: 'e.g. Girls Section, Boys Section',
-          ),
-          onSubmitted: (val) {
-            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = textController.text.trim();
-              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
-            },
-            child: const Text('Add Section'),
-          ),
-        ],
+      builder: (dialogContext) => _AddSectionDialog(
+        onSubmitted: (val) => Navigator.pop(dialogContext, val),
       ),
     );
-    textController.dispose();
     if (name == null || name.trim().isEmpty) return;
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
     if (widget.configuration.sections.any((s) => s.id == id)) return;
@@ -1620,4 +1585,62 @@ Future<bool> _confirmIfUsed(
         ),
       ) ??
       false;
+}
+
+class _AddSectionDialog extends StatefulWidget {
+  const _AddSectionDialog({required this.onSubmitted});
+  final void Function(String? value) onSubmitted;
+
+  @override
+  State<_AddSectionDialog> createState() => _AddSectionDialogState();
+}
+
+class _AddSectionDialogState extends State<_AddSectionDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final val = _controller.text.trim();
+    if (val.isNotEmpty) widget.onSubmitted(val);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add Hall Section'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        textCapitalization: TextCapitalization.words,
+        decoration: const InputDecoration(
+          labelText: 'Section Name',
+          hintText: 'e.g. Girls Section, Boys Section',
+        ),
+        onSubmitted: (val) {
+          if (val.trim().isNotEmpty) widget.onSubmitted(val.trim());
+        },
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => widget.onSubmitted(null),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: const Text('Add Section'),
+        ),
+      ],
+    );
+  }
 }

@@ -476,48 +476,206 @@ class _AddLibraryBar extends StatelessWidget {
   );
 }
 
-class _SwitchOverlay extends StatelessWidget {
+class _SwitchOverlay extends StatefulWidget {
   const _SwitchOverlay({required this.controller, required this.library});
   final AnimationController controller;
   final LibraryModel? library;
 
   @override
-  Widget build(BuildContext context) => FadeTransition(
-    opacity: CurvedAnimation(parent: controller, curve: Curves.easeOut),
-    child: ColoredBox(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      child: Center(
-        child: ScaleTransition(
-          scale: Tween<double>(begin: .94, end: 1).animate(
-            CurvedAnimation(parent: controller, curve: Curves.easeOutCubic),
+  State<_SwitchOverlay> createState() => _SwitchOverlayState();
+}
+
+class _SwitchOverlayState extends State<_SwitchOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1600),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return FadeTransition(
+      opacity: CurvedAnimation(
+        parent: widget.controller,
+        curve: Curves.easeInOutQuad,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(0, -0.15),
+              radius: 1.1,
+              colors: isDark
+                  ? [
+                      colorScheme.primaryContainer.withOpacity(0.35),
+                      colorScheme.surface,
+                      colorScheme.surface,
+                    ]
+                  : [
+                      colorScheme.primary.withOpacity(0.08),
+                      colorScheme.surface,
+                      colorScheme.surface,
+                    ],
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const AppLogo(size: 84, borderRadius: 24),
-              const SizedBox(height: 20),
-              Text(
-                'Dashboard',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
+          child: Center(
+            child: SingleChildScrollView(
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 0.88, end: 1.0).animate(
+                  CurvedAnimation(
+                    parent: widget.controller,
+                    curve: Curves.easeOutBack,
+                  ),
+                ),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 32),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    color: isDark
+                        ? colorScheme.surfaceContainerHighest.withOpacity(0.65)
+                        : Colors.white.withOpacity(0.85),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.12)
+                          : colorScheme.primary.withOpacity(0.12),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withOpacity(isDark ? 0.25 : 0.12),
+                        blurRadius: 36,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Glow ring behind logo
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          final pulse = Tween<double>(begin: 0.95, end: 1.08)
+                              .evaluate(_pulseController);
+                          final opacity = Tween<double>(begin: 0.3, end: 0.6)
+                              .evaluate(_pulseController);
+                          return Transform.scale(
+                            scale: pulse,
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.primary.withOpacity(opacity),
+                                    blurRadius: 30,
+                                    spreadRadius: 8,
+                                  ),
+                                ],
+                              ),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: const AppLogo(size: 80, borderRadius: 24),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: colorScheme.primary.withOpacity(0.2),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.swap_horizontal_circle_rounded,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'SWITCHING WORKSPACE',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.library?.name ?? 'Library Branch',
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Loading branch records & seat maps...',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant.withOpacity(0.85),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Animated loading progress bar
+                      SizedBox(
+                        width: 140,
+                        height: 4,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            backgroundColor: colorScheme.primary.withOpacity(0.12),
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                library?.name ?? '',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _CreateHeader extends StatelessWidget {

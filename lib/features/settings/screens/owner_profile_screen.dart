@@ -24,6 +24,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
   late TextEditingController _billingAddressController;
   late TextEditingController _billingPhoneController;
   late TextEditingController _billingEmailController;
+  late TextEditingController _billingWebsiteController;
+  late TextEditingController _billingTaxIdController;
+  late TextEditingController _receiptPrefixController;
+  late TextEditingController _receiptFooterController;
 
   @override
   void initState() {
@@ -49,6 +53,18 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     _billingEmailController = TextEditingController(
       text: profile.billingDetails.email,
     );
+    _billingWebsiteController = TextEditingController(
+      text: profile.billingDetails.website,
+    );
+    _billingTaxIdController = TextEditingController(
+      text: profile.billingDetails.taxId,
+    );
+    _receiptPrefixController = TextEditingController(
+      text: profile.billingDetails.receiptPrefix,
+    );
+    _receiptFooterController = TextEditingController(
+      text: profile.billingDetails.footerMessage,
+    );
   }
 
   @override
@@ -65,6 +81,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
     _billingAddressController.dispose();
     _billingPhoneController.dispose();
     _billingEmailController.dispose();
+    _billingWebsiteController.dispose();
+    _billingTaxIdController.dispose();
+    _receiptPrefixController.dispose();
+    _receiptFooterController.dispose();
     super.dispose();
   }
 
@@ -85,6 +105,10 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
             address: _billingAddressController.text.trim(),
             phone: _billingPhoneController.text.trim(),
             email: _billingEmailController.text.trim(),
+            website: _billingWebsiteController.text.trim(),
+            taxId: _billingTaxIdController.text.trim(),
+            receiptPrefix: _receiptPrefixController.text.trim(),
+            footerMessage: _receiptFooterController.text.trim(),
           ),
         );
     setState(() => _isEditing = false);
@@ -260,10 +284,7 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
           const SizedBox(height: 8),
           Text(
             'Shown in the “Paid To” section of payment receipts.',
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.onSurfaceVariant,
-            ),
+            style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
           ),
           const SizedBox(height: 12),
           _buildDetailCard(
@@ -301,6 +322,39 @@ class _OwnerProfileScreenState extends ConsumerState<OwnerProfileScreen> {
                 controller: _billingEmailController,
                 icon: Icons.email_outlined,
                 isEditing: _isEditing,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'Website (Optional)',
+                controller: _billingWebsiteController,
+                icon: Icons.language_rounded,
+                isEditing: _isEditing,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'GSTIN / Tax ID (Optional)',
+                controller: _billingTaxIdController,
+                icon: Icons.badge_outlined,
+                isEditing: _isEditing,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'Receipt Number Prefix',
+                controller: _receiptPrefixController,
+                icon: Icons.numbers_rounded,
+                isEditing: _isEditing,
+              ),
+              const Divider(height: 24),
+              _buildField(
+                context,
+                label: 'Receipt Footer Message',
+                controller: _receiptFooterController,
+                icon: Icons.format_quote_rounded,
+                isEditing: _isEditing,
+                maxLines: 2,
               ),
             ],
           ),

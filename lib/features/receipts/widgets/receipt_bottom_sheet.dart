@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../settings/controllers/owner_profile_controller.dart';
 import '../../students/models/student.dart';
 import '../../students/widgets/profile_header.dart';
 import '../../../core/utils/formatters.dart';
 import '../services/receipt_service.dart';
 
-class ReceiptBottomSheet extends StatelessWidget {
+class ReceiptBottomSheet extends ConsumerWidget {
   final Student student;
   final String? newExpiry;
   const ReceiptBottomSheet({super.key, required this.student, this.newExpiry});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
+    final billingDetails = ref.watch(ownerProfileProvider).billingDetails;
+    final businessName = billingDetails.businessName.trim().isNotEmpty
+        ? billingDetails.businessName.trim()
+        : AppConstants.libraryName;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -43,7 +49,7 @@ class ReceiptBottomSheet extends StatelessWidget {
                   : const Color(0xFFFAFAFE),
               border: Border.all(
                 color: isDark
-                    ? theme.colorScheme.outline.withOpacity(0.35)
+                    ? theme.colorScheme.outline.withValues(alpha: 0.35)
                     : const Color(0xFFE5E7EF),
                 width: 1.2,
               ),
@@ -51,8 +57,8 @@ class ReceiptBottomSheet extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: isDark
-                      ? Colors.black.withOpacity(0.3)
-                      : const Color(0xFF1E2238).withOpacity(0.04),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : const Color(0xFF1E2238).withValues(alpha: 0.04),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -65,7 +71,7 @@ class ReceiptBottomSheet extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(9),
                       decoration: BoxDecoration(
-                        color: primary.withOpacity(0.1),
+                        color: primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -80,7 +86,7 @@ class ReceiptBottomSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            AppConstants.libraryName,
+                            businessName,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
@@ -153,13 +159,16 @@ class ReceiptBottomSheet extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      ReceiptService.print(student, newExpiry: newExpiry),
+                  onPressed: () => ReceiptService.print(
+                    student,
+                    billingDetails: billingDetails,
+                    newExpiry: newExpiry,
+                  ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(46),
                     side: BorderSide(
                       color: isDark
-                          ? theme.colorScheme.outline.withOpacity(0.4)
+                          ? theme.colorScheme.outline.withValues(alpha: 0.4)
                           : const Color(0xFFD9DCFA),
                     ),
                     shape: RoundedRectangleBorder(
@@ -176,13 +185,16 @@ class ReceiptBottomSheet extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      ReceiptService.share(student, newExpiry: newExpiry),
+                  onPressed: () => ReceiptService.share(
+                    student,
+                    billingDetails: billingDetails,
+                    newExpiry: newExpiry,
+                  ),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(46),
                     foregroundColor: const Color(0xFF23936B),
                     side: BorderSide(
-                      color: const Color(0xFF23936B).withOpacity(0.35),
+                      color: const Color(0xFF23936B).withValues(alpha: 0.35),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
