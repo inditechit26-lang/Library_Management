@@ -640,6 +640,7 @@ class _SectionsEditor extends ConsumerStatefulWidget {
 
 class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   late String _selectedSectionId;
+  bool _isFullTime = true;
 
   @override
   void initState() {
@@ -660,6 +661,17 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final section = widget.configuration.sections.firstWhere(
+      (item) => item.id == _selectedSectionId,
+    );
+    final periods = [
+      MembershipPeriod.monthly,
+      MembershipPeriod.quarterly,
+      MembershipPeriod.halfYearly,
+      MembershipPeriod.annual,
+      if (section.membershipPeriods.contains(MembershipPeriod.custom))
+        MembershipPeriod.custom,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -679,7 +691,7 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                   color: colors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.category_outlined, color: colors.onPrimary),
+                child: Icon(Icons.sell_outlined, color: colors.onPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -687,14 +699,14 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Library Sections',
+                      'Plan Rate Configuration',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Add and manage library sections. Seat rooms and numbering are configured separately below.',
+                      'Set separate full-time and half-time rates for each section. Rooms and seat numbering are configured independently.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -731,11 +743,75 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                 label: const Text('Add Section'),
                 onPressed: () => _addSection(context),
               ),
+              if (widget.configuration.sections.length > 1) ...[
+                const SizedBox(width: 8),
+                ActionChip(
+                  avatar: const Icon(Icons.delete_outline_rounded, size: 16),
+                  label: const Text('Delete Selected'),
+                  onPressed: () => _confirmDeleteSection(context, section),
+                ),
+              ],
             ],
           ),
         ),
+        const SizedBox(height: 14),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(
+              value: true,
+              icon: Icon(Icons.wb_sunny_outlined),
+              label: Text('Full Time (24 Hours)'),
+            ),
+            ButtonSegment(
+              value: false,
+              icon: Icon(Icons.schedule_outlined),
+              label: Text('Half Time (12 Hours)'),
+            ),
+          ],
+          selected: {_isFullTime},
+          showSelectedIcon: false,
+          onSelectionChanged: (value) {
+            setState(() => _isFullTime = value.first);
+          },
+        ),
+        const SizedBox(height: 14),
+        for (final period in periods) ...[
+          _SectionPlanCard(
+            key: ValueKey('$section.id-$_isFullTime-${period.name}'),
+            section: section,
+            period: period,
+            isFullTime: _isFullTime,
+            onSaved: (price) =>
+                _savePlan(section, period, price, isFullTime: _isFullTime),
+          ),
+          const SizedBox(height: 12),
+        ],
       ],
     );
+  }
+
+  Future<void> _savePlan(
+    LibrarySection section,
+    MembershipPeriod period,
+    double price, {
+    required bool isFullTime,
+  }) {
+    final prices = {
+      ...section.pricesFor(isFullTime: isFullTime),
+      period: price,
+    };
+    final updated = section.copyWith(
+      membershipPeriods: {...section.membershipPeriods, period},
+      fullTimePlanPrices: isFullTime ? prices : section.fullTimePlanPrices,
+      halfTimePlanPrices: isFullTime ? section.halfTimePlanPrices : prices,
+    );
+    final sections = [
+      for (final item in widget.configuration.sections)
+        if (item.id == updated.id) updated else item,
+    ];
+    return ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(sections: sections));
   }
 
   Future<void> _addSection(BuildContext context) async {
@@ -849,6 +925,85 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
         _selectedSectionId = updatedSections.first.id;
       });
     }
+  }
+}
+
+class _SectionPlanCard extends StatelessWidget {
+  const _SectionPlanCard({
+    super.key,
+    required this.section,
+    required this.period,
+    required this.isFullTime,
+    required this.onSaved,
+  });
+
+  final LibrarySection section;
+  final MembershipPeriod period;
+  final bool isFullTime;
+  final Future<void> Function(double price) onSaved;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final title = period == MembershipPeriod.annual
+        ? 'Yearly Plan'
+        : '${period.label} Plan';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: section.color.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_planIcon(period), color: section.color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      period.duration,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _MoneyField(
+            label: 'Price Amount',
+            value: section.pricesFor(isFullTime: isFullTime)[period] ?? 0,
+            helperText: period == MembershipPeriod.custom
+                ? 'This amount can be overridden during admission.'
+                : null,
+            onSaved: onSaved,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1362,6 +1517,14 @@ IconData _documentIcon(StudentDocumentRequirement value) => switch (value) {
   StudentDocumentRequirement.addressProof => Icons.home_outlined,
   StudentDocumentRequirement.parentId => Icons.family_restroom_outlined,
   StudentDocumentRequirement.collegeId => Icons.school_outlined,
+};
+
+IconData _planIcon(MembershipPeriod value) => switch (value) {
+  MembershipPeriod.monthly => Icons.calendar_today_outlined,
+  MembershipPeriod.quarterly => Icons.date_range_outlined,
+  MembershipPeriod.halfYearly => Icons.calendar_month_outlined,
+  MembershipPeriod.annual => Icons.event_available_outlined,
+  MembershipPeriod.custom => Icons.edit_calendar_outlined,
 };
 
 IconData _numberingIcon(SeatNumberingStyle value) => switch (value) {
