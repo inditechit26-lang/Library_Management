@@ -743,14 +743,6 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                 label: const Text('Add Section'),
                 onPressed: () => _addSection(context),
               ),
-              if (widget.configuration.sections.length > 1) ...[
-                const SizedBox(width: 8),
-                ActionChip(
-                  avatar: const Icon(Icons.delete_outline_rounded, size: 16),
-                  label: const Text('Delete Selected'),
-                  onPressed: () => _confirmDeleteSection(context, section),
-                ),
-              ],
             ],
           ),
         ),
@@ -994,11 +986,11 @@ class _SectionPlanCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _MoneyField(
-            label: 'Price Amount',
+            label: 'Amount (â‚¹)',
             value: section.pricesFor(isFullTime: isFullTime)[period] ?? 0,
             helperText: period == MembershipPeriod.custom
-                ? 'This amount can be overridden during admission.'
-                : null,
+                ? 'Enter the amount in â‚¹. It can be overridden during admission.'
+                : 'Enter the amount in â‚¹.',
             onSaved: onSaved,
           ),
         ],
@@ -1104,19 +1096,22 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
             child: Row(
               children: [
                 for (final room in rooms) ...[
-                  ChoiceChip(
-                    avatar: CircleAvatar(
-                      radius: 5,
-                      backgroundColor: room.color,
+                  GestureDetector(
+                    onLongPress: () => _confirmDeleteRoom(context, room),
+                    child: ChoiceChip(
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: room.color,
+                      ),
+                      label: Text(room.name),
+                      selected: _selectedSectionId == room.id,
+                      onSelected: (_) {
+                        setState(() {
+                          _selectedSectionId = room.id;
+                          _updateFieldsForSelectedSection();
+                        });
+                      },
                     ),
-                    label: Text(room.name),
-                    selected: _selectedSectionId == room.id,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedSectionId = room.id;
-                        _updateFieldsForSelectedSection();
-                      });
-                    },
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -1458,6 +1453,53 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
     if (mounted) {
       setState(() {
         _selectedSectionId = id;
+        _updateFieldsForSelectedSection();
+      });
+    }
+  }
+
+  Future<void> _confirmDeleteRoom(
+    BuildContext context,
+    LibraryRoom room,
+  ) async {
+    if (widget.configuration.rooms.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least one room must remain.')),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Delete ${room.name}?'),
+        content: const Text(
+          'This removes the room from seat-numbering settings. Existing seat records are kept unchanged.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete Room'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !context.mounted) return;
+
+    final updatedRooms = widget.configuration.rooms
+        .where((item) => item.id != room.id)
+        .toList();
+    await ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(rooms: updatedRooms));
+    if (mounted) {
+      setState(() {
+        _selectedSectionId = updatedRooms.first.id;
         _updateFieldsForSelectedSection();
       });
     }
