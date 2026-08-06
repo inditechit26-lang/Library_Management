@@ -5,6 +5,7 @@ import '../../features/students/screens/students_screen.dart';
 import '../../features/seats/screens/seat_management_screen.dart';
 import '../../features/receipts/screens/receipt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/auth/screens/subscription_gate_screen.dart';
 import '../../features/settings/providers/active_library_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_logo.dart';
@@ -39,6 +40,21 @@ class _AppShellState extends ConsumerState<AppShell>
       duration: const Duration(milliseconds: 380),
       value: 1,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => const Dialog(
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            width: 480,
+            height: 680,
+            child: SubscriptionGateScreen(),
+          ),
+        ),
+      );
+    });
   }
 
   @override
@@ -82,7 +98,10 @@ class _AppShellState extends ConsumerState<AppShell>
           bottom: false,
           child: Column(
             children: [
-              _Header(title: translatedLabels[index], libraryName: activeLibrary.name),
+              _Header(
+                title: translatedLabels[index],
+                libraryName: activeLibrary.name,
+              ),
               Expanded(
                 child: FadeTransition(
                   opacity: CurvedAnimation(
@@ -90,15 +109,16 @@ class _AppShellState extends ConsumerState<AppShell>
                     curve: Curves.easeOutCubic,
                   ).drive(Tween<double>(begin: .72, end: 1)),
                   child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0, .018),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _librarySwitchController,
-                        curve: Curves.easeOutCubic,
-                      ),
-                    ),
+                    position:
+                        Tween<Offset>(
+                          begin: const Offset(0, .018),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _librarySwitchController,
+                            curve: Curves.easeOutCubic,
+                          ),
+                        ),
                     child: PageView(
                       controller: _pageController,
                       onPageChanged: (value) => setState(() => index = value),
