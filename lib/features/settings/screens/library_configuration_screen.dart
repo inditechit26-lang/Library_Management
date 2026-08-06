@@ -986,11 +986,11 @@ class _SectionPlanCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           _MoneyField(
-            label: 'Amount (â‚¹)',
+            label: 'Amount (\u{20B9})',
             value: section.pricesFor(isFullTime: isFullTime)[period] ?? 0,
             helperText: period == MembershipPeriod.custom
-                ? 'Enter the amount in â‚¹. It can be overridden during admission.'
-                : 'Enter the amount in â‚¹.',
+                ? 'Enter the amount in \u{20B9}. It can be overridden during admission.'
+                : 'Enter the amount in \u{20B9}.',
             onSaved: onSaved,
           ),
         ],
@@ -1643,7 +1643,7 @@ class _MoneyFieldState extends State<_MoneyField> {
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
     decoration: InputDecoration(
       labelText: widget.label,
-      prefixText: 'â‚¹ ',
+      prefixText: '\u{20B9} ',
       helperText: widget.helperText,
     ),
     onFieldSubmitted: (_) => _save(),
