@@ -10,6 +10,8 @@ import '../controllers/owner_profile_controller.dart';
 import '../providers/active_library_provider.dart';
 import '../../update/widgets/animated_app_update_tile.dart';
 
+import '../widgets/membership_card.dart';
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
   @override
@@ -201,6 +203,9 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
         ),
+
+        const SizedBox(height: 16),
+        const MembershipCard(),
 
         const SizedBox(height: 16),
         Container(

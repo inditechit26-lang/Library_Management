@@ -2,9 +2,55 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function signedInAs(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function subscriptionUnchanged() {
+      return request.resource.data.subscription == resource.data.subscription;
+    }
+
+    function isAllowedTrialUpdate() {
+      return request.resource.data.subscription.status in ['Trial', 'Expired']
+        && request.resource.data.subscription.diff(resource.data.subscription)
+          .affectedKeys().hasOnly([
+            'status', 'ownerName', 'libraryName', 'mobile', 'city',
+            'seatCapacity', 'onboardingCompleted', 'updatedAt'
+          ]);
+    }
+
+    function isValidActivation(userId) {
+      let subscription = request.resource.data.subscription;
+      let code = getAfter(
+        /databases/$(database)/documents/activationCodes/$(subscription.activationCode)
+      ).data;
+      return subscription.status == 'Active'
+        && resource.data.subscription.status != 'Active'
+        && subscription.activated == true
+        && code.status == 'used'
+        && code.assignedToUid == userId
+        && subscription.membershipEndsAt > request.time
+        && subscription.membershipEndsAt
+          <= request.time + duration.value(code.durationDays + 1, 'd')
+        && subscription.diff(resource.data.subscription).affectedKeys().hasOnly([
+          'status', 'plan', 'activated', 'activationCode', 'activationDate',
+          'membershipStartedAt', 'membershipEndsAt', 'updatedAt'
+        ]);
+    }
+
     // The authenticated owner can access their root account document.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if signedInAs(userId);
+      allow create: if signedInAs(userId)
+        && request.resource.data.subscription.status == 'Trial';
+      allow update: if signedInAs(userId) && (
+        subscriptionUnchanged()
+        || (!resource.data.keys().hasAny(['subscription'])
+          && request.resource.data.subscription.status == 'Trial')
+        || isAllowedTrialUpdate()
+        || isValidActivation(userId)
+      );
+      allow delete: if signedInAs(userId);
 
       // All libraries and library-owned subcollections remain isolated below
       // the same authenticated user document.
@@ -12,6 +58,19 @@ service cloud.firestore {
         allow read, write: if request.auth != null
           && request.auth.uid == userId;
       }
+    }
+
+    match /activationCodes/{codeId} {
+      allow get: if request.auth != null;
+      allow list, create, delete: if false;
+      allow update: if request.auth != null
+        && resource.data.status in ['unused', 'available']
+        && request.resource.data.status == 'used'
+        && request.resource.data.assignedToUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'activatedAt', 'assignedToUid', 'assignedEmail',
+          'assignedLibrary'
+        ]);
     }
 
     // System & Global collections

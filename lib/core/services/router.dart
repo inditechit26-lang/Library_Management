@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/email_verification_screen.dart';
-import '../../features/auth/screens/subscription_gate_screen.dart';
 import '../../features/students/screens/student_profile_screen.dart';
 import '../../features/seats/screens/seat_profile_screen.dart';
 import '../../features/seats/screens/change_seat_screen.dart';
@@ -79,10 +78,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/verify-email',
         builder: (context, state) => const EmailVerificationScreen(),
-      ),
-      GoRoute(
-        path: '/subscription',
-        builder: (context, state) => const SubscriptionGateScreen(),
       ),
       GoRoute(
         path: '/app',

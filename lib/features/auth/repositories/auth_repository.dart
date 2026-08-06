@@ -108,6 +108,7 @@ class AuthRepository implements BaseAuthRepository {
         );
         profile = await getUserProfile(user.uid);
       }
+      await _ensureSubscription(user.uid);
       return profile!;
     } catch (error, stackTrace) {
       throw ErrorHandler.handle(error, stackTrace);
@@ -164,6 +165,7 @@ class AuthRepository implements BaseAuthRepository {
         );
         profile = await getUserProfile(user.uid);
       }
+      await _ensureSubscription(user.uid);
       return profile;
     } catch (error, stackTrace) {
       throw ErrorHandler.handle(error, stackTrace);
@@ -231,6 +233,11 @@ class AuthRepository implements BaseAuthRepository {
         'updatedAt': now,
       },
       'currentLibraryId': libraryId,
+      'subscription': _newTrialSubscription(
+        ownerName: displayName,
+        libraryName: libraryName,
+        mobile: phone,
+      ),
     });
     batch.set(
       _firestore.doc(FirestorePaths.library(user.uid, libraryId)),
@@ -265,6 +272,42 @@ class AuthRepository implements BaseAuthRepository {
 
   String _newLibraryId() =>
       'lib_${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}';
+
+  Map<String, dynamic> _newTrialSubscription({
+    String ownerName = '',
+    String libraryName = '',
+    String mobile = '',
+  }) {
+    final trialStartedAt = DateTime.now();
+    return {
+      'status': 'Trial',
+      'plan': 'Trial',
+      'trialStartedAt': Timestamp.fromDate(trialStartedAt),
+      'trialEndsAt': Timestamp.fromDate(
+        trialStartedAt.add(const Duration(days: 7)),
+      ),
+      'membershipStartedAt': null,
+      'membershipEndsAt': null,
+      'activationCode': null,
+      'activated': false,
+      'activationDate': null,
+      'ownerName': ownerName,
+      'libraryName': libraryName,
+      'mobile': mobile,
+      'city': '',
+      'seatCapacity': null,
+      'onboardingCompleted': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+  }
+
+  Future<void> _ensureSubscription(String uid) async {
+    final reference = _firestore.doc(FirestorePaths.user(uid));
+    final snapshot = await reference.get();
+    if (snapshot.data()?['subscription'] is Map) return;
+    await reference.update({'subscription': _newTrialSubscription()});
+  }
 
   @override
   Future<void> sendPasswordResetEmail(String email) =>

@@ -5,7 +5,7 @@ import '../../features/students/screens/students_screen.dart';
 import '../../features/seats/screens/seat_management_screen.dart';
 import '../../features/receipts/screens/receipt_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
-import '../../features/auth/screens/subscription_gate_screen.dart';
+import '../../features/membership/guards/membership_guard.dart';
 import '../../features/settings/providers/active_library_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_logo.dart';
@@ -40,21 +40,6 @@ class _AppShellState extends ConsumerState<AppShell>
       duration: const Duration(milliseconds: 380),
       value: 1,
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      showDialog<void>(
-        context: context,
-        barrierDismissible: true,
-        builder: (_) => const Dialog(
-          clipBehavior: Clip.antiAlias,
-          child: SizedBox(
-            width: 480,
-            height: 680,
-            child: SubscriptionGateScreen(),
-          ),
-        ),
-      );
-    });
   }
 
   @override
@@ -87,109 +72,111 @@ class _AppShellState extends ConsumerState<AppShell>
       const ReceiptScreen(),
       const SettingsScreen(),
     ];
-    return PopScope(
-      canPop: index == 0,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && index != 0) setState(() => index = 0);
-      },
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              _Header(
-                title: translatedLabels[index],
-                libraryName: activeLibrary.name,
-              ),
-              Expanded(
-                child: FadeTransition(
-                  opacity: CurvedAnimation(
-                    parent: _librarySwitchController,
-                    curve: Curves.easeOutCubic,
-                  ).drive(Tween<double>(begin: .72, end: 1)),
-                  child: SlideTransition(
-                    position:
-                        Tween<Offset>(
-                          begin: const Offset(0, .018),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: _librarySwitchController,
-                            curve: Curves.easeOutCubic,
+    return MembershipGuard(
+      child: PopScope(
+        canPop: index == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop && index != 0) setState(() => index = 0);
+        },
+        child: Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                _Header(
+                  title: translatedLabels[index],
+                  libraryName: activeLibrary.name,
+                ),
+                Expanded(
+                  child: FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: _librarySwitchController,
+                      curve: Curves.easeOutCubic,
+                    ).drive(Tween<double>(begin: .72, end: 1)),
+                    child: SlideTransition(
+                      position:
+                          Tween<Offset>(
+                            begin: const Offset(0, .018),
+                            end: Offset.zero,
+                          ).animate(
+                            CurvedAnimation(
+                              parent: _librarySwitchController,
+                              curve: Curves.easeOutCubic,
+                            ),
                           ),
-                        ),
-                    child: PageView(
-                      controller: _pageController,
-                      onPageChanged: (value) => setState(() => index = value),
-                      children: screens,
+                      child: PageView(
+                        controller: _pageController,
+                        onPageChanged: (value) => setState(() => index = value),
+                        children: screens,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: SafeArea(
-          top: false,
-          child: Container(
-            height: 82,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              border: Border(top: BorderSide(color: colors.outlineVariant)),
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x0C242943),
-                  blurRadius: 20,
-                  offset: Offset(0, -4),
-                ),
               ],
             ),
-            child: Row(
-              children: List.generate(
-                labels.length,
-                (item) => Expanded(
-                  child: InkWell(
-                    onTap: () => _selectTab(item),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        if (index == item)
-                          Positioned(
-                            top: 0,
-                            child: SizedBox(
-                              width: 30,
-                              child: Divider(
-                                height: 3,
-                                thickness: 3,
-                                color: colors.primary,
+          ),
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Container(
+              height: 82,
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border(top: BorderSide(color: colors.outlineVariant)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x0C242943),
+                    blurRadius: 20,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: List.generate(
+                  labels.length,
+                  (item) => Expanded(
+                    child: InkWell(
+                      onTap: () => _selectTab(item),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          if (index == item)
+                            Positioned(
+                              top: 0,
+                              child: SizedBox(
+                                width: 30,
+                                child: Divider(
+                                  height: 3,
+                                  thickness: 3,
+                                  color: colors.primary,
+                                ),
                               ),
                             ),
-                          ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              icons[item],
-                              color: index == item
-                                  ? colors.primary
-                                  : colors.onSurfaceVariant,
-                              size: 25,
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              translatedLabels[item],
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                icons[item],
                                 color: index == item
                                     ? colors.primary
                                     : colors.onSurfaceVariant,
+                                size: 25,
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(height: 5),
+                              Text(
+                                translatedLabels[item],
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: index == item
+                                      ? colors.primary
+                                      : colors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
