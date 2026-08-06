@@ -139,21 +139,21 @@ void main() {
     await tester.pumpWidget(app());
     await tester.pump();
 
-    // Initially, the section editor is hidden.
-    expect(find.text('Library Sections'), findsNothing);
+    // Initially, the section pricing editor is hidden.
+    expect(find.text('Plan Rate Configuration'), findsNothing);
 
     // Tap on Sections header to expand
     await tester.tap(find.text('Sections'));
     await tester.pumpAndSettle();
 
-    // The independent section editor is now visible.
-    expect(find.text('Library Sections'), findsOneWidget);
+    // The section pricing editor is now visible.
+    expect(find.text('Plan Rate Configuration'), findsOneWidget);
 
     // Tap on Sections header again to collapse
     await tester.tap(find.text('Sections'));
     await tester.pumpAndSettle();
 
-    // The section editor is hidden again.
-    expect(find.text('Library Sections'), findsNothing);
+    // The section pricing editor is hidden again.
+    expect(find.text('Plan Rate Configuration'), findsNothing);
   });
 }
