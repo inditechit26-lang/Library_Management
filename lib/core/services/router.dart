@@ -66,7 +66,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         return verifying ? null : '/verify-email';
       }
 
-      if (loggingIn || verifying) return '/subscription';
+      if (loggingIn || verifying) return '/app';
       return null;
     },
     routes: [
