@@ -1399,50 +1399,114 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
 
   Future<void> _addRoom(BuildContext context) async {
     final textController = TextEditingController();
-    final name = await showDialog<String>(
+    final colors = [
+      const Color(0xFFE91E63), // Pink (Girls)
+      const Color(0xFF2196F3), // Blue (Boys)
+      const Color(0xFF10B981), // Emerald (General/AC)
+      const Color(0xFFF59E0B), // Amber/Orange
+      const Color(0xFF8B5CF6), // Purple
+      const Color(0xFF06B6D4), // Cyan
+      const Color(0xFFEC4899), // Hot Pink
+      const Color(0xFF3B82F6), // Royal Blue
+    ];
+    Color selectedColor = colors[widget.configuration.rooms.length % colors.length];
+
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Room'),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Room Name',
-            hintText: 'e.g. Reading Hall, First Floor',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Add Room / Section'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: textController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Room Name',
+                  hintText: 'e.g. AC Hall, Girls Section, First Floor',
+                ),
+                onSubmitted: (val) {
+                  if (val.trim().isNotEmpty) {
+                    Navigator.pop(dialogContext, {
+                      'name': val.trim(),
+                      'color': selectedColor,
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Section Color Theme:',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: colors.map((c) {
+                  final isSelected = c.value == selectedColor.value;
+                  return GestureDetector(
+                    onTap: () => setDialogState(() => selectedColor = c),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: c,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? Colors.white : Colors.transparent,
+                          width: 2.5,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: c.withOpacity(0.5),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: isSelected
+                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          onSubmitted: (val) {
-            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
-          },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final val = textController.text.trim();
+                if (val.isNotEmpty) {
+                  Navigator.pop(dialogContext, {
+                    'name': val,
+                    'color': selectedColor,
+                  });
+                }
+              },
+              child: const Text('Add Section'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = textController.text.trim();
-              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
-            },
-            child: const Text('Add Room'),
-          ),
-        ],
       ),
     );
     textController.dispose();
-    if (name == null || name.trim().isEmpty) return;
+    if (result == null) return;
+    final name = result['name'] as String;
+    final color = (result['color'] as Color).value;
+
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
     if (widget.configuration.rooms.any((room) => room.id == id)) return;
-
-    final colors = [
-      0xFFE91E63, // Pink (Girls)
-      0xFF2196F3, // Blue (Boys)
-      0xFF4CAF50, // Green (General)
-      0xFFFF9800, // Orange
-      0xFF9C27B0, // Purple
-    ];
-    final color = colors[widget.configuration.rooms.length % colors.length];
 
     final newRoom = LibraryRoom(id: id, name: name.trim(), colorValue: color);
 

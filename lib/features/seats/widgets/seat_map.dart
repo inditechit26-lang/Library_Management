@@ -9,6 +9,7 @@ class SeatMap extends StatelessWidget {
   final List<Seat> seats;
   final List<Student> students;
   final Map<String, String>? sectionNames;
+  final Map<String, Color>? sectionColors;
   final ValueChanged<Seat> onTap;
   final ValueChanged<Seat>? onLongPress;
   final String? selectedSeat;
@@ -19,6 +20,7 @@ class SeatMap extends StatelessWidget {
     required this.seats,
     required this.students,
     this.sectionNames,
+    this.sectionColors,
     required this.onTap,
     this.onLongPress,
     this.selectedSeat,
@@ -165,45 +167,176 @@ class SeatMap extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.all(constraints.maxWidth < 430 ? 12 : 16),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: seats.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: spacing,
-                    mainAxisSpacing: spacing,
-                    childAspectRatio: constraints.maxWidth < 430 ? 0.88 : 0.98,
-                  ),
-                  itemBuilder: (context, index) {
-                    final seat = seats[index];
-                    final student = _studentFor(seat);
-                    final secId = seat.sectionId ?? student?.sectionId;
-                    final names = sectionNames;
-                    final secName = secId == null || names == null
-                        ? null
-                        : names[secId];
+                child: Builder(
+                  builder: (context) {
+                    // Group seats by section
+                    final Map<String, List<Seat>> groupedSeats = {};
+                    for (final seat in seats) {
+                      final student = _studentFor(seat);
+                      final secId = seat.sectionId ?? student?.sectionId ?? 'default';
+                      groupedSeats.putIfAbsent(secId, () => []).add(seat);
+                    }
 
-                    return Hero(
-                      tag: 'seat-${seat.seatId}',
-                      child: Material(
-                        color: Colors.transparent,
-                        child: SeatCard(
-                          seat: seat,
-                          student: student,
-                          sectionName: secName,
-                          compact: true,
-                          selected: seat.seatId == selectedSeat,
-                          disabled:
-                              selectionMode &&
-                              seat.status != SeatStatus.available &&
-                              seat.seatId != selectedSeat,
-                          onTap: () => onTap(seat),
-                          onLongPress: onLongPress == null
-                              ? null
-                              : () => onLongPress!(seat),
+                    // If only 1 section or sectionNames is empty, render single grid directly
+                    if (groupedSeats.keys.length <= 1) {
+                      final sortedSeats = List<Seat>.from(seats)
+                        ..sort((a, b) => compareSeatLabels(a.seatLabel, b.seatLabel));
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: sortedSeats.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          childAspectRatio: constraints.maxWidth < 430 ? 0.88 : 0.98,
                         ),
-                      ),
+                        itemBuilder: (context, index) {
+                          final seat = sortedSeats[index];
+                          final student = _studentFor(seat);
+                          final secId = seat.sectionId ?? student?.sectionId;
+                          final secName = secId == null || sectionNames == null
+                              ? null
+                              : sectionNames![secId];
+                          final secColor = secId == null || sectionColors == null
+                              ? null
+                              : sectionColors![secId];
+
+                          return Hero(
+                            tag: 'seat-${seat.seatId}',
+                            child: Material(
+                              color: Colors.transparent,
+                              child: SeatCard(
+                                seat: seat,
+                                student: student,
+                                sectionName: secName,
+                                sectionColor: secColor,
+                                compact: true,
+                                selected: seat.seatId == selectedSeat,
+                                disabled:
+                                    selectionMode &&
+                                    seat.status != SeatStatus.available &&
+                                    seat.seatId != selectedSeat,
+                                onTap: () => onTap(seat),
+                                onLongPress: onLongPress == null
+                                    ? null
+                                    : () => onLongPress!(seat),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
+
+                    // Render grouped section blocks with section headers
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: groupedSeats.entries.map((entry) {
+                        final secId = entry.key;
+                        final roomSeats = List<Seat>.from(entry.value)
+                          ..sort((a, b) => compareSeatLabels(a.seatLabel, b.seatLabel));
+                        final secName = sectionNames?[secId] ?? 'General Section';
+                        final secColor = sectionColors?[secId] ?? const Color(0xFF10B981);
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Section Header
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 12, top: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: secColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: secColor.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: secColor,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: secColor.withOpacity(0.6),
+                                            blurRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      secName,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '(${roomSeats.length} seats)',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: secColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Section Seat Grid
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: roomSeats.length,
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: columns,
+                                  crossAxisSpacing: spacing,
+                                  mainAxisSpacing: spacing,
+                                  childAspectRatio: constraints.maxWidth < 430 ? 0.88 : 0.98,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final seat = roomSeats[index];
+                                  final student = _studentFor(seat);
+
+                                  return Hero(
+                                    tag: 'seat-${seat.seatId}',
+                                    child: Material(
+                                      color: Colors.transparent,
+                                      child: SeatCard(
+                                        seat: seat,
+                                        student: student,
+                                        sectionName: secName,
+                                        sectionColor: secColor,
+                                        compact: true,
+                                        selected: seat.seatId == selectedSeat,
+                                        disabled:
+                                            selectionMode &&
+                                            seat.status != SeatStatus.available &&
+                                            seat.seatId != selectedSeat,
+                                        onTap: () => onTap(seat),
+                                        onLongPress: onLongPress == null
+                                            ? null
+                                            : () => onLongPress!(seat),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     );
                   },
                 ),
@@ -281,4 +414,27 @@ class _EmptyMap extends StatelessWidget {
       ],
     ),
   );
+}
+
+int compareSeatLabels(String first, String second) {
+  final cleanFirst = first.trim();
+  final cleanSecond = second.trim();
+
+  final pattern = RegExp(r'^([A-Za-z\s\-_]*?)(\d+)$');
+  final firstMatch = pattern.firstMatch(cleanFirst);
+  final secondMatch = pattern.firstMatch(cleanSecond);
+
+  if (firstMatch != null && secondMatch != null) {
+    final prefix1 = firstMatch.group(1)!.replaceAll(RegExp(r'[\s\-_]'), '').toLowerCase();
+    final prefix2 = secondMatch.group(1)!.replaceAll(RegExp(r'[\s\-_]'), '').toLowerCase();
+
+    if (prefix1 != prefix2) {
+      return prefix1.compareTo(prefix2);
+    }
+    final num1 = int.parse(firstMatch.group(2)!);
+    final num2 = int.parse(secondMatch.group(2)!);
+    return num1.compareTo(num2);
+  }
+
+  return cleanFirst.compareTo(cleanSecond);
 }

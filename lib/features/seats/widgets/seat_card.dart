@@ -6,6 +6,7 @@ class SeatCard extends StatefulWidget {
   final Seat seat;
   final Student? student;
   final String? sectionName;
+  final Color? sectionColor;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool compact, selected, disabled;
@@ -14,6 +15,7 @@ class SeatCard extends StatefulWidget {
     required this.seat,
     this.student,
     this.sectionName,
+    this.sectionColor,
     this.onTap,
     this.onLongPress,
     this.compact = false,
@@ -38,7 +40,7 @@ class _SeatCardState extends State<SeatCard> {
       return isFemale ? const Color(0xFFDB2777) : const Color(0xFF2563EB);
     }
     return switch (widget.seat.status) {
-      SeatStatus.available => const Color(0xFF10B981),
+      SeatStatus.available => widget.sectionColor ?? const Color(0xFF10B981),
       SeatStatus.occupied => const Color(0xFF2563EB),
       SeatStatus.reserved => const Color(0xFFD97706),
       SeatStatus.maintenance => const Color(0xFF6B7280),
@@ -59,7 +61,7 @@ class _SeatCardState extends State<SeatCard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Light pastel colors per status and gender
+    // Colors per status, section and gender
     final Color cardBg;
     final Color borderColor;
     final List<BoxShadow> cardShadows;
@@ -127,20 +129,23 @@ class _SeatCardState extends State<SeatCard> {
       borderColor = isDark ? const Color(0xFF2E3345) : const Color(0xFFE2E8F0);
       cardShadows = [];
     } else {
-      // Available seat: Soft light emerald/mint tint
-      cardBg = isDark ? const Color(0xFF172421) : const Color(0xFFF0FDF4);
+      // Available seat: Colored according to room/section color if available
+      final secCol = widget.sectionColor ?? const Color(0xFF10B981);
+      cardBg = isDark
+          ? Color.alphaBlend(secCol.withOpacity(0.15), const Color(0xFF121824))
+          : Color.alphaBlend(secCol.withOpacity(0.08), Colors.white);
       borderColor = hovered
-          ? const Color(0xFF10B981)
+          ? secCol
           : isDark
-          ? const Color(0xFF1E3A34)
-          : const Color(0xFFBBF7D0);
+          ? secCol.withOpacity(0.4)
+          : secCol.withOpacity(0.35);
       cardShadows = [
         BoxShadow(
           color: hovered
-              ? const Color(0xFF10B981).withOpacity(0.18)
+              ? secCol.withOpacity(0.25)
               : isDark
               ? Colors.black.withOpacity(0.2)
-              : const Color(0xFF10B981).withOpacity(0.06),
+              : secCol.withOpacity(0.1),
           blurRadius: hovered ? 18 : 10,
           offset: Offset(0, hovered ? 6 : 4),
         ),
@@ -231,8 +236,12 @@ class _SeatCardState extends State<SeatCard> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.12),
+                            color: (widget.sectionColor ?? statusColor).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: (widget.sectionColor ?? statusColor).withOpacity(0.3),
+                              width: 0.8,
+                            ),
                           ),
                           child: Text(
                             widget.sectionName!,
@@ -241,7 +250,7 @@ class _SeatCardState extends State<SeatCard> {
                             style: TextStyle(
                               fontSize: 8.5,
                               fontWeight: FontWeight.w800,
-                              color: statusColor,
+                              color: widget.sectionColor ?? statusColor,
                             ),
                           ),
                         ),
