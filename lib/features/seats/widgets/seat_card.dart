@@ -5,11 +5,8 @@ import '../models/seat.dart';
 class SeatCard extends StatefulWidget {
   final Seat seat;
   final Student? student;
-<<<<<<< HEAD
-=======
   final String? sectionName;
   final Color? sectionColor;
->>>>>>> 7dcb033 (feat: distinguish available seats by section color accent)
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
   final bool compact, selected, disabled;
@@ -17,11 +14,8 @@ class SeatCard extends StatefulWidget {
     super.key,
     required this.seat,
     this.student,
-<<<<<<< HEAD
-=======
     this.sectionName,
     this.sectionColor,
->>>>>>> 7dcb033 (feat: distinguish available seats by section color accent)
     this.onTap,
     this.onLongPress,
     this.compact = false,
@@ -178,88 +172,137 @@ class _SeatCardState extends State<SeatCard> {
               ),
               boxShadow: cardShadows,
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: interactive ? widget.onTap : null,
-                onLongPress: interactive ? widget.onLongPress : null,
-                borderRadius: BorderRadius.circular(18),
-                child: Padding(
-                  padding: EdgeInsets.all(widget.compact ? 10 : 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(8),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(18),
+              child: Stack(
+                children: [
+                  if (widget.sectionColor != null)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 3.5,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: widget.sectionColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.sectionColor!.withOpacity(0.5),
+                              blurRadius: 4,
                             ),
-                            child: Icon(
-                              Icons.event_seat_rounded,
-                              size: 13,
-                              color: statusColor,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              displayNumber,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: -0.4,
-                                color: theme.colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Container(
-                            width: 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              color: statusColor,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: statusColor.withOpacity(0.8),
-                                  blurRadius: 6,
-                                  spreadRadius: 1,
+                          ],
+                        ),
+                      ),
+                    ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: interactive ? widget.onTap : null,
+                      onLongPress: interactive ? widget.onLongPress : null,
+                      borderRadius: BorderRadius.circular(18),
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          widget.compact ? 10 : 14,
+                          widget.sectionColor != null ? (widget.compact ? 12 : 16) : (widget.compact ? 10 : 14),
+                          widget.compact ? 10 : 14,
+                          widget.compact ? 10 : 14,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.event_seat_rounded,
+                                    size: 13,
+                                    color: statusColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    displayNumber,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.4,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  decoration: BoxDecoration(
+                                    color: statusColor,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: statusColor.withOpacity(0.8),
+                                        blurRadius: 6,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      if (widget.sectionName != null &&
-                          widget.sectionName!.isNotEmpty) ...[
-                        const SizedBox(height: 3),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: (widget.sectionColor ?? statusColor).withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            widget.sectionName!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.w800,
-                              color: widget.sectionColor ?? statusColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                      const Spacer(),
+                            if (widget.sectionName != null &&
+                                widget.sectionName!.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: (widget.sectionColor ?? statusColor).withOpacity(0.14),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: (widget.sectionColor ?? statusColor).withOpacity(0.3),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (widget.sectionColor != null) ...[
+                                      Container(
+                                        width: 5,
+                                        height: 5,
+                                        decoration: BoxDecoration(
+                                          color: widget.sectionColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                    ],
+                                    Flexible(
+                                      child: Text(
+                                        widget.sectionName!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 8.5,
+                                          fontWeight: FontWeight.w800,
+                                          color: widget.sectionColor ?? statusColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            const Spacer(),
                       if (occupied)
                         Row(
                           children: [
@@ -348,10 +391,13 @@ class _SeatCardState extends State<SeatCard> {
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
-    );
+    ),
+  ),
+),
+);
   }
 
   IconData get _stateIcon => switch (widget.seat.status) {

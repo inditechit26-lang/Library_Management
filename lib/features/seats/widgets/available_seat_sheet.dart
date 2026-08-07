@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 import '../../admissions/screens/admission_screen.dart';
 import '../controllers/seats_controller.dart';
 import '../models/seat.dart';
@@ -11,9 +12,12 @@ class AvailableSeatSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final configuration = ref.watch(libraryConfigurationProvider);
+    final section = configuration.rooms.where((r) => r.id == seat.sectionId).firstOrNull ??
+        configuration.rooms.firstOrNull;
+
     final isBlocked = seat.status == SeatStatus.blocked;
     final isMaintenance = seat.status == SeatStatus.maintenance;
-    final isAvailable = seat.status == SeatStatus.available;
 
     String statusText = 'Available for assignment';
     Color statusColor = const Color(0xFF23876A);
@@ -63,25 +67,67 @@ class AvailableSeatSheet extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Seat ${seat.seatLabel}',
-                      style: const TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w800,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Seat ${seat.seatLabel}',
+                            style: const TextStyle(
+                              fontSize: 21,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          if (section != null) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: section.color.withOpacity(0.14),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: section.color.withOpacity(0.3),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: BoxDecoration(
+                                      color: section.color,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    section.name,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: section.color,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                    ),
-                    Text(
-                      statusText,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: statusColor,
-                        fontWeight: FontWeight.w700,
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: statusColor,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

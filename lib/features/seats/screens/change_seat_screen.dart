@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/utils/error_handler.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../../settings/controllers/library_configuration_controller.dart';
 import '../../students/controllers/students_controller.dart';
 import '../controllers/seats_controller.dart' as sc;
 import '../models/seat.dart';
@@ -24,7 +25,8 @@ class _ChangeSeatScreenState extends ConsumerState<ChangeSeatScreen> {
   @override
   Widget build(BuildContext context) {
     final seats = ref.watch(sc.seatsProvider),
-        students = ref.watch(studentsProvider);
+        students = ref.watch(studentsProvider),
+        configuration = ref.watch(libraryConfigurationProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Change Seat')),
@@ -49,6 +51,7 @@ class _ChangeSeatScreenState extends ConsumerState<ChangeSeatScreen> {
           SeatMap(
             seats: seats,
             students: students,
+            rooms: configuration.rooms,
             selectionMode: true,
             selectedSeat: selected ?? widget.currentSeat,
             onTap: (seat) {
