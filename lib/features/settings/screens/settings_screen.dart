@@ -10,8 +10,6 @@ import '../controllers/owner_profile_controller.dart';
 import '../providers/active_library_provider.dart';
 import '../../update/widgets/animated_app_update_tile.dart';
 
-import '../widgets/membership_card.dart';
-
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
   @override
@@ -205,8 +203,11 @@ class SettingsScreen extends ConsumerWidget {
         ),
 
         const SizedBox(height: 16),
-        const MembershipCard(),
-
+        _SubscriptionCard(
+          planName: ownerProfile.subscriptionPlan.isNotEmpty
+              ? ownerProfile.subscriptionPlan
+              : 'Trial',
+        ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(18),
@@ -410,6 +411,109 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SubscriptionCard extends StatelessWidget {
+  final String planName;
+  final VoidCallback? onTap;
+
+  const _SubscriptionCard({required this.planName, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isTrial = planName.toLowerCase() == 'trial';
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Ink(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF332E78), Color(0xFF635BCE)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x3D332E78),
+                blurRadius: 22,
+                offset: Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Icon(
+                  Icons.workspace_premium_rounded,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isTrial ? 'StudyHub Trial' : 'StudyHub $planName',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      isTrial
+                          ? 'Explore your workspace and choose a plan.'
+                          : 'Your library subscription is active.',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: .78),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: isTrial
+                      ? const Color(0xFFFFC857)
+                      : const Color(0xFF47D7AC),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Text(
+                  isTrial ? 'TRIAL' : 'ACTIVE',
+                  style: TextStyle(
+                    color: colors.onPrimary,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: .5,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.verified_rounded, color: Colors.white),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

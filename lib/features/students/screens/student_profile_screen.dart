@@ -29,19 +29,10 @@ class StudentProfileScreen extends ConsumerWidget {
         body: const Center(child: Text('No student found')),
       );
     }
-    Student? student;
-    for (final item in students) {
-      if (item.id == studentId) {
-        student = item;
-        break;
-      }
-    }
-    if (student == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Student Profile')),
-        body: const Center(child: Text('Student not found')),
-      );
-    }
+    final student = students.firstWhere(
+      (item) => item.id == studentId,
+      orElse: () => students.first,
+    );
     final configuration = ref.watch(libraryConfigurationProvider);
     LibrarySection? section;
     for (final item in configuration.sections) {
