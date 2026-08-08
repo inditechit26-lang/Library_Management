@@ -8,6 +8,7 @@ import '../../../core/utils/error_handler.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../controllers/owner_profile_controller.dart';
 import '../providers/active_library_provider.dart';
+import 'subscription_details_screen.dart';
 import '../../update/widgets/animated_app_update_tile.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -207,6 +208,11 @@ class SettingsScreen extends ConsumerWidget {
           planName: ownerProfile.subscriptionPlan.isNotEmpty
               ? ownerProfile.subscriptionPlan
               : 'Trial',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const SubscriptionDetailsScreen(),
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Container(
