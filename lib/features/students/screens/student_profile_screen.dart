@@ -42,14 +42,15 @@ class StudentProfileScreen extends ConsumerWidget {
         body: const Center(child: Text('Student not found')),
       );
     }
+    final st = student;
     final configuration = ref.watch(libraryConfigurationProvider);
     LibrarySection? section;
     for (final item in configuration.sections) {
-      if (item.id == student.sectionId) section = item;
+      if (item.id == st.sectionId) section = item;
     }
     MembershipPeriod? period;
     for (final item in MembershipPeriod.values) {
-      if (item.name == student.membershipPeriod) period = item;
+      if (item.name == st.membershipPeriod) period = item;
     }
     return Scaffold(
       appBar: AppBar(
@@ -57,12 +58,12 @@ class StudentProfileScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Edit profile',
-            onPressed: () => _edit(context, ref, student),
+            onPressed: () => _edit(context, ref, st),
             icon: const Icon(Icons.edit_outlined),
           ),
           IconButton(
             tooltip: 'Delete student',
-            onPressed: () => _delete(context, ref, student),
+            onPressed: () => _delete(context, ref, st),
             icon: const Icon(Icons.delete_outline_rounded),
           ),
         ],
@@ -74,43 +75,43 @@ class StudentProfileScreen extends ConsumerWidget {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 StudentProfileHeader(
-                  student: student,
-                  onCall: () => _call(student),
-                  onWhatsApp: () => _whatsApp(student),
+                  student: st,
+                  onCall: () => _call(st),
+                  onWhatsApp: () => _whatsApp(st),
                 ),
                 const SizedBox(height: 20),
                 MembershipCard(
-                  student: student,
-                  onRenew: () => _renew(context, student),
-                  onSendReminder: () => _sendWhatsAppReminder(context, student),
-                  onReceipt: () => _receiptOptions(context, student),
+                  student: st,
+                  onRenew: () => _renew(context, st),
+                  onSendReminder: () => _sendWhatsAppReminder(context, st),
+                  onReceipt: () => _receiptOptions(context, st),
                 ),
                 const SizedBox(height: 14),
                 SizedBox(
                   height: 154,
                   child: StudentIdentityCards(
-                    student: student,
-                    onOpenId: () => _openId(context, student),
+                    student: st,
+                    onOpenId: () => _openId(context, st),
                   ),
                 ),
                 const SizedBox(height: 14),
                 StudentInformationCard(
-                  student: student,
+                  student: st,
                   sectionName: section?.name,
                   membershipPlanName: period?.label,
                 ),
                 const SizedBox(height: 14),
                 PaymentInformationCard(
-                  student: student,
+                  student: st,
                   onPaymentHistory: () =>
-                      PaymentHistorySheet.open(context, student),
+                      PaymentHistorySheet.open(context, st),
                   basePlanPrice: period == null
                       ? null
                       : configuration.priceFor(
                           period,
-                          sectionId: student.sectionId,
+                          sectionId: st.sectionId,
                           isFullTime:
-                              student.membership == MembershipType.fullTime,
+                              st.membership == MembershipType.fullTime,
                         ),
                 ),
                 if (configuration.requiredDocuments.isNotEmpty) ...[

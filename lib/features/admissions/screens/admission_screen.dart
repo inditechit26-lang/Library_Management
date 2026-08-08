@@ -12,6 +12,7 @@ import '../../settings/controllers/pricing_controller.dart';
 import '../../settings/models/pricing_settings.dart';
 import '../../settings/controllers/library_configuration_controller.dart';
 import '../../settings/models/library_configuration.dart';
+import '../../students/controllers/students_controller.dart' as stc;
 import '../../students/models/student.dart';
 import '../../students/models/student_model.dart';
 import '../../students/providers/students_provider.dart';
@@ -188,7 +189,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       sections: ref.watch(libraryConfigurationProvider).enabledSections,
       selectedSectionId: admission.selectedSectionId,
       seats: ref.watch(sc.seatsProvider),
-      students: ref.watch(studentsProvider),
+      students: ref.watch(stc.studentsProvider),
       selected: admission.selectedSeat,
       selectedShift: admission.selectedHalfTimeShift,
       onSelected: admission.chooseSeat,
