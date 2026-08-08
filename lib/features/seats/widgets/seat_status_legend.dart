@@ -7,11 +7,11 @@ class SeatStatusLegend extends StatelessWidget {
     spacing: 16,
     runSpacing: 10,
     children: const [
-      _Item('Paid', Color(0xFF28A176)),
-      _Item('Expiring', Color(0xFFF19A38)),
-      _Item('Pending', Color(0xFFE35353)),
-      _Item('Available', Color(0xFFD9DCE3)),
-      _Item('Maintenance', Color(0xFF697080)),
+      _Item('Available', Color(0xFF10B981)),
+      _Item('Boys Occupied', Color(0xFF2563EB)),
+      _Item('Girls Occupied', Color(0xFFDB2777)),
+      _Item('Pending / Expired', Color(0xFFDC2626)),
+      _Item('Maintenance', Color(0xFF6B7280)),
     ],
   );
 }

@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import '../../settings/models/library_configuration.dart';
 import '../../students/models/student.dart';
 import '../models/seat.dart';
 import 'seat_card.dart';
 
-/// A dense, responsive seat canvas inspired by an app launcher. Seats are not
-/// grouped into physical rows; the grid simply reflows to use available space.
+class _SectionGroup {
+  final LibraryRoom? section;
+  final List<Seat> seats;
+  _SectionGroup({required this.section, required this.seats});
+}
+
+/// A dense, responsive seat canvas with room/section headers and color separation.
 class SeatMap extends StatelessWidget {
   final List<Seat> seats;
   final List<Student> students;
-  final Map<String, String>? sectionNames;
+  final List<LibraryRoom>? rooms;
   final ValueChanged<Seat> onTap;
   final ValueChanged<Seat>? onLongPress;
   final String? selectedSeat;
@@ -18,7 +24,7 @@ class SeatMap extends StatelessWidget {
     super.key,
     required this.seats,
     required this.students,
-    this.sectionNames,
+    this.rooms,
     required this.onTap,
     this.onLongPress,
     this.selectedSeat,
@@ -30,6 +36,46 @@ class SeatMap extends StatelessWidget {
       if (student.id == seat.studentId) return student;
     }
     return null;
+  }
+
+  LibraryRoom? _sectionForSeat(Seat seat) {
+    if (rooms == null || rooms!.isEmpty) return null;
+    final student = _studentFor(seat);
+    final secId = seat.sectionId ?? student?.sectionId;
+    if (secId != null) {
+      for (final room in rooms!) {
+        if (room.id == secId) return room;
+      }
+    }
+    return null;
+  }
+
+  List<_SectionGroup> _buildGroups() {
+    if (rooms == null || rooms!.isEmpty) {
+      return [_SectionGroup(section: null, seats: seats)];
+    }
+
+    final groups = <_SectionGroup>[];
+    final processedSeatIds = <String>{};
+
+    for (final room in rooms!) {
+      final roomSeats = seats.where((s) {
+        final sec = _sectionForSeat(s);
+        return sec?.id == room.id;
+      }).toList();
+
+      if (roomSeats.isNotEmpty) {
+        processedSeatIds.addAll(roomSeats.map((s) => s.seatId));
+        groups.add(_SectionGroup(section: room, seats: roomSeats));
+      }
+    }
+
+    final unassigned = seats.where((s) => !processedSeatIds.contains(s.seatId)).toList();
+    if (unassigned.isNotEmpty) {
+      groups.add(_SectionGroup(section: null, seats: unassigned));
+    }
+
+    return groups.isEmpty ? [_SectionGroup(section: null, seats: seats)] : groups;
   }
 
   @override
@@ -49,6 +95,8 @@ class SeatMap extends StatelessWidget {
           (st.payment == PaymentStatus.pending ||
               st.payment == PaymentStatus.expired);
     }).length;
+
+    final sectionGroups = _buildGroups();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -80,8 +128,8 @@ class SeatMap extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: isDark
-                    ? Colors.black.withOpacity(0.4)
-                    : const Color(0xFF64748B).withOpacity(0.08),
+                    ? Colors.black.withValues(alpha: 0.4)
+                    : const Color(0xFF64748B).withValues(alpha: 0.08),
                 blurRadius: 28,
                 offset: const Offset(0, 10),
               ),
@@ -89,7 +137,7 @@ class SeatMap extends StatelessWidget {
           ),
           child: Column(
             children: [
-              // Ultra-premium canvas status bar
+              // Canvas status bar
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 18,
@@ -165,47 +213,116 @@ class SeatMap extends StatelessWidget {
               ),
               Padding(
                 padding: EdgeInsets.all(constraints.maxWidth < 430 ? 12 : 16),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: seats.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: spacing,
-                    mainAxisSpacing: spacing,
-                    childAspectRatio: constraints.maxWidth < 430 ? 0.88 : 0.98,
-                  ),
-                  itemBuilder: (context, index) {
-                    final seat = seats[index];
-                    final student = _studentFor(seat);
-                    final secId = seat.sectionId ?? student?.sectionId;
-                    final names = sectionNames;
-                    final secName = secId == null || names == null
-                        ? null
-                        : names[secId];
+                child: Column(
+                  children: sectionGroups.map((group) {
+                    final section = group.section;
+                    final sectionSeats = group.seats;
+                    final freeInSec = sectionSeats.where((s) => s.status == SeatStatus.available).length;
 
-                    return Hero(
-                      tag: 'seat-${seat.seatId}',
-                      child: Material(
-                        color: Colors.transparent,
-                        child: SeatCard(
-                          seat: seat,
-                          student: student,
-                          sectionName: secName,
-                          compact: true,
-                          selected: seat.seatId == selectedSeat,
-                          disabled:
-                              selectionMode &&
-                              seat.status != SeatStatus.available &&
-                              seat.seatId != selectedSeat,
-                          onTap: () => onTap(seat),
-                          onLongPress: onLongPress == null
-                              ? null
-                              : () => onLongPress!(seat),
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (section != null || sectionGroups.isNotEmpty) ...[
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 12, top: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? (section?.color.withValues(alpha: 0.12) ?? const Color(0xFF2E354C).withValues(alpha: 0.5))
+                                  : (section?.color.withValues(alpha: 0.08) ?? Colors.white),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: section?.color.withValues(alpha: 0.3) ?? (isDark ? const Color(0xFF2E354C) : const Color(0xFFE2E8F0)),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: section?.color ?? const Color(0xFF6366F1),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: (section?.color ?? const Color(0xFF6366F1)).withValues(alpha: 0.6),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  section?.name ?? 'General Room',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: isDark ? Colors.white : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: (section?.color ?? const Color(0xFF6366F1)).withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '${sectionSeats.length} seats • $freeInSec free',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: section?.color ?? (isDark ? const Color(0xFFA5B4FC) : const Color(0xFF4F46E5)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                        GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: sectionSeats.length,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: columns,
+                            crossAxisSpacing: spacing,
+                            mainAxisSpacing: spacing,
+                            childAspectRatio: constraints.maxWidth < 430 ? 0.88 : 0.98,
+                          ),
+                          itemBuilder: (context, index) {
+                            final seat = sectionSeats[index];
+                            final student = _studentFor(seat);
+                            final sec = _sectionForSeat(seat);
+                            return Hero(
+                              tag: 'seat-${seat.seatId}',
+                              child: Material(
+                                color: Colors.transparent,
+                                child: SeatCard(
+                                  seat: seat,
+                                  student: student,
+                                  sectionName: sec?.name,
+                                  sectionColor: sec?.color,
+                                  compact: true,
+                                  selected: seat.seatId == selectedSeat,
+                                  disabled:
+                                      selectionMode &&
+                                      seat.status != SeatStatus.available &&
+                                      seat.seatId != selectedSeat,
+                                  onTap: () => onTap(seat),
+                                  onLongPress: onLongPress == null
+                                      ? null
+                                      : () => onLongPress!(seat),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
+                        const SizedBox(height: 14),
+                      ],
                     );
-                  },
+                  }).toList(),
                 ),
               ),
             ],

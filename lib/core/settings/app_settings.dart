@@ -4,8 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppLanguage {
   english('English', 'en'),
-  hindi('हिंदी', 'hi'),
-  marathi('मराठी', 'mr');
+  hindi('à¤¹à¤¿à¤‚à¤¦à¥€', 'hi'),
+  marathi('à¤®à¤°à¤¾à¤ à¥€', 'mr');
 
   const AppLanguage(this.label, this.code);
   final String label;
@@ -74,149 +74,210 @@ final appSettingsProvider =
     );
 
 final _translations = <String, Map<AppLanguage, String>>{
-  'Dashboard': {AppLanguage.hindi: 'डैशबोर्ड', AppLanguage.marathi: 'डॅशबोर्ड'},
-  'Students': {AppLanguage.hindi: 'छात्र', AppLanguage.marathi: 'विद्यार्थी'},
-  'Seats': {AppLanguage.hindi: 'सीटें', AppLanguage.marathi: 'आसने'},
-  'Fees': {AppLanguage.hindi: 'शुल्क', AppLanguage.marathi: 'शुल्क'},
-  'Settings': {AppLanguage.hindi: 'सेटिंग्स', AppLanguage.marathi: 'सेटिंग्ज'},
+  'Dashboard': {AppLanguage.hindi: 'à¤¡à¥ˆà¤¶à¤¬à¥‹à¤°à¥à¤¡', AppLanguage.marathi: 'à¤¡à¥…à¤¶à¤¬à¥‹à¤°à¥à¤¡'},
+  'Students': {AppLanguage.hindi: 'à¤›à¤¾à¤¤à¥à¤°', AppLanguage.marathi: 'à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€'},
+  'Seats': {AppLanguage.hindi: 'à¤¸à¥€à¤Ÿà¥‡à¤‚', AppLanguage.marathi: 'à¤†à¤¸à¤¨à¥‡'},
+  'Fees': {AppLanguage.hindi: 'à¤¶à¥à¤²à¥à¤•', AppLanguage.marathi: 'à¤¶à¥à¤²à¥à¤•'},
+  'Settings': {AppLanguage.hindi: 'à¤¸à¥‡à¤Ÿà¤¿à¤‚à¤—à¥à¤¸', AppLanguage.marathi: 'à¤¸à¥‡à¤Ÿà¤¿à¤‚à¤—à¥à¤œ'},
   'Appearance & language': {
-    AppLanguage.hindi: 'रूप और भाषा',
-    AppLanguage.marathi: 'स्वरूप आणि भाषा',
+    AppLanguage.hindi: 'à¤°à¥‚à¤ª à¤”à¤° à¤­à¤¾à¤·à¤¾',
+    AppLanguage.marathi: 'à¤¸à¥à¤µà¤°à¥‚à¤ª à¤†à¤£à¤¿ à¤­à¤¾à¤·à¤¾',
   },
-  'Language': {AppLanguage.hindi: 'भाषा', AppLanguage.marathi: 'भाषा'},
+  'Language': {AppLanguage.hindi: 'à¤­à¤¾à¤·à¤¾', AppLanguage.marathi: 'à¤­à¤¾à¤·à¤¾'},
   'Choose the language used throughout the app.': {
-    AppLanguage.hindi: 'पूरे ऐप में इस्तेमाल होने वाली भाषा चुनें।',
-    AppLanguage.marathi: 'संपूर्ण अॅपमध्ये वापरली जाणारी भाषा निवडा.',
+    AppLanguage.hindi: 'à¤ªà¥‚à¤°à¥‡ à¤à¤ª à¤®à¥‡à¤‚ à¤‡à¤¸à¥à¤¤à¥‡à¤®à¤¾à¤² à¤¹à¥‹à¤¨à¥‡ à¤µà¤¾à¤²à¥€ à¤­à¤¾à¤·à¤¾ à¤šà¥à¤¨à¥‡à¤‚à¥¤',
+    AppLanguage.marathi: 'à¤¸à¤‚à¤ªà¥‚à¤°à¥à¤£ à¤…à¥…à¤ªà¤®à¤§à¥à¤¯à¥‡ à¤µà¤¾à¤ªà¤°à¤²à¥€ à¤œà¤¾à¤£à¤¾à¤°à¥€ à¤­à¤¾à¤·à¤¾ à¤¨à¤¿à¤µà¤¡à¤¾.',
   },
   'Dark mode': {
-    AppLanguage.hindi: 'डार्क मोड',
-    AppLanguage.marathi: 'डार्क मोड',
+    AppLanguage.hindi: 'à¤¡à¤¾à¤°à¥à¤• à¤®à¥‹à¤¡',
+    AppLanguage.marathi: 'à¤¡à¤¾à¤°à¥à¤• à¤®à¥‹à¤¡',
   },
   'Use a darker color theme.': {
-    AppLanguage.hindi: 'गहरे रंग की थीम का उपयोग करें।',
-    AppLanguage.marathi: 'गडद रंगसंगती वापरा.',
+    AppLanguage.hindi: 'à¤—à¤¹à¤°à¥‡ à¤°à¤‚à¤— à¤•à¥€ à¤¥à¥€à¤® à¤•à¤¾ à¤‰à¤ªà¤¯à¥‹à¤— à¤•à¤°à¥‡à¤‚à¥¤',
+    AppLanguage.marathi: 'à¤—à¤¡à¤¦ à¤°à¤‚à¤—à¤¸à¤‚à¤—à¤¤à¥€ à¤µà¤¾à¤ªà¤°à¤¾.',
   },
-  'Sign in': {AppLanguage.hindi: 'साइन इन', AppLanguage.marathi: 'साइन इन'},
+  'Sign in': {AppLanguage.hindi: 'à¤¸à¤¾à¤‡à¤¨ à¤‡à¤¨', AppLanguage.marathi: 'à¤¸à¤¾à¤‡à¤¨ à¤‡à¤¨'},
   'Email address': {
-    AppLanguage.hindi: 'ईमेल पता',
-    AppLanguage.marathi: 'ईमेल पत्ता',
+    AppLanguage.hindi: 'à¤ˆà¤®à¥‡à¤² à¤ªà¤¤à¤¾',
+    AppLanguage.marathi: 'à¤ˆà¤®à¥‡à¤² à¤ªà¤¤à¥à¤¤à¤¾',
   },
-  'Password': {AppLanguage.hindi: 'पासवर्ड', AppLanguage.marathi: 'पासवर्ड'},
+  'Password': {AppLanguage.hindi: 'à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡', AppLanguage.marathi: 'à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡'},
   'Remember me': {
-    AppLanguage.hindi: 'मुझे याद रखें',
-    AppLanguage.marathi: 'मला लक्षात ठेवा',
+    AppLanguage.hindi: 'à¤®à¥à¤à¥‡ à¤¯à¤¾à¤¦ à¤°à¤–à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤®à¤²à¤¾ à¤²à¤•à¥à¤·à¤¾à¤¤ à¤ à¥‡à¤µà¤¾',
   },
   'Forgot password?': {
-    AppLanguage.hindi: 'पासवर्ड भूल गए?',
-    AppLanguage.marathi: 'पासवर्ड विसरलात?',
+    AppLanguage.hindi: 'à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤­à¥‚à¤² à¤—à¤?',
+    AppLanguage.marathi: 'à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤µà¤¿à¤¸à¤°à¤²à¤¾à¤¤?',
   },
   'New Admission': {
-    AppLanguage.hindi: 'नया प्रवेश',
-    AppLanguage.marathi: 'नवीन प्रवेश',
+    AppLanguage.hindi: 'à¤¨à¤¯à¤¾ à¤ªà¥à¤°à¤µà¥‡à¤¶',
+    AppLanguage.marathi: 'à¤¨à¤µà¥€à¤¨ à¤ªà¥à¤°à¤µà¥‡à¤¶',
   },
   'Create Admission': {
-    AppLanguage.hindi: 'प्रवेश बनाएं',
-    AppLanguage.marathi: 'प्रवेश तयार करा',
+    AppLanguage.hindi: 'à¤ªà¥à¤°à¤µà¥‡à¤¶ à¤¬à¤¨à¤¾à¤à¤‚',
+    AppLanguage.marathi: 'à¤ªà¥à¤°à¤µà¥‡à¤¶ à¤¤à¤¯à¤¾à¤° à¤•à¤°à¤¾',
   },
   'Student name': {
-    AppLanguage.hindi: 'छात्र का नाम',
-    AppLanguage.marathi: 'विद्यार्थ्याचे नाव',
+    AppLanguage.hindi: 'à¤›à¤¾à¤¤à¥à¤° à¤•à¤¾ à¤¨à¤¾à¤®',
+    AppLanguage.marathi: 'à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥à¤¯à¤¾à¤šà¥‡ à¤¨à¤¾à¤µ',
   },
   'Mobile number': {
-    AppLanguage.hindi: 'मोबाइल नंबर',
-    AppLanguage.marathi: 'मोबाईल क्रमांक',
+    AppLanguage.hindi: 'à¤®à¥‹à¤¬à¤¾à¤‡à¤² à¤¨à¤‚à¤¬à¤°',
+    AppLanguage.marathi: 'à¤®à¥‹à¤¬à¤¾à¤ˆà¤² à¤•à¥à¤°à¤®à¤¾à¤‚à¤•',
   },
   'Seat number': {
-    AppLanguage.hindi: 'सीट नंबर',
-    AppLanguage.marathi: 'आसन क्रमांक',
+    AppLanguage.hindi: 'à¤¸à¥€à¤Ÿ à¤¨à¤‚à¤¬à¤°',
+    AppLanguage.marathi: 'à¤†à¤¸à¤¨ à¤•à¥à¤°à¤®à¤¾à¤‚à¤•',
   },
   'Monthly fee': {
-    AppLanguage.hindi: 'मासिक शुल्क',
-    AppLanguage.marathi: 'मासिक शुल्क',
+    AppLanguage.hindi: 'à¤®à¤¾à¤¸à¤¿à¤• à¤¶à¥à¤²à¥à¤•',
+    AppLanguage.marathi: 'à¤®à¤¾à¤¸à¤¿à¤• à¤¶à¥à¤²à¥à¤•',
   },
   'Full Time': {
-    AppLanguage.hindi: 'पूर्णकालिक',
-    AppLanguage.marathi: 'पूर्णवेळ',
+    AppLanguage.hindi: 'à¤ªà¥‚à¤°à¥à¤£à¤•à¤¾à¤²à¤¿à¤•',
+    AppLanguage.marathi: 'à¤ªà¥‚à¤°à¥à¤£à¤µà¥‡à¤³',
   },
-  'Half Time': {AppLanguage.hindi: 'अर्धकालिक', AppLanguage.marathi: 'अर्धवेळ'},
+  'Half Time': {AppLanguage.hindi: 'à¤…à¤°à¥à¤§à¤•à¤¾à¤²à¤¿à¤•', AppLanguage.marathi: 'à¤…à¤°à¥à¤§à¤µà¥‡à¤³'},
   'Search name, mobile or seat number': {
-    AppLanguage.hindi: 'नाम, मोबाइल या सीट नंबर खोजें',
-    AppLanguage.marathi: 'नाव, मोबाईल किंवा आसन क्रमांक शोधा',
+    AppLanguage.hindi: 'à¤¨à¤¾à¤®, à¤®à¥‹à¤¬à¤¾à¤‡à¤² à¤¯à¤¾ à¤¸à¥€à¤Ÿ à¤¨à¤‚à¤¬à¤° à¤–à¥‹à¤œà¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¨à¤¾à¤µ, à¤®à¥‹à¤¬à¤¾à¤ˆà¤² à¤•à¤¿à¤‚à¤µà¤¾ à¤†à¤¸à¤¨ à¤•à¥à¤°à¤®à¤¾à¤‚à¤• à¤¶à¥‹à¤§à¤¾',
   },
   'Search seat or student': {
-    AppLanguage.hindi: 'सीट या छात्र खोजें',
-    AppLanguage.marathi: 'आसन किंवा विद्यार्थी शोधा',
+    AppLanguage.hindi: 'à¤¸à¥€à¤Ÿ à¤¯à¤¾ à¤›à¤¾à¤¤à¥à¤° à¤–à¥‹à¤œà¥‡à¤‚',
+    AppLanguage.marathi: 'à¤†à¤¸à¤¨ à¤•à¤¿à¤‚à¤µà¤¾ à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤¶à¥‹à¤§à¤¾',
   },
   'Search student...': {
-    AppLanguage.hindi: 'छात्र खोजें...',
-    AppLanguage.marathi: 'विद्यार्थी शोधा...',
+    AppLanguage.hindi: 'à¤›à¤¾à¤¤à¥à¤° à¤–à¥‹à¤œà¥‡à¤‚...',
+    AppLanguage.marathi: 'à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤¶à¥‹à¤§à¤¾...',
   },
   'Student Profile': {
-    AppLanguage.hindi: 'छात्र प्रोफ़ाइल',
-    AppLanguage.marathi: 'विद्यार्थी प्रोफाइल',
+    AppLanguage.hindi: 'à¤›à¤¾à¤¤à¥à¤° à¤ªà¥à¤°à¥‹à¤«à¤¼à¤¾à¤‡à¤²',
+    AppLanguage.marathi: 'à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤ªà¥à¤°à¥‹à¤«à¤¾à¤‡à¤²',
   },
   'Personal Information': {
-    AppLanguage.hindi: 'व्यक्तिगत जानकारी',
-    AppLanguage.marathi: 'वैयक्तिक माहिती',
+    AppLanguage.hindi: 'à¤µà¥à¤¯à¤•à¥à¤¤à¤¿à¤—à¤¤ à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€',
+    AppLanguage.marathi: 'à¤µà¥ˆà¤¯à¤•à¥à¤¤à¤¿à¤• à¤®à¤¾à¤¹à¤¿à¤¤à¥€',
   },
   'Payment Information': {
-    AppLanguage.hindi: 'भुगतान जानकारी',
-    AppLanguage.marathi: 'देयक माहिती',
+    AppLanguage.hindi: 'à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤œà¤¾à¤¨à¤•à¤¾à¤°à¥€',
+    AppLanguage.marathi: 'à¤¦à¥‡à¤¯à¤• à¤®à¤¾à¤¹à¤¿à¤¤à¥€',
   },
-  'Membership': {AppLanguage.hindi: 'सदस्यता', AppLanguage.marathi: 'सदस्यत्व'},
+  'Membership': {AppLanguage.hindi: 'à¤¸à¤¦à¤¸à¥à¤¯à¤¤à¤¾', AppLanguage.marathi: 'à¤¸à¤¦à¤¸à¥à¤¯à¤¤à¥à¤µ'},
   'Renew Membership': {
-    AppLanguage.hindi: 'सदस्यता नवीनीकरण',
-    AppLanguage.marathi: 'सदस्यत्व नूतनीकरण',
+    AppLanguage.hindi: 'à¤¸à¤¦à¤¸à¥à¤¯à¤¤à¤¾ à¤¨à¤µà¥€à¤¨à¥€à¤•à¤°à¤£',
+    AppLanguage.marathi: 'à¤¸à¤¦à¤¸à¥à¤¯à¤¤à¥à¤µ à¤¨à¥‚à¤¤à¤¨à¥€à¤•à¤°à¤£',
   },
-  'Activity': {AppLanguage.hindi: 'गतिविधि', AppLanguage.marathi: 'क्रियाकलाप'},
+  'Activity': {AppLanguage.hindi: 'à¤—à¤¤à¤¿à¤µà¤¿à¤§à¤¿', AppLanguage.marathi: 'à¤•à¥à¤°à¤¿à¤¯à¤¾à¤•à¤²à¤¾à¤ª'},
   'View receipts': {
-    AppLanguage.hindi: 'रसीदें देखें',
-    AppLanguage.marathi: 'पावत्या पहा',
+    AppLanguage.hindi: 'à¤°à¤¸à¥€à¤¦à¥‡à¤‚ à¤¦à¥‡à¤–à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤ªà¤¾à¤µà¤¤à¥à¤¯à¤¾ à¤ªà¤¹à¤¾',
   },
   'Add document': {
-    AppLanguage.hindi: 'दस्तावेज़ जोड़ें',
-    AppLanguage.marathi: 'कागदपत्र जोडा',
+    AppLanguage.hindi: 'à¤¦à¤¸à¥à¤¤à¤¾à¤µà¥‡à¤œà¤¼ à¤œà¥‹à¤¡à¤¼à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤•à¤¾à¤—à¤¦à¤ªà¤¤à¥à¤° à¤œà¥‹à¤¡à¤¾',
   },
   'Choose a source': {
-    AppLanguage.hindi: 'स्रोत चुनें',
-    AppLanguage.marathi: 'स्रोत निवडा',
+    AppLanguage.hindi: 'à¤¸à¥à¤°à¥‹à¤¤ à¤šà¥à¤¨à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¸à¥à¤°à¥‹à¤¤ à¤¨à¤¿à¤µà¤¡à¤¾',
   },
-  'Camera': {AppLanguage.hindi: 'कैमरा', AppLanguage.marathi: 'कॅमेरा'},
-  'Gallery': {AppLanguage.hindi: 'गैलरी', AppLanguage.marathi: 'गॅलरी'},
+  'Camera': {AppLanguage.hindi: 'à¤•à¥ˆà¤®à¤°à¤¾', AppLanguage.marathi: 'à¤•à¥…à¤®à¥‡à¤°à¤¾'},
+  'Gallery': {AppLanguage.hindi: 'à¤—à¥ˆà¤²à¤°à¥€', AppLanguage.marathi: 'à¤—à¥…à¤²à¤°à¥€'},
   'PDF or Image': {
-    AppLanguage.hindi: 'पीडीएफ़ या छवि',
-    AppLanguage.marathi: 'पीडीएफ किंवा चित्र',
+    AppLanguage.hindi: 'à¤ªà¥€à¤¡à¥€à¤à¤«à¤¼ à¤¯à¤¾ à¤›à¤µà¤¿',
+    AppLanguage.marathi: 'à¤ªà¥€à¤¡à¥€à¤à¤« à¤•à¤¿à¤‚à¤µà¤¾ à¤šà¤¿à¤¤à¥à¤°',
   },
   'Preview': {
-    AppLanguage.hindi: 'पूर्वावलोकन',
-    AppLanguage.marathi: 'पूर्वावलोकन',
+    AppLanguage.hindi: 'à¤ªà¥‚à¤°à¥à¤µà¤¾à¤µà¤²à¥‹à¤•à¤¨',
+    AppLanguage.marathi: 'à¤ªà¥‚à¤°à¥à¤µà¤¾à¤µà¤²à¥‹à¤•à¤¨',
   },
-  'Replace': {AppLanguage.hindi: 'बदलें', AppLanguage.marathi: 'बदला'},
-  'Delete': {AppLanguage.hindi: 'हटाएं', AppLanguage.marathi: 'हटवा'},
-  'Print': {AppLanguage.hindi: 'प्रिंट', AppLanguage.marathi: 'प्रिंट'},
-  'Share': {AppLanguage.hindi: 'साझा करें', AppLanguage.marathi: 'शेअर करा'},
-  'Close': {AppLanguage.hindi: 'बंद करें', AppLanguage.marathi: 'बंद करा'},
-  'Paid': {AppLanguage.hindi: 'भुगतान हुआ', AppLanguage.marathi: 'भरले'},
+  'Replace': {AppLanguage.hindi: 'à¤¬à¤¦à¤²à¥‡à¤‚', AppLanguage.marathi: 'à¤¬à¤¦à¤²à¤¾'},
+  'Delete': {AppLanguage.hindi: 'à¤¹à¤Ÿà¤¾à¤à¤‚', AppLanguage.marathi: 'à¤¹à¤Ÿà¤µà¤¾'},
+  'Print': {AppLanguage.hindi: 'à¤ªà¥à¤°à¤¿à¤‚à¤Ÿ', AppLanguage.marathi: 'à¤ªà¥à¤°à¤¿à¤‚à¤Ÿ'},
+  'Share': {AppLanguage.hindi: 'à¤¸à¤¾à¤à¤¾ à¤•à¤°à¥‡à¤‚', AppLanguage.marathi: 'à¤¶à¥‡à¤…à¤° à¤•à¤°à¤¾'},
+  'Close': {AppLanguage.hindi: 'à¤¬à¤‚à¤¦ à¤•à¤°à¥‡à¤‚', AppLanguage.marathi: 'à¤¬à¤‚à¤¦ à¤•à¤°à¤¾'},
+  'Paid': {AppLanguage.hindi: 'à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤¹à¥à¤†', AppLanguage.marathi: 'à¤­à¤°à¤²à¥‡'},
   'Mark paid': {
-    AppLanguage.hindi: 'भुगतान किया चिह्नित करें',
-    AppLanguage.marathi: 'भरले म्हणून चिन्हित करा',
+    AppLanguage.hindi: 'à¤­à¥à¤—à¤¤à¤¾à¤¨ à¤•à¤¿à¤¯à¤¾ à¤šà¤¿à¤¹à¥à¤¨à¤¿à¤¤ à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤­à¤°à¤²à¥‡ à¤®à¥à¤¹à¤£à¥‚à¤¨ à¤šà¤¿à¤¨à¥à¤¹à¤¿à¤¤ à¤•à¤°à¤¾',
   },
   'Assign Student': {
-    AppLanguage.hindi: 'छात्र आवंटित करें',
-    AppLanguage.marathi: 'विद्यार्थी नेमा',
+    AppLanguage.hindi: 'à¤›à¤¾à¤¤à¥à¤° à¤†à¤µà¤‚à¤Ÿà¤¿à¤¤ à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤¨à¥‡à¤®à¤¾',
   },
   'Save changes': {
-    AppLanguage.hindi: 'बदलाव सहेजें',
-    AppLanguage.marathi: 'बदल जतन करा',
+    AppLanguage.hindi: 'à¤¬à¤¦à¤²à¤¾à¤µ à¤¸à¤¹à¥‡à¤œà¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¬à¤¦à¤² à¤œà¤¤à¤¨ à¤•à¤°à¤¾',
   },
-  'Log out': {AppLanguage.hindi: 'लॉग आउट', AppLanguage.marathi: 'लॉग आउट'},
+  'Log out': {AppLanguage.hindi: 'à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ', AppLanguage.marathi: 'à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ'},
   'No Students Found': {
-    AppLanguage.hindi: 'कोई छात्र नहीं मिला',
-    AppLanguage.marathi: 'कोणताही विद्यार्थी सापडला नाही',
+    AppLanguage.hindi: 'à¤•à¥‹à¤ˆ à¤›à¤¾à¤¤à¥à¤° à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤²à¤¾',
+    AppLanguage.marathi: 'à¤•à¥‹à¤£à¤¤à¤¾à¤¹à¥€ à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤¸à¤¾à¤ªà¤¡à¤²à¤¾ à¤¨à¤¾à¤¹à¥€',
   },
   'Try another search or add a new admission.': {
-    AppLanguage.hindi: 'दूसरी खोज करें या नया प्रवेश जोड़ें।',
-    AppLanguage.marathi: 'दुसरा शोध घ्या किंवा नवीन प्रवेश जोडा.',
+    AppLanguage.hindi: 'à¤¦à¥‚à¤¸à¤°à¥€ à¤–à¥‹à¤œ à¤•à¤°à¥‡à¤‚ à¤¯à¤¾ à¤¨à¤¯à¤¾ à¤ªà¥à¤°à¤µà¥‡à¤¶ à¤œà¥‹à¤¡à¤¼à¥‡à¤‚à¥¤',
+    AppLanguage.marathi: 'à¤¦à¥à¤¸à¤°à¤¾ à¤¶à¥‹à¤§ à¤˜à¥à¤¯à¤¾ à¤•à¤¿à¤‚à¤µà¤¾ à¤¨à¤µà¥€à¤¨ à¤ªà¥à¤°à¤µà¥‡à¤¶ à¤œà¥‹à¤¡à¤¾.',
+  },
+};
+
+final _settingsTranslations = <String, Map<AppLanguage, String>>{
+  'My Branches': {
+    AppLanguage.hindi: 'à¤®à¥‡à¤°à¥€ à¤¶à¤¾à¤–à¤¾à¤à¤',
+    AppLanguage.marathi: 'à¤®à¤¾à¤à¥à¤¯à¤¾ à¤¶à¤¾à¤–à¤¾',
+  },
+  'Manage all your branches from one place': {
+    AppLanguage.hindi: 'à¤…à¤ªà¤¨à¥€ à¤¸à¤­à¥€ à¤¶à¤¾à¤–à¤¾à¤“à¤‚ à¤•à¥‹ à¤à¤• à¤œà¤—à¤¹ à¤¸à¥‡ à¤ªà¥à¤°à¤¬à¤‚à¤§à¤¿à¤¤ à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¸à¤°à¥à¤µ à¤¶à¤¾à¤–à¤¾ à¤à¤•à¤¾à¤š à¤ à¤¿à¤•à¤¾à¤£à¤¾à¤¹à¥‚à¤¨ à¤µà¥à¤¯à¤µà¤¸à¥à¤¥à¤¾à¤ªà¤¿à¤¤ à¤•à¤°à¤¾',
+  },
+  'Library Configuration': {
+    AppLanguage.hindi: 'à¤²à¤¾à¤‡à¤¬à¥à¤°à¥‡à¤°à¥€ à¤•à¥‰à¤¨à¥à¤«à¤¼à¤¿à¤—à¤°à¥‡à¤¶à¤¨',
+    AppLanguage.marathi: 'à¤—à¥à¤°à¤‚à¤¥à¤¾à¤²à¤¯ à¤¸à¥‡à¤Ÿà¤¿à¤‚à¤—à¥à¤œ',
+  },
+  'Configure sections, rooms, seating and documents': {
+    AppLanguage.hindi: 'à¤¸à¥‡à¤•à¥à¤¶à¤¨, à¤•à¤®à¤°à¥‡, à¤¸à¥€à¤Ÿà¤¿à¤‚à¤— à¤”à¤° à¤¦à¤¸à¥à¤¤à¤¾à¤µà¥‡à¤œà¤¼ à¤•à¥‰à¤¨à¥à¤«à¤¼à¤¿à¤—à¤° à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤µà¤¿à¤­à¤¾à¤—, à¤–à¥‹à¤²à¥à¤¯à¤¾, à¤†à¤¸à¤¨à¥‡ à¤†à¤£à¤¿ à¤•à¤¾à¤—à¤¦à¤ªà¤¤à¥à¤°à¥‡ à¤¸à¥‡à¤Ÿ à¤•à¤°à¤¾',
+  },
+  'Student Data Backup & Import': {
+    AppLanguage.hindi: 'à¤›à¤¾à¤¤à¥à¤° à¤¡à¥‡à¤Ÿà¤¾ à¤¬à¥ˆà¤•à¤…à¤ª à¤”à¤° à¤‡à¤‚à¤ªà¥‹à¤°à¥à¤Ÿ',
+    AppLanguage.marathi: 'à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤¡à¥‡à¤Ÿà¤¾ à¤¬à¥…à¤•à¤…à¤ª à¤†à¤£à¤¿ à¤†à¤¯à¤¾à¤¤',
+  },
+  'Export backups or bulk import student records': {
+    AppLanguage.hindi: 'à¤¬à¥ˆà¤•à¤…à¤ª à¤à¤•à¥à¤¸à¤ªà¥‹à¤°à¥à¤Ÿ à¤•à¤°à¥‡à¤‚ à¤¯à¤¾ à¤›à¤¾à¤¤à¥à¤° à¤°à¤¿à¤•à¥‰à¤°à¥à¤¡ à¤‡à¤‚à¤ªà¥‹à¤°à¥à¤Ÿ à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¬à¥…à¤•à¤…à¤ª à¤à¤•à¥à¤¸à¤ªà¥‹à¤°à¥à¤Ÿ à¤•à¤°à¤¾ à¤•à¤¿à¤‚à¤µà¤¾ à¤µà¤¿à¤¦à¥à¤¯à¤¾à¤°à¥à¤¥à¥€ à¤¨à¥‹à¤‚à¤¦à¥€ à¤†à¤¯à¤¾à¤¤ à¤•à¤°à¤¾',
+  },
+  'About StudyDesk': {
+    AppLanguage.hindi: 'StudyDesk à¤•à¥‡ à¤¬à¤¾à¤°à¥‡ à¤®à¥‡à¤‚',
+    AppLanguage.marathi: 'StudyDesk à¤¬à¤¦à¥à¤¦à¤²',
+  },
+  'Privacy Policy': {
+    AppLanguage.hindi: 'à¤—à¥‹à¤ªà¤¨à¥€à¤¯à¤¤à¤¾ à¤¨à¥€à¤¤à¤¿',
+    AppLanguage.marathi: 'à¤—à¥‹à¤ªà¤¨à¥€à¤¯à¤¤à¤¾ à¤§à¥‹à¤°à¤£',
+  },
+  'Read data protection and usage policies': {
+    AppLanguage.hindi: 'à¤¡à¥‡à¤Ÿà¤¾ à¤¸à¥à¤°à¤•à¥à¤·à¤¾ à¤”à¤° à¤‰à¤ªà¤¯à¥‹à¤— à¤¨à¥€à¤¤à¤¿à¤¯à¤¾à¤ à¤ªà¤¢à¤¼à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¡à¥‡à¤Ÿà¤¾ à¤¸à¥à¤°à¤•à¥à¤·à¤¾ à¤†à¤£à¤¿ à¤µà¤¾à¤ªà¤° à¤§à¥‹à¤°à¤£à¥‡ à¤µà¤¾à¤šà¤¾',
+  },
+  'Log Out': {AppLanguage.hindi: 'à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ', AppLanguage.marathi: 'à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ'},
+  'Cancel': {AppLanguage.hindi: 'à¤°à¤¦à¥à¤¦ à¤•à¤°à¥‡à¤‚', AppLanguage.marathi: 'à¤°à¤¦à¥à¤¦ à¤•à¤°à¤¾'},
+  'Are you sure you want to log out of your session?': {
+    AppLanguage.hindi: 'à¤•à¥à¤¯à¤¾ à¤†à¤ª à¤…à¤ªà¤¨à¥€ à¤¸à¤¤à¥à¤° à¤¸à¥‡ à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ à¤•à¤°à¤¨à¤¾ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚?',
+    AppLanguage.marathi: 'à¤¤à¥à¤®à¥à¤¹à¤¾à¤²à¤¾ à¤¸à¤¤à¥à¤°à¤¾à¤¤à¥‚à¤¨ à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ à¤•à¤°à¤¾à¤¯à¤šà¥‡ à¤†à¤¹à¥‡ à¤•à¤¾?',
+  },
+  'WhatsApp Support': {
+    AppLanguage.hindi: 'WhatsApp à¤¸à¤¹à¤¾à¤¯à¤¤à¤¾',
+    AppLanguage.marathi: 'WhatsApp à¤¸à¤¹à¤¾à¤¯à¥à¤¯',
+  },
+  'Direct chat with support team': {
+    AppLanguage.hindi: 'à¤¸à¤¹à¤¾à¤¯à¤¤à¤¾ à¤Ÿà¥€à¤® à¤¸à¥‡ à¤¸à¥€à¤§à¥‡ à¤šà¥ˆà¤Ÿ à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'à¤¸à¤¹à¤¾à¤¯à¥à¤¯ à¤Ÿà¥€à¤®à¤¶à¥€ à¤¥à¥‡à¤Ÿ à¤šà¥…à¤Ÿ à¤•à¤°à¤¾',
+  },
+  'Chat on WhatsApp': {
+    AppLanguage.hindi: 'WhatsApp à¤ªà¤° à¤šà¥ˆà¤Ÿ à¤•à¤°à¥‡à¤‚',
+    AppLanguage.marathi: 'WhatsApp à¤µà¤° à¤šà¥…à¤Ÿ à¤•à¤°à¤¾',
+  },
+  'Connecting to WhatsApp support...': {
+    AppLanguage.hindi: 'WhatsApp à¤¸à¤¹à¤¾à¤¯à¤¤à¤¾ à¤¸à¥‡ à¤œà¥à¤¡à¤¼ à¤°à¤¹à¥‡ à¤¹à¥ˆà¤‚...',
+    AppLanguage.marathi: 'WhatsApp à¤¸à¤¹à¤¾à¤¯à¥à¤¯à¤¾à¤¶à¥€ à¤œà¥‹à¤¡à¤¤ à¤†à¤¹à¥‹à¤¤...',
   },
 };
 

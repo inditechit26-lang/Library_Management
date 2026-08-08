@@ -640,6 +640,7 @@ class _SectionsEditor extends ConsumerStatefulWidget {
 
 class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   late String _selectedSectionId;
+  bool _isFullTime = true;
 
   @override
   void initState() {
@@ -660,6 +661,17 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final section = widget.configuration.sections.firstWhere(
+      (item) => item.id == _selectedSectionId,
+    );
+    final periods = [
+      MembershipPeriod.monthly,
+      MembershipPeriod.quarterly,
+      MembershipPeriod.halfYearly,
+      MembershipPeriod.annual,
+      if (section.membershipPeriods.contains(MembershipPeriod.custom))
+        MembershipPeriod.custom,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -679,7 +691,7 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                   color: colors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.category_outlined, color: colors.onPrimary),
+                child: Icon(Icons.sell_outlined, color: colors.onPrimary),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -687,14 +699,14 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Library Sections',
+                      'Plan Rate Configuration',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      'Add and manage library sections. Seat rooms and numbering are configured separately below.',
+                      'Set separate full-time and half-time rates for each section. Rooms and seat numbering are configured independently.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -734,56 +746,179 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
             ],
           ),
         ),
+        const SizedBox(height: 14),
+        SegmentedButton<bool>(
+          segments: const [
+            ButtonSegment(
+              value: true,
+              icon: Icon(Icons.wb_sunny_outlined),
+              label: Text('Full Time (24 Hours)'),
+            ),
+            ButtonSegment(
+              value: false,
+              icon: Icon(Icons.schedule_outlined),
+              label: Text('Half Time (12 Hours)'),
+            ),
+          ],
+          selected: {_isFullTime},
+          showSelectedIcon: false,
+          onSelectionChanged: (value) {
+            setState(() => _isFullTime = value.first);
+          },
+        ),
+        const SizedBox(height: 14),
+        for (final period in periods) ...[
+          _SectionPlanCard(
+            key: ValueKey('$section.id-$_isFullTime-${period.name}'),
+            section: section,
+            period: period,
+            isFullTime: _isFullTime,
+            onSaved: (price) =>
+                _savePlan(section, period, price, isFullTime: _isFullTime),
+          ),
+          const SizedBox(height: 12),
+        ],
       ],
     );
   }
 
+  Future<void> _savePlan(
+    LibrarySection section,
+    MembershipPeriod period,
+    double price, {
+    required bool isFullTime,
+  }) {
+    final prices = {
+      ...section.pricesFor(isFullTime: isFullTime),
+      period: price,
+    };
+    final updated = section.copyWith(
+      membershipPeriods: {...section.membershipPeriods, period},
+      fullTimePlanPrices: isFullTime ? prices : section.fullTimePlanPrices,
+      halfTimePlanPrices: isFullTime ? section.halfTimePlanPrices : prices,
+    );
+    final sections = [
+      for (final item in widget.configuration.sections)
+        if (item.id == updated.id) updated else item,
+    ];
+    return ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(sections: sections));
+  }
+
   Future<void> _addSection(BuildContext context) async {
     final textController = TextEditingController();
-    final name = await showDialog<String>(
+    final colors = [
+      const Color(0xFFE91E63), // Pink (Girls)
+      const Color(0xFF2196F3), // Blue (Boys)
+      const Color(0xFF10B981), // Emerald Green
+      const Color(0xFFF59E0B), // Amber/Orange
+      const Color(0xFF8B5CF6), // Purple
+      const Color(0xFF06B6D4), // Cyan
+      const Color(0xFFEC4899), // Hot Pink
+      const Color(0xFF3B82F6), // Royal Blue
+    ];
+    Color selectedColor = colors[widget.configuration.sections.length % colors.length];
+
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Hall Section'),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Section Name',
-            hintText: 'e.g. Girls Section, Boys Section',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Add Hall Section'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: textController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Section Name',
+                  hintText: 'e.g. Girls Section, Boys Section, AC Hall',
+                ),
+                onSubmitted: (val) {
+                  if (val.trim().isNotEmpty) {
+                    Navigator.pop(dialogContext, {
+                      'name': val.trim(),
+                      'color': selectedColor,
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Section Color Theme:',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: colors.map((c) {
+                  final isSelected = c.value == selectedColor.value;
+                  return GestureDetector(
+                    onTap: () => setDialogState(() => selectedColor = c),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: c,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? Colors.white : Colors.transparent,
+                          width: 2.5,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: c.withOpacity(0.5),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: isSelected
+                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          onSubmitted: (val) {
-            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
-          },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final val = textController.text.trim();
+                if (val.isNotEmpty) {
+                  Navigator.pop(dialogContext, {
+                    'name': val,
+                    'color': selectedColor,
+                  });
+                }
+              },
+              child: const Text('Add Section'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = textController.text.trim();
-              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
-            },
-            child: const Text('Add Section'),
-          ),
-        ],
       ),
     );
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     textController.dispose();
-    if (name == null || name.trim().isEmpty) return;
+
+    if (result == null) return;
+    final name = result['name'] as String;
+    final color = (result['color'] as Color).value;
+
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
     if (widget.configuration.sections.any((s) => s.id == id)) return;
-
-    final colors = [
-      0xFFE91E63, // Pink (Girls)
-      0xFF2196F3, // Blue (Boys)
-      0xFF4CAF50, // Green (General)
-      0xFFFF9800, // Orange
-      0xFF9C27B0, // Purple
-    ];
-    final color = colors[widget.configuration.sections.length % colors.length];
 
     final newSection = LibrarySection(
       id: id,
@@ -849,6 +984,85 @@ class _SectionsEditorState extends ConsumerState<_SectionsEditor> {
         _selectedSectionId = updatedSections.first.id;
       });
     }
+  }
+}
+
+class _SectionPlanCard extends StatelessWidget {
+  const _SectionPlanCard({
+    super.key,
+    required this.section,
+    required this.period,
+    required this.isFullTime,
+    required this.onSaved,
+  });
+
+  final LibrarySection section;
+  final MembershipPeriod period;
+  final bool isFullTime;
+  final Future<void> Function(double price) onSaved;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final title = period == MembershipPeriod.annual
+        ? 'Yearly Plan'
+        : '${period.label} Plan';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: section.color.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_planIcon(period), color: section.color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      period.duration,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _MoneyField(
+            label: 'Amount (\u{20B9})',
+            value: section.pricesFor(isFullTime: isFullTime)[period] ?? 0,
+            helperText: period == MembershipPeriod.custom
+                ? 'Enter the amount in \u{20B9}. It can be overridden during admission.'
+                : 'Enter the amount in \u{20B9}.',
+            onSaved: onSaved,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -949,19 +1163,22 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
             child: Row(
               children: [
                 for (final room in rooms) ...[
-                  ChoiceChip(
-                    avatar: CircleAvatar(
-                      radius: 5,
-                      backgroundColor: room.color,
+                  GestureDetector(
+                    onLongPress: () => _confirmDeleteRoom(context, room),
+                    child: ChoiceChip(
+                      avatar: CircleAvatar(
+                        radius: 5,
+                        backgroundColor: room.color,
+                      ),
+                      label: Text(room.name),
+                      selected: _selectedSectionId == room.id,
+                      onSelected: (_) {
+                        setState(() {
+                          _selectedSectionId = room.id;
+                          _updateFieldsForSelectedSection();
+                        });
+                      },
                     ),
-                    label: Text(room.name),
-                    selected: _selectedSectionId == room.id,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedSectionId = room.id;
-                        _updateFieldsForSelectedSection();
-                      });
-                    },
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -1249,50 +1466,117 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
 
   Future<void> _addRoom(BuildContext context) async {
     final textController = TextEditingController();
-    final name = await showDialog<String>(
+    final colors = [
+      const Color(0xFFE91E63), // Pink (Girls)
+      const Color(0xFF2196F3), // Blue (Boys)
+      const Color(0xFF10B981), // Emerald Green
+      const Color(0xFFF59E0B), // Amber/Orange
+      const Color(0xFF8B5CF6), // Purple
+      const Color(0xFF06B6D4), // Cyan
+      const Color(0xFFEC4899), // Hot Pink
+      const Color(0xFF3B82F6), // Royal Blue
+    ];
+    Color selectedColor = colors[widget.configuration.rooms.length % colors.length];
+
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Room'),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Room Name',
-            hintText: 'e.g. Reading Hall, First Floor',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Add Room / Section'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: textController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: const InputDecoration(
+                  labelText: 'Room Name',
+                  hintText: 'e.g. Reading Hall, Girls Section, First Floor',
+                ),
+                onSubmitted: (val) {
+                  if (val.trim().isNotEmpty) {
+                    Navigator.pop(dialogContext, {
+                      'name': val.trim(),
+                      'color': selectedColor,
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Section Color Theme:',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: colors.map((c) {
+                  final isSelected = c.value == selectedColor.value;
+                  return GestureDetector(
+                    onTap: () => setDialogState(() => selectedColor = c),
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: c,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? Colors.white : Colors.transparent,
+                          width: 2.5,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: c.withOpacity(0.5),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                            : [],
+                      ),
+                      child: isSelected
+                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          : null,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-          onSubmitted: (val) {
-            if (val.trim().isNotEmpty) Navigator.pop(dialogContext, val.trim());
-          },
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final val = textController.text.trim();
+                if (val.isNotEmpty) {
+                  Navigator.pop(dialogContext, {
+                    'name': val,
+                    'color': selectedColor,
+                  });
+                }
+              },
+              child: const Text('Add Room'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = textController.text.trim();
-              if (val.isNotEmpty) Navigator.pop(dialogContext, val);
-            },
-            child: const Text('Add Room'),
-          ),
-        ],
       ),
     );
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     textController.dispose();
-    if (name == null || name.trim().isEmpty) return;
+
+    if (result == null) return;
+    final name = result['name'] as String;
+    final color = (result['color'] as Color).value;
+
     final id = name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '_');
     if (widget.configuration.rooms.any((room) => room.id == id)) return;
-
-    final colors = [
-      0xFFE91E63, // Pink (Girls)
-      0xFF2196F3, // Blue (Boys)
-      0xFF4CAF50, // Green (General)
-      0xFFFF9800, // Orange
-      0xFF9C27B0, // Purple
-    ];
-    final color = colors[widget.configuration.rooms.length % colors.length];
 
     final newRoom = LibraryRoom(id: id, name: name.trim(), colorValue: color);
 
@@ -1303,6 +1587,53 @@ class _SeatNumberingState extends ConsumerState<_SeatNumbering> {
     if (mounted) {
       setState(() {
         _selectedSectionId = id;
+        _updateFieldsForSelectedSection();
+      });
+    }
+  }
+
+  Future<void> _confirmDeleteRoom(
+    BuildContext context,
+    LibraryRoom room,
+  ) async {
+    if (widget.configuration.rooms.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('At least one room must remain.')),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('Delete ${room.name}?'),
+        content: const Text(
+          'This removes the room from seat-numbering settings. Existing seat records are kept unchanged.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete Room'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true || !context.mounted) return;
+
+    final updatedRooms = widget.configuration.rooms
+        .where((item) => item.id != room.id)
+        .toList();
+    await ref
+        .read(libraryConfigurationProvider.notifier)
+        .save(widget.configuration.copyWith(rooms: updatedRooms));
+    if (mounted) {
+      setState(() {
+        _selectedSectionId = updatedRooms.first.id;
         _updateFieldsForSelectedSection();
       });
     }
@@ -1364,6 +1695,14 @@ IconData _documentIcon(StudentDocumentRequirement value) => switch (value) {
   StudentDocumentRequirement.collegeId => Icons.school_outlined,
 };
 
+IconData _planIcon(MembershipPeriod value) => switch (value) {
+  MembershipPeriod.monthly => Icons.calendar_today_outlined,
+  MembershipPeriod.quarterly => Icons.date_range_outlined,
+  MembershipPeriod.halfYearly => Icons.calendar_month_outlined,
+  MembershipPeriod.annual => Icons.event_available_outlined,
+  MembershipPeriod.custom => Icons.edit_calendar_outlined,
+};
+
 IconData _numberingIcon(SeatNumberingStyle value) => switch (value) {
   SeatNumberingStyle.numeric => Icons.onetwothree_rounded,
   SeatNumberingStyle.alphabetic => Icons.text_fields_rounded,
@@ -1412,10 +1751,20 @@ class _MoneyFieldState extends State<_MoneyField> {
   }
 
   @override
+  void didUpdateWidget(covariant _MoneyField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!focusNode.hasFocus && oldWidget.value != widget.value) {
+      final newText = _amountText(widget.value);
+      if (controller.text != newText) {
+        controller.text = newText;
+      }
+    }
+  }
+
+  @override
   void dispose() {
-    focusNode
-      ..removeListener(_handleFocus)
-      ..dispose();
+    focusNode.removeListener(_handleFocus);
+    focusNode.dispose();
     controller.dispose();
     super.dispose();
   }
@@ -1438,7 +1787,7 @@ class _MoneyFieldState extends State<_MoneyField> {
     keyboardType: const TextInputType.numberWithOptions(decimal: true),
     decoration: InputDecoration(
       labelText: widget.label,
-      prefixText: '₹ ',
+      prefixText: '\u{20B9} ',
       helperText: widget.helperText,
     ),
     onFieldSubmitted: (_) => _save(),

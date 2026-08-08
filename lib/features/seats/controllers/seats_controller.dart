@@ -358,20 +358,27 @@ class SeatsController extends Notifier<List<Seat>> {
 }
 
 int _compareLabels(String first, String second) {
-  final pattern = RegExp(r'^([A-Za-z]*)(\d+)$');
-  final firstMatch = pattern.firstMatch(first);
-  final secondMatch = pattern.firstMatch(second);
-  if (firstMatch == null || secondMatch == null) {
-    return first.toLowerCase().compareTo(second.toLowerCase());
+  final cleanFirst = first.trim();
+  final cleanSecond = second.trim();
+
+  final pattern = RegExp(r'^([A-Za-z\s\-_]*?)(\d+)$');
+  final firstMatch = pattern.firstMatch(cleanFirst);
+  final secondMatch = pattern.firstMatch(cleanSecond);
+
+  if (firstMatch != null && secondMatch != null) {
+    final prefix1 = firstMatch.group(1)!.replaceAll(RegExp(r'[\s\-_]'), '').toLowerCase();
+    final prefix2 = secondMatch.group(1)!.replaceAll(RegExp(r'[\s\-_]'), '').toLowerCase();
+
+    if (prefix1 != prefix2) {
+      return prefix1.compareTo(prefix2);
+    }
+    final num1 = int.parse(firstMatch.group(2)!);
+    final num2 = int.parse(secondMatch.group(2)!);
+    return num1.compareTo(num2);
   }
-  final prefixComparison = firstMatch
-      .group(1)!
-      .toLowerCase()
-      .compareTo(secondMatch.group(1)!.toLowerCase());
-  if (prefixComparison != 0) return prefixComparison;
-  return int.parse(
-    firstMatch.group(2)!,
-  ).compareTo(int.parse(secondMatch.group(2)!));
+
+  // Fallback natural chunk comparison
+  return cleanFirst.compareTo(cleanSecond);
 }
 
 final seatsProvider = NotifierProvider<SeatsController, List<Seat>>(

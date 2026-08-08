@@ -29,6 +29,11 @@ class SeatModel {
 
   factory SeatModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    // Section-based seat documents use an internal ID such as `room_a_A1`
+    // so that two rooms may both contain `A1`. The configured seat label is
+    // stored in `seatNumber` and is the only value that should be shown in
+    // the Seats tab.
+    final configuredLabel = (data['seatNumber'] as String?)?.trim();
     final statusStr = data['status'] ?? 'available';
     SeatStatus statusEnum = SeatStatus.available;
     if (statusStr == 'occupied') statusEnum = SeatStatus.occupied;
@@ -36,7 +41,9 @@ class SeatModel {
     if (statusStr == 'blocked') statusEnum = SeatStatus.blocked;
 
     return SeatModel(
-      seatNumber: doc.id,
+      seatNumber: configuredLabel?.isNotEmpty == true
+          ? configuredLabel!
+          : doc.id,
       status: statusEnum,
       studentId: data['studentId'],
       studentName: data['studentName'],

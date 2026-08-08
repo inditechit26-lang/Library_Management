@@ -10,6 +10,8 @@ import '../controllers/owner_profile_controller.dart';
 import '../providers/active_library_provider.dart';
 import '../../update/widgets/animated_app_update_tile.dart';
 
+import '../widgets/membership_card.dart';
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
   @override
@@ -203,6 +205,9 @@ class SettingsScreen extends ConsumerWidget {
         ),
 
         const SizedBox(height: 16),
+        const MembershipCard(),
+
+        const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
@@ -332,7 +337,7 @@ class SettingsScreen extends ConsumerWidget {
         const SizedBox(height: 14),
         _SettingsEntry(
           title: tr('About StudyDesk'),
-          description: 'Version 1.0.0 · Learn more about our mission',
+          description: 'Version 1.0.0 Â· Learn more about our mission',
           icon: Icons.info_outline_rounded,
           colors: const [Color(0xFF3867D6), Color(0xFF5B8DEF)],
           onTap: () => context.push('/settings/about'),

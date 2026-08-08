@@ -90,8 +90,18 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
             (info['billingAddress'] as String?) ??
             (info['address'] as String?) ??
             '',
-        phone: (info['billingPhone'] as String?) ?? (info['phone'] as String?) ?? '',
-        email: (info['billingEmail'] as String?) ?? (info['email'] as String?) ?? '',
+        phone:
+            (info['billingPhone'] as String?) ??
+            (info['phone'] as String?) ??
+            '',
+        email:
+            (info['billingEmail'] as String?) ??
+            (info['email'] as String?) ??
+            '',
+        website: (info['billingWebsite'] as String?) ?? '',
+        taxId: (info['billingTaxId'] as String?) ?? '',
+        receiptPrefix: (info['receiptPrefix'] as String?) ?? 'SH',
+        footerMessage: (info['receiptFooterMessage'] as String?) ?? '',
       ),
     );
   }
@@ -123,6 +133,10 @@ class OwnerProfileNotifier extends Notifier<OwnerProfile> {
         'billingAddress': billingDetails.address.trim(),
         'billingPhone': billingDetails.phone.trim(),
         'billingEmail': billingDetails.email.trim(),
+        'billingWebsite': billingDetails.website.trim(),
+        'billingTaxId': billingDetails.taxId.trim(),
+        'receiptPrefix': billingDetails.receiptPrefix.trim(),
+        'receiptFooterMessage': billingDetails.footerMessage.trim(),
       },
     };
     if (updates.isEmpty) return;

@@ -188,6 +188,7 @@ class _AdmissionScreenState extends ConsumerState<AdmissionScreen> {
       sections: ref.watch(libraryConfigurationProvider).enabledSections,
       selectedSectionId: admission.selectedSectionId,
       seats: ref.watch(sc.seatsProvider),
+      students: ref.watch(studentsProvider),
       selected: admission.selectedSeat,
       selectedShift: admission.selectedHalfTimeShift,
       onSelected: admission.chooseSeat,

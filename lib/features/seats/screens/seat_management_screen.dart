@@ -73,11 +73,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                   return (s.sectionId != null &&
                           s.sectionId == selectedSectionId) ||
                       (st?.sectionId != null &&
-                          st?.sectionId == selectedSectionId) ||
-                      (s.sectionId == null &&
-                          st?.sectionId == null &&
-                          selectedSectionId ==
-                              configuration.rooms.firstOrNull?.id);
+                          st?.sectionId == selectedSectionId);
                 }).toList(),
           students: students,
         ),
@@ -157,10 +153,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
                   final count = all.where((s) {
                     final st = _student(s, students);
                     return (s.sectionId != null && s.sectionId == room.id) ||
-                        (st?.sectionId != null && st?.sectionId == room.id) ||
-                        (s.sectionId == null &&
-                            st?.sectionId == null &&
-                            room.id == configuration.rooms.first.id);
+                        (st?.sectionId != null && st?.sectionId == room.id);
                   }).length;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -201,9 +194,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
             ),
             seats: visible,
             students: students,
-            sectionNames: {
-              for (final room in configuration.rooms) room.id: room.name,
-            },
+            rooms: configuration.rooms,
             onTap: _open,
           ),
         ),
@@ -244,8 +235,7 @@ class _SeatManagementState extends ConsumerState<SeatManagementScreen> {
 
     final sectionMatch =
         (seatSec != null && seatSec == selectedSectionId) ||
-        (studentSec != null && studentSec == selectedSectionId) ||
-        (seatSec == null && studentSec == null);
+        (studentSec != null && studentSec == selectedSectionId);
 
     return searched && filtered && sectionMatch;
   }
