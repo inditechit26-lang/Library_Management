@@ -222,7 +222,7 @@ class SeatMap extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (section != null || sectionGroups.length > 1) ...[
+                        if (section != null || sectionGroups.isNotEmpty) ...[
                           Container(
                             margin: const EdgeInsets.only(bottom: 12, top: 6),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
